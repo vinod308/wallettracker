@@ -13,7 +13,7 @@ class EmailService {
         // Create SMTP transporter only if config is provided
         try {
             if (config.SMTP_HOST && config.SMTP_USER) {
-                this.transporter = nodemailer.createTransporter({
+                this.transporter = nodemailer.createTransport({
                     host: config.SMTP_HOST,
                     port: config.SMTP_PORT,
                     secure: false, // Use TLS
