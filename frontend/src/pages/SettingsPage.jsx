@@ -337,7 +337,7 @@ const SettingsPage = () => {
         <MainLayout>
             <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/20 to-indigo-50/30">
                 {/* Page Header */}
-                <div className="bg-white/80 backdrop-blur-sm border-b border-gray-100 sticky top-0 z-10">
+                <div className="bg-white/80 backdrop-blur-sm border-b border-gray-100 sticky top-16 z-10">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
                         <h1 className="text-2xl font-bold text-gray-900">Settings & Profile</h1>
                         <p className="text-sm text-gray-500 mt-0.5">Manage your account, security, and preferences</p>
@@ -345,10 +345,10 @@ const SettingsPage = () => {
                 </div>
 
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                    <div className="flex gap-6 items-start">
+                    <div className="flex flex-col lg:flex-row gap-6 items-start">
 
                         {/* ── Sidebar ──────────────────────────────────────── */}
-                        <div className="w-64 flex-shrink-0 space-y-4">
+                        <div className="w-full lg:w-64 flex-shrink-0 space-y-4">
                             {/* Profile Card */}
                             <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-100/80 shadow-sm p-5 text-center">
                                 {/* Avatar */}
@@ -372,7 +372,7 @@ const SettingsPage = () => {
 
                             {/* Navigation Tabs */}
                             <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-100/80 shadow-sm p-3">
-                                <nav className="space-y-1">
+                                <nav className="flex flex-row lg:flex-col gap-1 overflow-x-auto lg:overflow-visible">
                                     {TABS.map(({ id, label, Icon }) => {
                                         const isActive = activeTab === id;
                                         return (

@@ -5,7 +5,7 @@
  * Fires notifications into NotificationContext whenever data changes.
  */
 
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useMemo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import useCSVData from '../hooks/useCSVData';
@@ -20,14 +20,12 @@ import UpsellOpportunities from '../components/dashboard/UpsellOpportunities';
 import RevenueChart from '../components/dashboard/RevenueChart';
 import AOVChart from '../components/dashboard/AOVChart';
 import MonthlyTrendChart from '../components/dashboard/MonthlyTrendChart';
-import AddClientModal from '../components/clients/AddClientModal';
 import { formatCurrency } from '../utils/helpers';
 
 const DashboardPage = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
     const { addNotification } = useNotifications();
-    const [showAddClient, setShowAddClient] = useState(false);
 
     // Core data hook — fetches Google Sheets once, filters instantly
     const {
@@ -47,7 +45,6 @@ const DashboardPage = () => {
         contracts,
         handleRangeChange,
         handleCustomRange,
-        addRecord,
     } = useCSVData();
 
     // ── Notification logic ──────────────────────────────────────────────────
@@ -169,16 +166,6 @@ const DashboardPage = () => {
         }));
     }, [contracts]);
 
-    // ── Manual record add with notification ────────────────────────────────
-    const handleClientAdded = (record) => {
-        addRecord(record);
-        addNotification(
-            `Revenue added for ${record.clientName} – ${record.month || record.monthKey}`,
-            `${formatCurrency(record.totalMRR)}/mo`,
-            'manual_add'
-        );
-    };
-
     return (
         <MainLayout>
             {/* Page Header */}
@@ -191,20 +178,12 @@ const DashboardPage = () => {
                             <span className="font-medium text-primary-blue">{user?.full_name || 'User'}</span>
                         </p>
                     </div>
-                    <div className="flex gap-3">
-                        <button
-                            onClick={() => setShowAddClient(true)}
-                            className="px-4 py-2 bg-primary-blue text-white rounded-xl text-sm font-medium hover:bg-[#4338ca] hover:shadow-[0_4px_12px_rgba(79,70,229,0.3)] transition-all duration-200"
-                        >
-                            + Add Client
-                        </button>
-                        <button
-                            onClick={() => navigate('/reports')}
-                            className="px-4 py-2 bg-white border border-gray-200 text-gray-600 rounded-xl text-sm font-medium hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
-                        >
-                            Export Report
-                        </button>
-                    </div>
+                    <button
+                        onClick={() => navigate('/reports')}
+                        className="px-4 py-2 bg-white border border-gray-200 text-gray-600 rounded-xl text-sm font-medium hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
+                    >
+                        Export Report
+                    </button>
                 </div>
             </div>
 
@@ -314,13 +293,6 @@ const DashboardPage = () => {
                 </div>
             </div>
 
-            {/* Add Client Modal */}
-            <AddClientModal
-                isOpen={showAddClient}
-                onClose={() => setShowAddClient(false)}
-                onClientAdded={handleClientAdded}
-                existingClients={allClients}
-            />
         </MainLayout>
     );
 };

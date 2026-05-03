@@ -8,8 +8,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useNotifications } from '../../context/NotificationContext';
-import logo from '../../assets/logo.png';
-
 // Icon map for notification types
 const notifIcon = (type) => {
     switch (type) {
@@ -56,12 +54,7 @@ const Header = ({ onMenuClick }) => {
     return (
         <header className="bg-white border-b border-gray-100 sticky top-0 z-50">
             <div className="px-4 sm:px-6 lg:px-8">
-                <div className="flex justify-between items-center h-16">
-                    {/* Logo */}
-                    <div className="flex items-center">
-                        <img src={logo} alt="Garage WalletTracker" className="h-9 w-auto object-contain" />
-                    </div>
-
+                <div className="flex justify-end items-center h-16">
                     {/* Right Side: hamburger (mobile) + Notifications + Profile */}
                     <div className="flex items-center gap-1 sm:gap-4">
                         {/* Hamburger — mobile/tablet only, on the right */}
