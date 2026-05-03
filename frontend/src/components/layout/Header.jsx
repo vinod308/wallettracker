@@ -57,9 +57,14 @@ const Header = ({ onMenuClick }) => {
         <header className="bg-white border-b border-gray-100 sticky top-0 z-50">
             <div className="px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center h-16">
-                    {/* Logo + hamburger */}
-                    <div className="flex items-center gap-2">
-                        {/* Hamburger — mobile/tablet only */}
+                    {/* Logo */}
+                    <div className="flex items-center">
+                        <img src={logo} alt="Garage WalletTracker" className="h-9 w-auto object-contain" />
+                    </div>
+
+                    {/* Right Side: hamburger (mobile) + Notifications + Profile */}
+                    <div className="flex items-center gap-1 sm:gap-4">
+                        {/* Hamburger — mobile/tablet only, on the right */}
                         <button
                             onClick={onMenuClick}
                             className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-xl transition-colors lg:hidden"
@@ -69,11 +74,6 @@ const Header = ({ onMenuClick }) => {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                             </svg>
                         </button>
-                        <img src={logo} alt="Garage WalletTracker" className="h-9 w-auto object-contain" />
-                    </div>
-
-                    {/* Right Side: Notifications + Profile */}
-                    <div className="flex items-center gap-4">
 
                         {/* Notification Bell */}
                         <div className="relative" ref={notifRef}>

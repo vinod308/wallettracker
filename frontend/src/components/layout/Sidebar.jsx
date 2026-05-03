@@ -1,5 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
+import logo from '../../assets/logo.png';
 
 const navItems = [
     {
@@ -87,6 +88,11 @@ const Sidebar = ({ isOpen, onClose }) => {
                 ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
             `}
         >
+            {/* Logo — shown inside sidebar on mobile when it slides open */}
+            <div className="flex items-center px-5 py-4 border-b border-gray-100 lg:hidden">
+                <img src={logo} alt="Garage WalletTracker" className="h-8 w-auto object-contain" />
+            </div>
+
             <nav className="p-3 space-y-0.5">
                 {navItems.map((item) => (
                     <NavLink
