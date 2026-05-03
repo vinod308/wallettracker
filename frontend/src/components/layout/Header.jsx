@@ -21,7 +21,7 @@ const notifIcon = (type) => {
     }
 };
 
-const Header = () => {
+const Header = ({ onMenuClick }) => {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
     const { notification, clearNotification } = useNotifications();
@@ -57,8 +57,18 @@ const Header = () => {
         <header className="bg-white border-b border-gray-100 sticky top-0 z-50">
             <div className="px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center h-16">
-                    {/* Logo */}
-                    <div className="flex items-center">
+                    {/* Logo + hamburger */}
+                    <div className="flex items-center gap-2">
+                        {/* Hamburger — mobile/tablet only */}
+                        <button
+                            onClick={onMenuClick}
+                            className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-xl transition-colors lg:hidden"
+                            aria-label="Toggle navigation"
+                        >
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                            </svg>
+                        </button>
                         <img src={logo} alt="Garage WalletTracker" className="h-9 w-auto object-contain" />
                     </div>
 
@@ -88,7 +98,7 @@ const Header = () => {
 
                             {/* Notifications Dropdown */}
                             {showNotifications && (
-                                <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-dropdown border border-gray-100 py-2 z-50">
+                                <div className="absolute right-0 mt-2 w-80 max-w-[calc(100vw-1rem)] bg-white rounded-2xl shadow-dropdown border border-gray-100 py-2 z-50">
                                     <div className="px-4 py-2.5 border-b border-gray-100 flex items-center justify-between">
                                         <h3 className="text-sm font-semibold text-gray-900">Notifications</h3>
                                         {hasNotification && (

@@ -236,9 +236,9 @@ const DashboardPage = () => {
                 {/* Invoice Summary Bar */}
                 {invoiceSummary && (
                     <div className="mb-6 bg-white/80 backdrop-blur-sm rounded-2xl shadow-card border border-gray-100/50 p-4">
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                             <h3 className="text-sm font-semibold text-gray-900">{periodLabel} Invoice Summary</h3>
-                            <div className="flex gap-6 text-sm">
+                            <div className="flex flex-wrap gap-3 sm:gap-6 text-sm">
                                 <div>
                                     <span className="text-gray-500">Service MRR: </span>
                                     <span className="font-semibold text-gray-900">
