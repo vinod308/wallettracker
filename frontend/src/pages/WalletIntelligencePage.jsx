@@ -14,7 +14,7 @@
 import React, { useMemo } from 'react';
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-    ResponsiveContainer, Cell, PieChart, Pie, Legend,
+    ResponsiveContainer, Cell, PieChart, Pie,
     AreaChart, Area,
 } from 'recharts';
 import useCSVData from '../hooks/useCSVData';
@@ -513,25 +513,35 @@ const WalletIntelligencePage = () => {
                     <Card className="p-6">
                         <h3 className="text-base font-semibold text-gray-900 mb-4">Revenue Share Distribution</h3>
                         {revenueShareData.length > 0 ? (
-                            <ResponsiveContainer width="100%" height={300}>
-                                <PieChart>
-                                    <Pie
-                                        data={revenueShareData}
-                                        cx="50%" cy="50%"
-                                        outerRadius={110} innerRadius={50}
-                                        dataKey="value"
-                                        label={({ percentage }) => `${percentage}%`}
-                                        labelLine={false}
-                                        animationBegin={0} animationDuration={1000}
-                                    >
-                                        {revenueShareData.map((_, idx) => (
-                                            <Cell key={idx} fill={COLORS[idx % COLORS.length]} />
-                                        ))}
-                                    </Pie>
-                                    <Tooltip content={<PieTooltip />} />
-                                    <Legend layout="vertical" align="right" verticalAlign="middle" wrapperStyle={{ fontSize: 11 }} />
-                                </PieChart>
-                            </ResponsiveContainer>
+                            <>
+                                <ResponsiveContainer width="100%" height={240}>
+                                    <PieChart>
+                                        <Pie
+                                            data={revenueShareData}
+                                            cx="50%" cy="50%"
+                                            outerRadius={95} innerRadius={42}
+                                            dataKey="value"
+                                            label={({ percentage }) => `${percentage}%`}
+                                            labelLine={false}
+                                            animationBegin={0} animationDuration={1000}
+                                        >
+                                            {revenueShareData.map((_, idx) => (
+                                                <Cell key={idx} fill={COLORS[idx % COLORS.length]} />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip content={<PieTooltip />} />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                                <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1.5 max-h-36 overflow-y-auto">
+                                    {revenueShareData.map((item, idx) => (
+                                        <div key={idx} className="flex items-center gap-1.5 min-w-0">
+                                            <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: COLORS[idx % COLORS.length] }} />
+                                            <span className="text-xs text-gray-600 truncate">{item.name}</span>
+                                            <span className="text-xs text-gray-400 flex-shrink-0 ml-auto">{item.percentage}%</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </>
                         ) : (
                             <div className="flex items-center justify-center h-[300px] text-gray-300 text-sm">No data</div>
                         )}
