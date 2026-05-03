@@ -239,31 +239,36 @@ class WalletService {
 
             const values = [];
             let paramCount = 1;
+            const havingConditions = [];
 
-            // Apply filters
+            // Apply non-aggregate filters to WHERE
             if (filters.industry) {
                 values.push(filters.industry);
                 query += ` AND c.industry = $${paramCount}`;
                 paramCount++;
             }
 
+            query += ` GROUP BY c.id, c.client_name, c.project_name, c.industry, c.status, c.estimated_total_budget`;
+
+            // Apply aggregate filters to HAVING
             if (filters.minWalletShare !== undefined) {
                 values.push(filters.minWalletShare);
-                query += ` AND (COALESCE(SUM(cs.monthly_amount), 0) / c.estimated_total_budget * 100) >= $${paramCount}`;
+                havingConditions.push(`(COALESCE(SUM(cs.monthly_amount), 0) / c.estimated_total_budget * 100) >= $${paramCount}`);
                 paramCount++;
             }
 
             if (filters.maxWalletShare !== undefined) {
                 values.push(filters.maxWalletShare);
-                query += ` AND (COALESCE(SUM(cs.monthly_amount), 0) / c.estimated_total_budget * 100) <= $${paramCount}`;
+                havingConditions.push(`(COALESCE(SUM(cs.monthly_amount), 0) / c.estimated_total_budget * 100) <= $${paramCount}`);
                 paramCount++;
             }
 
-            query += ` GROUP BY c.id, c.client_name, c.project_name, c.industry, c.status, c.estimated_total_budget`;
-
             if (filters.priority) {
-                // Filter by priority after calculation
-                query += ` HAVING c.estimated_total_budget - COALESCE(SUM(cs.monthly_amount), 0) > 0`;
+                havingConditions.push(`c.estimated_total_budget - COALESCE(SUM(cs.monthly_amount), 0) > 0`);
+            }
+
+            if (havingConditions.length > 0) {
+                query += ` HAVING ${havingConditions.join(' AND ')}`;
             }
 
             query += ` ORDER BY expansion_potential DESC`;
