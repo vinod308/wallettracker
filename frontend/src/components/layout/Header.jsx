@@ -54,20 +54,20 @@ const Header = ({ onMenuClick }) => {
     return (
         <header className="bg-white border-b border-gray-100 sticky top-0 z-50">
             <div className="px-4 sm:px-6 lg:px-8">
-                <div className="flex justify-end items-center h-16">
-                    {/* Right Side: hamburger (mobile) + Notifications + Profile */}
-                    <div className="flex items-center gap-1 sm:gap-4">
-                        {/* Hamburger — mobile/tablet only, on the right */}
-                        <button
-                            onClick={onMenuClick}
-                            className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-xl transition-colors lg:hidden"
-                            aria-label="Toggle navigation"
-                        >
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                            </svg>
-                        </button>
+                <div className="flex justify-between items-center h-16">
+                    {/* Left: Hamburger — mobile/tablet only */}
+                    <button
+                        onClick={onMenuClick}
+                        className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-xl transition-colors lg:hidden"
+                        aria-label="Toggle navigation"
+                    >
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
 
+                    {/* Right: Notifications + Profile */}
+                    <div className="flex items-center gap-1 sm:gap-4 ml-auto">
                         {/* Notification Bell */}
                         <div className="relative" ref={notifRef}>
                             <button
