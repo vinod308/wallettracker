@@ -519,10 +519,9 @@ const WalletIntelligencePage = () => {
                                         <Pie
                                             data={revenueShareData}
                                             cx="50%" cy="50%"
-                                            outerRadius={95} innerRadius={42}
+                                            outerRadius={100} innerRadius={45}
                                             dataKey="value"
-                                            label={({ percentage }) => `${percentage}%`}
-                                            labelLine={false}
+                                            label={false}
                                             animationBegin={0} animationDuration={1000}
                                         >
                                             {revenueShareData.map((_, idx) => (
