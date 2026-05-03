@@ -299,6 +299,7 @@ const DashboardPage = () => {
                             clients={clientTableData}
                             loading={loading}
                             periodLabel={periodLabel}
+                            onClientClick={(client) => navigate(`/client/${client.id}`)}
                         />
                     </div>
                     <div className="lg:col-span-1">

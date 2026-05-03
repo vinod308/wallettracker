@@ -8,7 +8,7 @@
 import React, { useState, useMemo } from 'react';
 import { formatCurrency } from '../../utils/helpers';
 
-const ClientRevenueTable = ({ clients = [], loading = false, periodLabel = '' }) => {
+const ClientRevenueTable = ({ clients = [], loading = false, periodLabel = '', onClientClick }) => {
     const [sortColumn, setSortColumn] = useState('totalMRR');
     const [sortOrder, setSortOrder] = useState('DESC');
     const [statusFilter, setStatusFilter] = useState('all');
@@ -201,6 +201,7 @@ const ClientRevenueTable = ({ clients = [], loading = false, periodLabel = '' })
                                 <tr
                                     key={client.id || index}
                                     className="hover:bg-gray-50 transition-colors duration-150 cursor-pointer"
+                                    onClick={() => onClientClick?.(client)}
                                 >
                                     <td className="px-4 py-4 whitespace-nowrap">
                                         <div>
