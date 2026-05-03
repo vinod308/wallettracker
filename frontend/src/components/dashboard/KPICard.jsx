@@ -69,7 +69,7 @@ const KPICard = ({
 
     return (
         <div
-            className={`relative bg-white rounded-xl shadow-card border border-gray-100 p-6 transition-shadow duration-250 ${hasTooltip ? 'hover:shadow-card-hover cursor-default' : ''}`}
+            className={`relative bg-white rounded-xl shadow-card border border-gray-100 p-4 sm:p-6 transition-shadow duration-250 ${hasTooltip ? 'hover:shadow-card-hover cursor-default' : ''}`}
             onMouseEnter={() => hasTooltip && setShowTooltip(true)}
             onMouseLeave={() => setShowTooltip(false)}
             ref={tooltipRef}
@@ -78,7 +78,7 @@ const KPICard = ({
             <p className="text-sm font-medium text-gray-600 mb-2">{label}</p>
 
             {/* Value */}
-            <h3 className="text-3xl font-medium text-gray-900 mb-1">
+            <h3 className="text-xl sm:text-3xl font-medium text-gray-900 mb-1">
                 {isCurrency ? formatCurrency(animatedValue) : animatedValue.toLocaleString()}
             </h3>
 

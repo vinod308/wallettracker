@@ -170,9 +170,9 @@ const DashboardPage = () => {
         <MainLayout>
             {/* Page Header */}
             <div className="mb-6">
-                <div className="flex justify-between items-center">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Dashboard</h1>
                         <p className="mt-1 text-sm text-gray-600">
                             Welcome back,{' '}
                             <span className="font-medium text-primary-blue">{user?.full_name || 'User'}</span>
@@ -180,7 +180,7 @@ const DashboardPage = () => {
                     </div>
                     <button
                         onClick={() => navigate('/reports')}
-                        className="px-4 py-2 bg-white border border-gray-200 text-gray-600 rounded-xl text-sm font-medium hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
+                        className="self-start sm:self-auto px-4 py-2 bg-white border border-gray-200 text-gray-600 rounded-xl text-sm font-medium hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
                     >
                         Export Report
                     </button>
