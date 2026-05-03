@@ -27,3 +27,6 @@ dist-ssr
 .env
 .env.local
 .env.production
+
+# Windows null device artifact (created when redirecting to nul in Git Bash)
+nul
