@@ -824,7 +824,7 @@ const ReportsPage = () => {
             <div>
                 {/* ── Header ──────────────────────────────────────────────── */}
                 <div className="mb-6">
-                    <h1 className="text-3xl font-bold text-gray-900">Reports & Scheduling</h1>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Reports & Scheduling</h1>
                     <p className="mt-1 text-sm text-gray-600">
                         Generate, export, and schedule reports from Google Sheets data — PDF, Excel, CSV
                     </p>
@@ -929,7 +929,7 @@ const ReportsPage = () => {
 
                 {/* ── System Logic Documentation ───────────────────────────── */}
                 <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl border border-indigo-100/50 p-6 mb-6">
-                    <div className="flex items-start justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                         <div>
                             <h2 className="text-base font-semibold text-gray-900 mb-1">System Logic Documentation</h2>
                             <p className="text-xs text-gray-500 mb-1">Complete functional logic documentation — formulas, decision rules, calculations, edge cases.</p>
@@ -941,7 +941,7 @@ const ReportsPage = () => {
                                 try { await generateLogicDocument(); } catch (e) { console.error(e); } finally { setGeneratingDoc(false); }
                             }}
                             disabled={generatingDoc}
-                            className="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 disabled:opacity-50 text-white rounded-xl text-sm font-medium transition-all duration-200 flex items-center gap-2 whitespace-nowrap ml-6"
+                            className="self-start px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 disabled:opacity-50 text-white rounded-xl text-sm font-medium transition-all duration-200 flex items-center gap-2 whitespace-nowrap"
                         >
                             {generatingDoc ? (
                                 <><svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>Generating…</>

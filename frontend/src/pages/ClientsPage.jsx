@@ -110,7 +110,7 @@ const ClientsPage = () => {
                 <div className="animate-pulse space-y-6">
                     <div className="h-8 bg-gray-200 rounded w-64 mb-2"></div>
                     <div className="h-4 bg-gray-100 rounded w-96 mb-8"></div>
-                    <div className="grid grid-cols-4 gap-5 mb-8">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mb-8">
                         {[1, 2, 3, 4].map(i => <div key={i} className="h-24 bg-gray-100 rounded-2xl"></div>)}
                     </div>
                     <div className="h-12 bg-gray-100 rounded-2xl mb-4"></div>
@@ -124,41 +124,41 @@ const ClientsPage = () => {
         <MainLayout>
             <div>
                 {/* Header */}
-                <div className="mb-6 flex justify-between items-start">
+                <div className="mb-6 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900">Client Management</h1>
+                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Client Management</h1>
                         <p className="mt-1 text-sm text-gray-600">
                             {allClients.length} clients tracked from Google Sheets (April – July 2025)
                         </p>
                     </div>
                     <button
                         onClick={() => setShowAddClient(true)}
-                        className="px-4 py-2 bg-primary-blue text-white rounded-xl text-sm font-medium hover:bg-[#4338ca] hover:shadow-[0_4px_12px_rgba(79,70,229,0.3)] transition-all duration-200"
+                        className="self-start sm:self-auto px-4 py-2 bg-primary-blue text-white rounded-xl text-sm font-medium hover:bg-[#4338ca] hover:shadow-[0_4px_12px_rgba(79,70,229,0.3)] transition-all duration-200"
                     >
                         + Add Client
                     </button>
                 </div>
 
                 {/* Stats Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-5 mb-6">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-5 mb-6">
                     {/* Total Clients */}
                     <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-card border border-gray-100/50 p-5">
                         <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Total Clients</p>
-                        <h3 className="text-2xl font-medium text-gray-900">{stats.total}</h3>
+                        <h3 className="text-xl sm:text-2xl font-medium text-gray-900">{stats.total}</h3>
                         <p className="text-xs text-gray-500 mt-1">{stats.activeCount} active</p>
                     </div>
 
                     {/* Total Revenue */}
                     <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-card border border-gray-100/50 p-5">
                         <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Total Revenue</p>
-                        <h3 className="text-2xl font-medium text-green-600">{formatCurrency(Math.round(stats.totalRevenue))}</h3>
+                        <h3 className="text-xl sm:text-2xl font-medium text-green-600">{formatCurrency(Math.round(stats.totalRevenue))}</h3>
                         <p className="text-xs text-gray-500 mt-1">Apr – Jul 2025</p>
                     </div>
 
                     {/* Avg Revenue per Client */}
                     <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-card border border-gray-100/50 p-5">
                         <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Avg Revenue/Client</p>
-                        <h3 className="text-2xl font-medium text-primary-blue">{formatCurrency(Math.round(stats.avgRevenue))}</h3>
+                        <h3 className="text-xl sm:text-2xl font-medium text-primary-blue">{formatCurrency(Math.round(stats.avgRevenue))}</h3>
                         <p className="text-xs text-gray-500 mt-1">Per client total</p>
                     </div>
 
@@ -179,7 +179,7 @@ const ClientsPage = () => {
                         onMouseLeave={() => setShowAtRiskTooltip(false)}
                     >
                         <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">At Risk Clients</p>
-                        <h3 className="text-2xl font-medium text-red-600">{stats.atRiskCount}</h3>
+                        <h3 className="text-xl sm:text-2xl font-medium text-red-600">{stats.atRiskCount}</h3>
                         <p className="text-xs text-gray-500 mt-1">
                             {stats.atRiskCount > 0 ? 'Hover to view details' : 'No at-risk clients'}
                         </p>

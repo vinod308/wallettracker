@@ -164,7 +164,7 @@ const WalletIntelligencePage = () => {
                 <div className="space-y-6 animate-pulse">
                     <div className="h-8 bg-gray-200 rounded w-64 mb-2" />
                     <div className="h-4 bg-gray-100 rounded w-96 mb-8" />
-                    <div className="grid grid-cols-4 gap-5 mb-8">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mb-8">
                         {[1, 2, 3, 4].map(i => <div key={i} className="h-28 bg-gray-100 rounded-2xl" />)}
                     </div>
                     <div className="h-36 bg-gray-100 rounded-2xl mb-6" />
@@ -185,7 +185,7 @@ const WalletIntelligencePage = () => {
             <div>
                 {/* ── Page header ──────────────────────────────────────────── */}
                 <div className="mb-6">
-                    <h1 className="text-3xl font-bold text-gray-900">Wallet Intelligence</h1>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Wallet Intelligence</h1>
                     <p className="mt-1 text-sm text-gray-600">
                         Business analytics and insights — powered by Google Sheets data (April – July 2025)
                     </p>
@@ -199,7 +199,7 @@ const WalletIntelligencePage = () => {
 
                 {/* ── Summary KPI cards ──────────────────────────────────────── */}
                 {walletIntelligence && (
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-5 mb-8">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-5 mb-8">
                         {[
                             { label: 'Total Wallet', value: formatCurrency(walletIntelligence.totalWallet), sub: `${allClients.length} clients tracked`, color: 'text-gray-900' },
                             { label: 'Avg Client Revenue', value: formatCurrency(walletIntelligence.avgClientRevenue), sub: 'Across all months', color: 'text-indigo-600' },
@@ -208,7 +208,7 @@ const WalletIntelligencePage = () => {
                         ].map((card, i) => (
                             <div key={i} className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-card border border-gray-100/50 p-5 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300">
                                 <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">{card.label}</p>
-                                <h3 className={`text-2xl font-bold ${card.color}`}>{card.value}</h3>
+                                <h3 className={`text-xl sm:text-2xl font-bold ${card.color}`}>{card.value}</h3>
                                 <p className="text-xs text-gray-500 mt-1 truncate">{card.sub}</p>
                             </div>
                         ))}
@@ -245,7 +245,7 @@ const WalletIntelligencePage = () => {
                         </div>
 
                         {/* 3 sub-metrics */}
-                        <div className="grid grid-cols-3 gap-4">
+                        <div className="grid grid-cols-3 gap-2 sm:gap-4">
                             {[
                                 { label: 'Revenue Growth',   value: `${healthScore.growthPct > 0 ? '+' : ''}${healthScore.growthPct}%`, score: healthScore.growthScore,    max: 30 },
                                 { label: 'Client Retention', value: `${healthScore.retentionPct}%`,                                      score: healthScore.retentionScore, max: 40 },

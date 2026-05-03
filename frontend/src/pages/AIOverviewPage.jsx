@@ -293,7 +293,7 @@ const AIOverviewPage = () => {
                         </svg>
                     </div>
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900">AI Overview</h1>
+                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">AI Overview</h1>
                         <p className="text-sm text-gray-500">Smart predictions and recommendations from your CSV data</p>
                     </div>
                 </div>

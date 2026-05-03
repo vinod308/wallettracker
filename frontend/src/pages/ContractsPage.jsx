@@ -77,7 +77,7 @@ const ContractsPage = () => {
                 <div className="animate-pulse space-y-6">
                     <div className="h-8 bg-gray-200 rounded w-64 mb-2"></div>
                     <div className="h-4 bg-gray-100 rounded w-96 mb-8"></div>
-                    <div className="grid grid-cols-4 gap-5 mb-8">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mb-8">
                         {[1, 2, 3, 4].map(i => <div key={i} className="h-28 bg-gray-100 rounded-2xl"></div>)}
                     </div>
                     <div className="h-96 bg-gray-100 rounded-2xl"></div>
@@ -91,7 +91,7 @@ const ContractsPage = () => {
             <div>
                 {/* Header */}
                 <div className="mb-6">
-                    <h1 className="text-3xl font-bold text-gray-900">Contracts & Renewals</h1>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Contracts & Renewals</h1>
                     <p className="mt-1 text-sm text-gray-600">
                         Auto-generated from CSV invoice data - {contracts.length} contracts tracked
                     </p>
@@ -105,25 +105,25 @@ const ContractsPage = () => {
 
                 {/* Stats Cards */}
                 {stats && (
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-5 mb-8">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-5 mb-8">
                         <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-card border border-gray-100/50 p-5">
                             <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Total Contracts</p>
-                            <h3 className="text-2xl font-medium text-gray-900">{stats.total}</h3>
+                            <h3 className="text-xl sm:text-2xl font-medium text-gray-900">{stats.total}</h3>
                             <p className="text-xs text-gray-500 mt-1">{stats.active} active</p>
                         </div>
                         <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-card border border-gray-100/50 p-5">
                             <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Expiring Soon</p>
-                            <h3 className="text-2xl font-medium text-orange-600">{stats.expiring}</h3>
+                            <h3 className="text-xl sm:text-2xl font-medium text-orange-600">{stats.expiring}</h3>
                             <p className="text-xs text-gray-500 mt-1">Need attention</p>
                         </div>
                         <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-card border border-gray-100/50 p-5">
                             <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Total MRR</p>
-                            <h3 className="text-2xl font-medium text-green-600">{formatCurrency(Math.round(stats.totalMRR))}</h3>
+                            <h3 className="text-xl sm:text-2xl font-medium text-green-600">{formatCurrency(Math.round(stats.totalMRR))}</h3>
                             <p className="text-xs text-gray-500 mt-1">Monthly recurring</p>
                         </div>
                         <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-card border border-gray-100/50 p-5">
                             <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Revenue at Risk</p>
-                            <h3 className="text-2xl font-medium text-red-600">{formatCurrency(Math.round(stats.atRiskMRR))}</h3>
+                            <h3 className="text-xl sm:text-2xl font-medium text-red-600">{formatCurrency(Math.round(stats.atRiskMRR))}</h3>
                             <p className="text-xs text-gray-500 mt-1">Expiring contracts</p>
                         </div>
                     </div>
@@ -131,7 +131,7 @@ const ContractsPage = () => {
 
                 {/* Filter Tabs */}
                 <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-card border border-gray-100/50 p-4 mb-6">
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                         {[
                             { value: 'all', label: 'All Contracts' },
                             { value: 'expiring', label: 'Expiring Soon' },
