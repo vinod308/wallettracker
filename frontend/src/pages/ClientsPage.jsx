@@ -9,14 +9,12 @@ import { useNavigate } from 'react-router-dom';
 import useCSVData from '../hooks/useCSVData';
 import MainLayout from '../components/layout/MainLayout';
 import ClientTable from '../components/clients/ClientTable';
-import AddClientModal from '../components/clients/AddClientModal';
 import EditClientModal from '../components/clients/EditClientModal';
 import { formatCurrency } from '../utils/helpers';
 
 const ClientsPage = () => {
     const navigate = useNavigate();
     const { loading, allClients, upsellOpportunities, addRecord } = useCSVData();
-    const [showAddClient, setShowAddClient]           = useState(false);
     const [editingClient, setEditingClient]           = useState(null);
     const [showAtRiskTooltip, setShowAtRiskTooltip]   = useState(false);
     const [tooltipPos, setTooltipPos]                 = useState({ top: 0, right: 0 });
@@ -124,19 +122,11 @@ const ClientsPage = () => {
         <MainLayout>
             <div>
                 {/* Header */}
-                <div className="mb-6 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-                    <div>
-                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Client Management</h1>
-                        <p className="mt-1 text-sm text-gray-600">
-                            {allClients.length} clients tracked from Google Sheets (April – July 2025)
-                        </p>
-                    </div>
-                    <button
-                        onClick={() => setShowAddClient(true)}
-                        className="self-start sm:self-auto px-4 py-2 bg-primary-blue text-white rounded-xl text-sm font-medium hover:bg-[#4338ca] hover:shadow-[0_4px_12px_rgba(79,70,229,0.3)] transition-all duration-200"
-                    >
-                        + Add Client
-                    </button>
+                <div className="mb-6">
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Client Management</h1>
+                    <p className="mt-1 text-sm text-gray-600">
+                        {allClients.length} clients tracked from Google Sheets (April – July 2025)
+                    </p>
                 </div>
 
                 {/* Stats Cards */}
@@ -258,14 +248,6 @@ const ClientsPage = () => {
                     upsellMap={upsellOpportunities}
                 />
             </div>
-
-            {/* Add Client Modal */}
-            <AddClientModal
-                isOpen={showAddClient}
-                onClose={() => setShowAddClient(false)}
-                onClientAdded={(record) => addRecord(record)}
-                existingClients={allClients}
-            />
 
             {/* Edit Client Modal */}
             <EditClientModal

@@ -4,7 +4,7 @@
  */
 
 import React, { lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
 // Auth Pages (eagerly loaded — needed immediately)
@@ -141,9 +141,9 @@ const AppRouter = () => {
                 <div className="text-center">
                   <h1 className="text-6xl font-bold text-gray-300">404</h1>
                   <p className="text-xl text-gray-600 mt-4">Page not found</p>
-                  <a href="/" className="text-primary-blue hover:underline mt-4 inline-block">
+                  <Link to="/" className="text-primary-blue hover:underline mt-4 inline-block">
                     Go Home
-                  </a>
+                  </Link>
                 </div>
               </div>
             }
