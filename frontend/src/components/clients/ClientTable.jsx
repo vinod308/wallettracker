@@ -6,7 +6,7 @@
 import React from 'react';
 import { formatCurrency } from '../../utils/helpers';
 
-const ClientTable = ({ clients, loading, onViewDetails, upsellMap = [] }) => {
+const ClientTable = ({ clients, loading, onViewDetails, onEdit, upsellMap = [] }) => {
     const getStatusBadge = (status) => {
         const styles = {
             Active: 'bg-green-100 text-green-800',
@@ -124,15 +124,26 @@ const ClientTable = ({ clients, loading, onViewDetails, upsellMap = [] }) => {
                                         </div>
                                     </td>
                                     <td className="px-5 py-3.5 whitespace-nowrap text-right">
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                onViewDetails && onViewDetails(client);
-                                            }}
-                                            className="text-sm text-primary-blue hover:text-[#4338ca] font-medium transition-colors"
-                                        >
-                                            View Details
-                                        </button>
+                                        <div className="flex items-center justify-end gap-3">
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    onEdit && onEdit(client);
+                                                }}
+                                                className="text-sm text-gray-500 hover:text-gray-800 font-medium transition-colors"
+                                            >
+                                                Edit
+                                            </button>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    onViewDetails && onViewDetails(client);
+                                                }}
+                                                className="text-sm text-primary-blue hover:text-[#4338ca] font-medium transition-colors"
+                                            >
+                                                View Details
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             );

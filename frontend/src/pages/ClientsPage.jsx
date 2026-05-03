@@ -10,12 +10,14 @@ import useCSVData from '../hooks/useCSVData';
 import MainLayout from '../components/layout/MainLayout';
 import ClientTable from '../components/clients/ClientTable';
 import AddClientModal from '../components/clients/AddClientModal';
+import EditClientModal from '../components/clients/EditClientModal';
 import { formatCurrency } from '../utils/helpers';
 
 const ClientsPage = () => {
     const navigate = useNavigate();
     const { loading, allClients, upsellOpportunities, addRecord } = useCSVData();
     const [showAddClient, setShowAddClient]           = useState(false);
+    const [editingClient, setEditingClient]           = useState(null);
     const [showAtRiskTooltip, setShowAtRiskTooltip]   = useState(false);
     const [tooltipPos, setTooltipPos]                 = useState({ top: 0, right: 0 });
     const atRiskCardRef = useRef(null);
@@ -252,6 +254,7 @@ const ClientsPage = () => {
                     clients={filteredClients}
                     loading={loading}
                     onViewDetails={handleViewDetails}
+                    onEdit={(client) => setEditingClient(client)}
                     upsellMap={upsellOpportunities}
                 />
             </div>
@@ -262,6 +265,17 @@ const ClientsPage = () => {
                 onClose={() => setShowAddClient(false)}
                 onClientAdded={(record) => addRecord(record)}
                 existingClients={allClients}
+            />
+
+            {/* Edit Client Modal */}
+            <EditClientModal
+                isOpen={!!editingClient}
+                onClose={() => setEditingClient(null)}
+                client={editingClient}
+                onClientUpdated={(record) => {
+                    addRecord(record);
+                    setEditingClient(null);
+                }}
             />
 
             {/* At Risk tooltip — fixed so it escapes all stacking contexts */}

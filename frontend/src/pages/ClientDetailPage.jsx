@@ -5,11 +5,12 @@
  * Shows: header with badges, monthly tables, addon insight cards, comparison charts.
  */
 
-import React, { useMemo, lazy, Suspense } from 'react';
+import React, { useMemo, lazy, Suspense, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import useCSVData from '../hooks/useCSVData';
 import MainLayout from '../components/layout/MainLayout';
 import MonthlyTable from '../components/clients/MonthlyTable';
+import EditClientModal from '../components/clients/EditClientModal';
 import AddonInsightCard from '../components/clients/AddonInsightCard';
 import { formatCurrency } from '../utils/helpers';
 import { detectServices } from '../utils/csvParser';
@@ -43,7 +44,8 @@ const getServiceCategory = (svcName) => SERVICE_CATEGORY[svcName] || 'Standard';
 const ClientDetailPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { loading, getClientById, upsellOpportunities } = useCSVData();
+    const { loading, getClientById, upsellOpportunities, addRecord } = useCSVData();
+    const [showEditModal, setShowEditModal] = useState(false);
 
     const client = useMemo(() => getClientById(decodeURIComponent(id)), [id, getClientById]);
 
@@ -293,6 +295,12 @@ const ClientDetailPage = () => {
                         <p className="text-xs text-gray-500 uppercase tracking-wide font-medium">Lifetime Revenue</p>
                         <p className="text-2xl font-bold text-gray-900 mt-1">{formatCurrency(lifetimeRevenue)}</p>
                         <p className="text-xs text-gray-500 mt-0.5">Apr - Jul 2025</p>
+                        <button
+                            onClick={() => setShowEditModal(true)}
+                            className="mt-3 px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors"
+                        >
+                            Edit Client
+                        </button>
                     </div>
                 </div>
 
@@ -380,6 +388,16 @@ const ClientDetailPage = () => {
                     </div>
                 )}
             </div>
+
+            <EditClientModal
+                isOpen={showEditModal}
+                onClose={() => setShowEditModal(false)}
+                client={client}
+                onClientUpdated={(record) => {
+                    addRecord(record);
+                    setShowEditModal(false);
+                }}
+            />
         </MainLayout>
     );
 };
