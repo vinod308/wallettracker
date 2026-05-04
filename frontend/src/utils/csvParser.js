@@ -75,6 +75,7 @@ export const parseCSVFile = async (fileConfig) => {
             Papa.parse(csvText, {
                 header: true,
                 skipEmptyLines: true,
+                transformHeader: (header) => header.trim(),
                 complete: (results) => {
                     const records = results.data
                         .filter(row => row['Client Name'] && row['Client Name'].trim())
