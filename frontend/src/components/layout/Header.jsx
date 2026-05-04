@@ -8,6 +8,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useNotifications } from '../../context/NotificationContext';
+import logo from '../../assets/logo.png';
 // Icon map for notification types
 const notifIcon = (type) => {
     switch (type) {
@@ -65,6 +66,11 @@ const Header = ({ onMenuClick }) => {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                         </svg>
                     </button>
+
+                    {/* Logo — desktop only */}
+                    <div className="hidden lg:flex items-center">
+                        <img src={logo} alt="Garage Wallet" className="h-9 w-auto object-contain" />
+                    </div>
 
                     {/* Right: Notifications + Profile */}
                     <div className="flex items-center gap-1 sm:gap-4 ml-auto">

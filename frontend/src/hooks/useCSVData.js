@@ -514,7 +514,10 @@ const useCSVData = () => {
     }, []);
 
     const handleCustomRange = useCallback((start, end) => {
-        setCustomRange({ start, end });
+        const MONTH_NAMES = ['january','february','march','april','may','june','july','august','september','october','november','december'];
+        const startKey = MONTH_NAMES[parseInt(start.split('-')[1], 10) - 1] || start;
+        const endKey   = MONTH_NAMES[parseInt(end.split('-')[1],   10) - 1] || end;
+        setCustomRange({ start: startKey, end: endKey });
         setSelectedRange('custom');
     }, []);
 
