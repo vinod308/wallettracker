@@ -371,7 +371,7 @@ const SettingsPage = () => {
                             </div>
 
                             {/* Navigation Tabs */}
-                            <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-100/80 shadow-sm p-3">
+                            <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-100/80 shadow-sm p-2 lg:p-3">
                                 <nav className="flex flex-row lg:flex-col gap-1 overflow-x-auto lg:overflow-visible">
                                     {TABS.map(({ id, label, Icon }) => {
                                         const isActive = activeTab === id;
@@ -379,17 +379,17 @@ const SettingsPage = () => {
                                             <button
                                                 key={id}
                                                 onClick={() => setActiveTab(id)}
-                                                className={`flex-shrink-0 lg:w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-left
+                                                className={`flex-shrink-0 lg:w-full flex items-center gap-1.5 lg:gap-3 px-2.5 py-2 lg:px-4 lg:py-2.5 rounded-xl text-left
                                                     transition-all duration-200 group
                                                     ${isActive
                                                         ? 'bg-gradient-to-r from-primary-blue to-indigo-600 text-white shadow-md shadow-indigo-200/50'
                                                         : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                                                     }`}
                                             >
-                                                <Icon className={`w-5 h-5 flex-shrink-0 transition-colors duration-200
+                                                <Icon className={`w-4 h-4 lg:w-5 lg:h-5 flex-shrink-0 transition-colors duration-200
                                                     ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-gray-600'}`}
                                                 />
-                                                <span className="text-sm font-medium">{label}</span>
+                                                <span className="text-xs lg:text-sm font-medium whitespace-nowrap">{label}</span>
                                             </button>
                                         );
                                     })}

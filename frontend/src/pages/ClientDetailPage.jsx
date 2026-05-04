@@ -279,11 +279,11 @@ const ClientDetailPage = () => {
 
             {/* Client Header Card */}
             <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-card border border-gray-100/50 p-6 mb-6">
-                <div className="flex justify-between items-start">
-                    <div>
-                        <h1 className="text-2xl font-bold text-gray-900">{client.clientName}</h1>
+                <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+                    <div className="min-w-0">
+                        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 leading-tight">{client.clientName}</h1>
                         <p className="text-sm text-gray-500 mt-0.5">Invoice: {client.invoiceNumber || 'N/A'}</p>
-                        <div className="flex items-center gap-2 mt-3">
+                        <div className="flex flex-wrap items-center gap-2 mt-3">
                             {getStatusBadge(client.status)}
                             {getBadgeStyle(badge)}
                             <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
@@ -291,9 +291,9 @@ const ClientDetailPage = () => {
                             </span>
                         </div>
                     </div>
-                    <div className="text-right">
+                    <div className="sm:text-right flex-shrink-0">
                         <p className="text-xs text-gray-500 uppercase tracking-wide font-medium">Lifetime Revenue</p>
-                        <p className="text-2xl font-bold text-gray-900 mt-1">{formatCurrency(lifetimeRevenue)}</p>
+                        <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1">{formatCurrency(lifetimeRevenue)}</p>
                         <p className="text-xs text-gray-500 mt-0.5">Apr - Jul 2025</p>
                         <button
                             onClick={() => setShowEditModal(true)}
@@ -308,21 +308,21 @@ const ClientDetailPage = () => {
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-5 pt-5 border-t border-gray-100">
                     <div>
                         <p className="text-xs text-gray-500">Current MRR</p>
-                        <p className="text-lg font-bold text-gray-900">
+                        <p className="text-sm sm:text-lg font-bold text-gray-900 break-all">
                             {latestMonth ? formatCurrency(latestMonth.totalMRR) : '-'}
                         </p>
                     </div>
                     <div>
                         <p className="text-xs text-gray-500">Avg. Monthly Revenue</p>
-                        <p className="text-lg font-bold text-gray-900">{formatCurrency(Math.round(avgMonthlyRevenue))}</p>
+                        <p className="text-sm sm:text-lg font-bold text-gray-900 break-all">{formatCurrency(Math.round(avgMonthlyRevenue))}</p>
                     </div>
                     <div>
                         <p className="text-xs text-gray-500">Total Add-on Revenue</p>
-                        <p className="text-lg font-bold text-primary-blue">{formatCurrency(totalAddons)}</p>
+                        <p className="text-sm sm:text-lg font-bold text-primary-blue break-all">{formatCurrency(totalAddons)}</p>
                     </div>
                     <div>
                         <p className="text-xs text-gray-500">Active Services</p>
-                        <p className="text-lg font-bold text-gray-900">{client.detectedServices.length}</p>
+                        <p className="text-sm sm:text-lg font-bold text-gray-900">{client.detectedServices.length}</p>
                     </div>
                 </div>
 

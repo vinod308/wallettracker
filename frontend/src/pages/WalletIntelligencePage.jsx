@@ -207,8 +207,8 @@ const WalletIntelligencePage = () => {
                             { label: 'At Risk / Declining', value: walletIntelligence.declining?.length || 0, sub: 'Clients with revenue decline', color: 'text-red-600' },
                         ].map((card, i) => (
                             <div key={i} className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-card border border-gray-100/50 p-5 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300">
-                                <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">{card.label}</p>
-                                <h3 className={`text-xl sm:text-2xl font-bold ${card.color}`}>{card.value}</h3>
+                                <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1 leading-tight">{card.label}</p>
+                                <h3 className={`text-sm sm:text-xl font-bold leading-tight break-all ${card.color}`}>{card.value}</h3>
                                 <p className="text-xs text-gray-500 mt-1 truncate">{card.sub}</p>
                             </div>
                         ))}
