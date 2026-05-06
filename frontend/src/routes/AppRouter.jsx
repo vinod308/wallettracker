@@ -22,6 +22,10 @@ const ContractsPage = lazy(() => import('../pages/ContractsPage'));
 const ReportsPage = lazy(() => import('../pages/ReportsPage'));
 const SettingsPage = lazy(() => import('../pages/SettingsPage'));
 const AIOverviewPage = lazy(() => import('../pages/AIOverviewPage'));
+const OnboardedClientPage   = lazy(() => import('../pages/OnboardedClientPage'));
+const CompanyDetailsPage    = lazy(() => import('../pages/CompanyDetailsPage'));
+const VendorManagementPage  = lazy(() => import('../pages/VendorManagementPage'));
+const VendorDetailPage      = lazy(() => import('../pages/VendorDetailPage'));
 
 // Route Guards
 import ProtectedRoute from './ProtectedRoute';
@@ -85,6 +89,14 @@ const AppRouter = () => {
             }
           />
           <Route
+            path="/clients/onboarded/:clientId"
+            element={
+              <ProtectedRoute>
+                <OnboardedClientPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/wallet"
             element={
               <ProtectedRoute>
@@ -117,10 +129,35 @@ const AppRouter = () => {
             }
           />
           <Route
+            path="/company-details"
+            element={
+              <ProtectedRoute>
+                <CompanyDetailsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/settings"
             element={
               <ProtectedRoute>
                 <SettingsPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/vendors"
+            element={
+              <ProtectedRoute>
+                <VendorManagementPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/vendors/:vendorId"
+            element={
+              <ProtectedRoute>
+                <VendorDetailPage />
               </ProtectedRoute>
             }
           />

@@ -363,7 +363,7 @@ const SettingsPage = () => {
                                     <p className="text-xs text-gray-400 mt-0.5 truncate">{user?.email}</p>
                                     <span className="inline-block mt-2 px-2.5 py-0.5 rounded-full text-xs font-medium
                                         bg-indigo-50 text-indigo-700 border border-indigo-100">
-                                        {user?.role || 'Account Manager'}
+                                        {user?.role === 'vendor_manager' ? 'Vendor Manager' : (user?.role || 'Account Manager')}
                                     </span>
                                 </div>
                             </div>
@@ -837,6 +837,7 @@ const SettingsPage = () => {
                                                                     <option value="Admin">Admin</option>
                                                                     <option value="Account Manager">Account Manager</option>
                                                                     <option value="Finance">Finance</option>
+                                                                    <option value="vendor_manager">Vendor Manager</option>
                                                                 </select>
                                                             </td>
                                                             <td className="px-3 py-3">

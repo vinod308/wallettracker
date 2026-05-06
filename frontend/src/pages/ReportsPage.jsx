@@ -547,29 +547,12 @@ const ReportsPage = () => {
 
         return (
             <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-card border border-gray-100/50 p-6 mt-6 animate-fadeIn">
-                {/* Preview header + export buttons */}
-                <div className="flex justify-between items-start mb-6">
-                    <div>
-                        <h2 className="text-lg font-semibold text-gray-900">{r.reportType} Report</h2>
-                        <p className="text-xs text-gray-400 mt-0.5">
-                            Generated {new Date(r.generatedAt).toLocaleString()} · Source: Google Sheets (Apr – Jul 2025) · {allClients.length} clients
-                        </p>
-                    </div>
-                    <div className="flex gap-2 flex-wrap">
-                        {[
-                            { label: 'PDF',   fn: exportPDF,   cls: 'bg-primary-blue hover:bg-[#4338ca]' },
-                            { label: 'Excel', fn: exportExcel, cls: 'bg-green-600 hover:bg-green-700' },
-                            { label: 'CSV',   fn: exportCSV,   cls: 'bg-gray-600 hover:bg-gray-700' },
-                        ].map(btn => (
-                            <button key={btn.label} onClick={btn.fn}
-                                className={`px-4 py-2 ${btn.cls} text-white rounded-xl text-sm font-medium transition-colors flex items-center gap-1.5`}>
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                </svg>
-                                {btn.label}
-                            </button>
-                        ))}
-                    </div>
+                {/* Preview header */}
+                <div className="mb-6">
+                    <h2 className="text-lg font-semibold text-gray-900">{r.reportType} Report</h2>
+                    <p className="text-xs text-gray-400 mt-0.5">
+                        Generated {new Date(r.generatedAt).toLocaleString()} · Source: Google Sheets (Apr – Jul 2025) · {allClients.length} clients
+                    </p>
                 </div>
 
                 {/* Summary cards */}
@@ -882,50 +865,6 @@ const ReportsPage = () => {
                     </div>
                 </div>
 
-                {/* ── Quick Data Export ────────────────────────────────────── */}
-                <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-card border border-gray-100/50 p-6 mb-6">
-                    <h2 className="text-base font-semibold text-gray-900 mb-1">Quick Data Export</h2>
-                    <p className="text-xs text-gray-400 mb-4">Export raw data directly from Google Sheets — no report generation required</p>
-                    <div className="flex flex-wrap gap-3">
-                        {/* All Clients Excel */}
-                        <button
-                            onClick={() => {
-                                const data = allClients.map(c => ({ 'Client Name': c.clientName, 'Type': c.clientType || 'Retainer', 'Total Revenue': Math.round(c.totalRevenue), 'Service MRR': Math.round(c.totalServiceMRR), 'Add-ons MRR': Math.round(c.totalAddonsMRR), 'Services': c.detectedServices.join(', '), 'Months Active': c.monthCount, 'Status': c.status }));
-                                const wb = XLSX.utils.book_new();
-                                XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data), 'All Clients');
-                                saveAs(new Blob([XLSX.write(wb, { bookType: 'xlsx', type: 'array' })], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), `All_Clients_${new Date().toISOString().split('T')[0]}.xlsx`);
-                            }}
-                            className="px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-sm font-medium transition-colors flex items-center gap-2"
-                        >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                            All Clients (Excel)
-                        </button>
-                        {/* All Clients CSV */}
-                        <button
-                            onClick={() => {
-                                const h = 'Client Name,Type,Total Revenue,Service MRR,Add-ons MRR,Services,Months,Status\n';
-                                const r = allClients.map(c => `"${c.clientName}","${c.clientType || 'Retainer'}",${Math.round(c.totalRevenue)},${Math.round(c.totalServiceMRR)},${Math.round(c.totalAddonsMRR)},"${c.detectedServices.join(', ')}",${c.monthCount},"${c.status}"`).join('\n');
-                                saveAs(new Blob([h + r], { type: 'text/csv;charset=utf-8;' }), `All_Clients_${new Date().toISOString().split('T')[0]}.csv`);
-                            }}
-                            className="px-4 py-2.5 bg-gray-600 hover:bg-gray-700 text-white rounded-xl text-sm font-medium transition-colors flex items-center gap-2"
-                        >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                            All Clients (CSV)
-                        </button>
-                        {/* Monthly Trend CSV */}
-                        <button
-                            onClick={() => {
-                                const h = 'Month,Total MRR,Service MRR,Add-ons MRR,Client Count\n';
-                                const r = monthlyTrend.map(m => `"${m.month}",${m.totalMRR},${m.serviceMRR},${m.addonsMRR},${m.clientCount}`).join('\n');
-                                saveAs(new Blob([h + r], { type: 'text/csv;charset=utf-8;' }), `Monthly_Trend_${new Date().toISOString().split('T')[0]}.csv`);
-                            }}
-                            className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-medium transition-colors flex items-center gap-2"
-                        >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                            Monthly Trend (CSV)
-                        </button>
-                    </div>
-                </div>
 
                 {/* ── System Logic Documentation ───────────────────────────── */}
                 <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl border border-indigo-100/50 p-6 mb-6">

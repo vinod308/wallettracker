@@ -57,7 +57,7 @@ const ClientTable = ({ clients, loading, onViewDetails, onEdit, upsellMap = [] }
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-card border border-gray-100/50 overflow-hidden">
             <div className="p-5 border-b border-gray-100">
                 <h2 className="text-base font-semibold text-gray-900">
-                    Clients <span className="text-sm font-normal text-gray-500 ml-1">({clients.length})</span>
+                    Clients {/* <span className="text-sm font-normal text-gray-500 ml-1">({clients.length})</span> */}
                 </h2>
             </div>
             <div className="overflow-x-auto">

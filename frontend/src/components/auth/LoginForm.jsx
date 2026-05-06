@@ -67,13 +67,13 @@ const LoginForm = () => {
     setLoading(true);
 
     try {
-      await login({
+      const response = await login({
         email: formData.email,
         password: formData.password,
       });
 
-      // Redirect to dashboard (exact from spec: Section 2.1.8)
-      navigate('/dashboard');
+      const role = response?.data?.user?.role;
+      navigate(role === 'vendor_manager' ? '/vendors' : '/dashboard');
     } catch (error) {
       // Display exact error message from backend
       setApiError(parseError(error));

@@ -26,10 +26,12 @@ module.exports = {
 
     // Email
     SMTP_HOST: process.env.SMTP_HOST,
-    SMTP_PORT: process.env.SMTP_PORT || 587,
+    SMTP_PORT: parseInt(process.env.SMTP_PORT) || 587,
+    SMTP_SECURE: process.env.SMTP_SECURE === 'true',
     SMTP_USER: process.env.SMTP_USER,
     SMTP_PASSWORD: process.env.SMTP_PASSWORD,
     EMAIL_FROM: process.env.EMAIL_FROM || 'noreply@garagecollective.com',
+    EMAIL_CC_SAURABH: process.env.EMAIL_CC_SAURABH || '',
 
     // Rate Limiting
     RATE_LIMIT_WINDOW_MS: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 900000, // 15 minutes

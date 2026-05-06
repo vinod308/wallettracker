@@ -9,6 +9,7 @@ module.exports = {
         ADMIN: 'Admin',
         ACCOUNT_MANAGER: 'Account Manager',
         FINANCE: 'Finance',
+        VENDOR_MANAGER: 'vendor_manager',
     },
 
     // User Status

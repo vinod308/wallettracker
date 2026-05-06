@@ -20,6 +20,7 @@ const contractRoutes = require('./routes/contract.routes');
 const reportRoutes = require('./routes/report.routes');
 const settingsRoutes = require('./routes/settings.routes');
 const sheetsRoutes = require('./routes/sheets.routes');
+const invoiceRoutes = require('./routes/invoice.routes');
 
 // Create Express app
 const app = express();
@@ -72,6 +73,7 @@ app.use('/api/contracts', contractRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/sheets', sheetsRoutes);
+app.use('/api/invoices', invoiceRoutes);
 
 // 404 handler (must be after all routes)
 app.use(notFoundHandler);
