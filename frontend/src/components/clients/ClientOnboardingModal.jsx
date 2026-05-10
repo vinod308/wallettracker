@@ -234,7 +234,7 @@ const ClientOnboardingModal = ({ isOpen, onClose, onClientAdded, editClient }) =
                         <Field label="Client Type" required>
                             <select value={form.clientType} onChange={set('clientType')} className={inp('border-gray-200 bg-white')}>
                                 <option value="Retainer">Retainer</option>
-                                <option value="Contractor">Contractor</option>
+                                <option value="Media">Media</option>
                                 <option value="Project">Project</option>
                             </select>
                         </Field>

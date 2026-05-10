@@ -9,7 +9,7 @@ import { useAuth } from '../hooks/useAuth';
 import Loader from '../components/common/Loader';
 
 const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, user } = useAuth();
 
   if (loading) {
     return (
@@ -21,6 +21,11 @@ const ProtectedRoute = ({ children }) => {
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
+  }
+
+  // Vendors can only access /vendor-portal — redirect away from all other protected routes
+  if (user?.role === 'vendor') {
+    return <Navigate to="/vendor-portal" replace />;
   }
 
   return children;

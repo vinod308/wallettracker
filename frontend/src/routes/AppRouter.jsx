@@ -26,9 +26,20 @@ const OnboardedClientPage   = lazy(() => import('../pages/OnboardedClientPage'))
 const CompanyDetailsPage    = lazy(() => import('../pages/CompanyDetailsPage'));
 const VendorManagementPage  = lazy(() => import('../pages/VendorManagementPage'));
 const VendorDetailPage      = lazy(() => import('../pages/VendorDetailPage'));
+const VendorSignupPage      = lazy(() => import('../pages/VendorSignupPage'));
+const VendorPortalPage      = lazy(() => import('../pages/VendorPortalPage'));
 
 // Route Guards
 import ProtectedRoute from './ProtectedRoute';
+
+// Vendor-only route: must be authenticated + vendor role
+const VendorRoute = ({ children }) => {
+  const { isAuthenticated, loading, user } = useAuth();
+  if (loading) return <PageLoader />;
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (user?.role !== 'vendor') return <Navigate to="/dashboard" replace />;
+  return children;
+};
 
 // Loading fallback for lazy pages
 const PageLoader = () => (
@@ -62,6 +73,7 @@ const AppRouter = () => {
           />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/vendor-signup" element={<VendorSignupPage />} />
 
           {/* Protected Routes */}
           <Route
@@ -159,6 +171,16 @@ const AppRouter = () => {
               <ProtectedRoute>
                 <VendorDetailPage />
               </ProtectedRoute>
+            }
+          />
+
+          {/* Vendor Portal — only for vendor role */}
+          <Route
+            path="/vendor-portal"
+            element={
+              <VendorRoute>
+                <VendorPortalPage />
+              </VendorRoute>
             }
           />
 

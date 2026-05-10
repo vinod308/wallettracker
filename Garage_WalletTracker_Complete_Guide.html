@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Garage WalletTracker — Complete Documentation</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; color: #1a1a2e; background: #fff; line-height: 1.7; }
+
+  /* ── Cover Page ── */
+  .cover { min-height: 100vh; background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #2563eb 100%); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 60px 40px; page-break-after: always; }
+  .cover-logo { width: 80px; height: 80px; background: rgba(255,255,255,0.2); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 30px; font-size: 36px; }
+  .cover h1 { font-size: 42px; font-weight: 800; color: #fff; margin-bottom: 12px; letter-spacing: -1px; }
+  .cover h2 { font-size: 20px; color: rgba(255,255,255,0.85); font-weight: 400; margin-bottom: 40px; }
+  .cover-meta { background: rgba(255,255,255,0.15); border-radius: 16px; padding: 24px 40px; color: rgba(255,255,255,0.9); font-size: 13px; line-height: 2.2; }
+  .cover-meta strong { color: #fff; }
+  .cover-badge { display: inline-block; background: rgba(255,255,255,0.25); border: 1px solid rgba(255,255,255,0.4); border-radius: 20px; padding: 6px 18px; font-size: 12px; color: #fff; margin-top: 24px; }
+
+  /* ── TOC ── */
+  .toc { padding: 60px 70px; page-break-after: always; }
+  .toc h2 { font-size: 28px; font-weight: 700; color: #4f46e5; margin-bottom: 30px; padding-bottom: 12px; border-bottom: 3px solid #e0e7ff; }
+  .toc-section { margin-bottom: 8px; }
+  .toc-section a { text-decoration: none; color: #374151; font-size: 14px; display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px dotted #e5e7eb; }
+  .toc-section a:hover { color: #4f46e5; }
+  .toc-section a span { color: #9ca3af; font-size: 12px; }
+  .toc-sub { padding-left: 20px; }
+  .toc-sub a { font-size: 13px; color: #6b7280; }
+
+  /* ── Content ── */
+  .page { padding: 60px 70px; }
+  .page + .page { page-break-before: always; }
+
+  h1.section-title { font-size: 30px; font-weight: 800; color: #4f46e5; margin-bottom: 8px; }
+  .section-sub { font-size: 14px; color: #6b7280; margin-bottom: 30px; padding-bottom: 16px; border-bottom: 2px solid #e0e7ff; }
+
+  h2.ch { font-size: 20px; font-weight: 700; color: #1e1b4b; margin: 32px 0 12px; display: flex; align-items: center; gap-10px; }
+  h2.ch::before { content: ''; display: inline-block; width: 4px; height: 22px; background: #4f46e5; border-radius: 2px; margin-right: 10px; }
+  h3.sub { font-size: 15px; font-weight: 600; color: #374151; margin: 20px 0 8px; }
+  p { margin-bottom: 12px; color: #374151; }
+  ul, ol { padding-left: 22px; margin-bottom: 12px; }
+  li { margin-bottom: 6px; color: #374151; }
+
+  /* ── Info Boxes ── */
+  .box { border-radius: 12px; padding: 18px 22px; margin: 18px 0; }
+  .box-blue { background: #eff6ff; border-left: 4px solid #3b82f6; }
+  .box-green { background: #f0fdf4; border-left: 4px solid #22c55e; }
+  .box-amber { background: #fffbeb; border-left: 4px solid #f59e0b; }
+  .box-red { background: #fef2f2; border-left: 4px solid #ef4444; }
+  .box-purple { background: #f5f3ff; border-left: 4px solid #8b5cf6; }
+  .box-title { font-weight: 700; font-size: 13px; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .box-blue .box-title { color: #1d4ed8; }
+  .box-green .box-title { color: #15803d; }
+  .box-amber .box-title { color: #b45309; }
+  .box-red .box-title { color: #b91c1c; }
+  .box-purple .box-title { color: #6d28d9; }
+
+  /* ── Tables ── */
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13px; }
+  th { background: #f5f3ff; color: #4f46e5; font-weight: 700; padding: 10px 14px; text-align: left; border: 1px solid #e0e7ff; }
+  td { padding: 9px 14px; border: 1px solid #e5e7eb; color: #374151; vertical-align: top; }
+  tr:nth-child(even) td { background: #fafafa; }
+
+  /* ── Data Flow ── */
+  .flow { display: flex; align-items: center; gap: 0; margin: 20px 0; flex-wrap: wrap; }
+  .flow-step { background: #4f46e5; color: #fff; border-radius: 10px; padding: 12px 18px; font-size: 13px; font-weight: 600; text-align: center; min-width: 120px; }
+  .flow-arrow { font-size: 20px; color: #4f46e5; margin: 0 8px; }
+
+  /* ── KPI Grid ── */
+  .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 16px 0; }
+  .kpi-card { background: linear-gradient(135deg, #f5f3ff, #eff6ff); border: 1px solid #e0e7ff; border-radius: 12px; padding: 16px 20px; }
+  .kpi-label { font-size: 11px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .kpi-value { font-size: 22px; font-weight: 800; color: #4f46e5; }
+  .kpi-sub { font-size: 11px; color: #9ca3af; margin-top: 2px; }
+
+  /* ── Service Tags ── */
+  .tag { display: inline-block; background: #ede9fe; color: #5b21b6; border-radius: 6px; padding: 3px 10px; font-size: 12px; font-weight: 600; margin: 2px; }
+  .tag-green { background: #dcfce7; color: #15803d; }
+  .tag-red { background: #fee2e2; color: #b91c1c; }
+  .tag-amber { background: #fef9c3; color: #92400e; }
+
+  /* ── Section number badge ── */
+  .num { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: #4f46e5; color: #fff; border-radius: 50%; font-size: 14px; font-weight: 800; margin-right: 10px; flex-shrink: 0; }
+
+  /* ── Divider ── */
+  hr { border: none; border-top: 1px solid #e0e7ff; margin: 28px 0; }
+
+  /* ── Print ── */
+  @media print {
+    body { font-size: 13px; }
+    .cover { min-height: auto; padding: 80px 60px; }
+    .page { padding: 40px 60px; }
+    .toc { padding: 40px 60px; }
+    a { color: inherit; text-decoration: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!--  COVER PAGE                                                           -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="cover">
+  <div class="cover-logo">💼</div>
+  <h1>Garage WalletTracker</h1>
+  <h2>Complete System Documentation &amp; Meeting Guide</h2>
+  <div class="cover-meta">
+    <div><strong>Prepared by:</strong> Garage Collective — Account Management Team</div>
+    <div><strong>Version:</strong> 1.0 — May 2026</div>
+    <div><strong>Live URL:</strong> wallet.garageaistack.com</div>
+    <div><strong>Data Period:</strong> April 2025 – July 2025</div>
+    <div><strong>Total Clients:</strong> 13 | <strong>Total MRR:</strong> ₹3,73,52,642+</div>
+  </div>
+  <div class="cover-badge">Confidential — Internal Use Only</div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!--  TABLE OF CONTENTS                                                    -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="toc">
+  <h2>Table of Contents</h2>
+
+  <div class="toc-section"><a href="#s1">1. What is WalletTracker? <span>3</span></a></div>
+  <div class="toc-section"><a href="#s2">2. How the System Works — Architecture <span>4</span></a></div>
+  <div class="toc-section"><a href="#s3">3. Data Flow: Google Sheets → Dashboard <span>5</span></a></div>
+  <div class="toc-section"><a href="#s4">4. Security — How Data is Protected <span>6</span></a></div>
+  <div class="toc-section"><a href="#s5">5. Dashboard Page <span>7</span></a>
+    <div class="toc-sub">
+      <div class="toc-section"><a href="#s5a">5.1 KPI Cards <span>7</span></a></div>
+      <div class="toc-section"><a href="#s5b">5.2 Date Range Filter <span>8</span></a></div>
+      <div class="toc-section"><a href="#s5c">5.3 Revenue Charts <span>8</span></a></div>
+      <div class="toc-section"><a href="#s5d">5.4 Contracts Expiring &amp; Upsell <span>9</span></a></div>
+    </div>
+  </div>
+  <div class="toc-section"><a href="#s6">6. Client Management Page <span>10</span></a></div>
+  <div class="toc-section"><a href="#s7">7. Client Detail Page <span>11</span></a></div>
+  <div class="toc-section"><a href="#s8">8. Wallet Intelligence Page <span>13</span></a>
+    <div class="toc-sub">
+      <div class="toc-section"><a href="#s8a">8.1 Business Health Score <span>13</span></a></div>
+      <div class="toc-section"><a href="#s8b">8.2 Revenue Insights &amp; Charts <span>14</span></a></div>
+      <div class="toc-section"><a href="#s8c">8.3 Wallet Share — What it Means <span>15</span></a></div>
+    </div>
+  </div>
+  <div class="toc-section"><a href="#s9">9. AI Overview Page <span>16</span></a></div>
+  <div class="toc-section"><a href="#s10">10. Contracts &amp; Renewals Page <span>17</span></a></div>
+  <div class="toc-section"><a href="#s11">11. Reports &amp; Scheduling Page <span>18</span></a></div>
+  <div class="toc-section"><a href="#s12">12. Settings &amp; Profile Page <span>19</span></a></div>
+  <div class="toc-section"><a href="#s13">13. Upsell Strategy — How to Grow Revenue <span>20</span></a></div>
+  <div class="toc-section"><a href="#s14">14. How to Increase Wallet Share <span>22</span></a></div>
+  <div class="toc-section"><a href="#s15">15. Current Client Portfolio Summary <span>24</span></a></div>
+  <div class="toc-section"><a href="#s16">16. Roadmap &amp; Next Steps <span>25</span></a></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!--  SECTION 1 — WHAT IS WALLETTRACKER                                   -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="page" id="s1">
+  <h1 class="section-title"><span class="num">1</span> What is WalletTracker?</h1>
+  <div class="section-sub">The core purpose, problem solved, and who uses it</div>
+
+  <h2 class="ch">The Problem It Solves</h2>
+  <p>Garage Collective manages multiple clients across services like Digital Marketing, SEO, Performance Marketing, Web Development, Design, and more. Before WalletTracker, there was no single place to:</p>
+  <ul>
+    <li>See how much each client is paying every month</li>
+    <li>Know which clients are at risk of churning</li>
+    <li>Identify which services a client is NOT using (upsell gaps)</li>
+    <li>Track contract renewal dates</li>
+    <li>Understand how much of a client's total marketing budget we capture (Wallet Share)</li>
+  </ul>
+
+  <div class="box box-blue">
+    <div class="box-title">Definition — Wallet Share</div>
+    Wallet Share is the percentage of a client's total marketing/service budget that Garage Collective captures. For example, if a client spends ₹10 lakhs/month on all marketing and pays us ₹2 lakhs/month, our wallet share is 20%. The goal is to increase this percentage by offering more relevant services.
+  </div>
+
+  <h2 class="ch">What WalletTracker Does</h2>
+  <p>WalletTracker is a full-stack web application that:</p>
+  <ol>
+    <li><strong>Reads live data from Google Sheets</strong> — our existing invoice spreadsheet becomes the data source</li>
+    <li><strong>Processes and analyses it automatically</strong> — calculates MRR, growth rates, at-risk flags, service gaps</li>
+    <li><strong>Displays interactive dashboards</strong> — charts, tables, KPI cards, health scores</li>
+    <li><strong>Generates exportable reports</strong> — PDF, Excel, CSV for meetings and presentations</li>
+    <li><strong>Identifies upsell opportunities</strong> — tells you exactly which services to pitch to which client</li>
+  </ol>
+
+  <h2 class="ch">Who Uses It</h2>
+  <table>
+    <tr><th>Role</th><th>What They See &amp; Do</th></tr>
+    <tr><td><strong>Account Manager</strong></td><td>View client performance, identify upsell gaps, track contracts, export reports</td></tr>
+    <tr><td><strong>Finance</strong></td><td>View MRR, invoice summaries, payment status, revenue trend</td></tr>
+    <tr><td><strong>Admin</strong></td><td>Full access + user management, all settings</td></tr>
+  </table>
+
+  <h2 class="ch">Key Numbers at a Glance</h2>
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-label">Total Clients Tracked</div>
+      <div class="kpi-value">13</div>
+      <div class="kpi-sub">April – July 2025</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Total Revenue (All Months)</div>
+      <div class="kpi-value">₹3.73 Cr+</div>
+      <div class="kpi-sub">Combined 4-month total</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Services Tracked</div>
+      <div class="kpi-value">15+</div>
+      <div class="kpi-sub">Auto-detected from sheets</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Data Source</div>
+      <div class="kpi-value">Google Sheets</div>
+      <div class="kpi-sub">Live via backend proxy</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Report Formats</div>
+      <div class="kpi-value">PDF / Excel / CSV</div>
+      <div class="kpi-sub">Download any time</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Deployment</div>
+      <div class="kpi-value">Live on Cloud</div>
+      <div class="kpi-sub">wallet.garageaistack.com</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!--  SECTION 2 — ARCHITECTURE                                             -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="page" id="s2">
+  <h1 class="section-title"><span class="num">2</span> How the System Works — Architecture</h1>
+  <div class="section-sub">Technology stack, components, and how they connect</div>
+
+  <h2 class="ch">Three-Layer Architecture</h2>
+
+  <h3 class="sub">Layer 1 — Frontend (What You See)</h3>
+  <p>Built with <strong>React 18</strong> + <strong>Vite</strong> + <strong>TailwindCSS</strong>. This is the browser interface at <code>wallet.garageaistack.com</code>. It includes 8 pages, interactive charts (using Recharts), and a responsive design that works on mobile and desktop.</p>
+
+  <h3 class="sub">Layer 2 — Backend (The Server Brain)</h3>
+  <p>Built with <strong>Node.js + Express</strong>. Runs on the Digital Ocean server at port 5000. Handles:</p>
+  <ul>
+    <li>User authentication (login, logout, password reset)</li>
+    <li>Fetching CSV data from Google Sheets and caching it for 5 minutes</li>
+    <li>API endpoints for profile, notifications, and user management</li>
+    <li>Security middleware (rate limiting, CORS, JWT tokens)</li>
+  </ul>
+
+  <h3 class="sub">Layer 3 — Database (Permanent Storage)</h3>
+  <p>Built with <strong>PostgreSQL</strong>. Stores user accounts, roles, session data, notification preferences, and audit logs. Client revenue data comes from Google Sheets, NOT the database.</p>
+
+  <h2 class="ch">Technology Stack</h2>
+  <table>
+    <tr><th>Layer</th><th>Technology</th><th>Purpose</th></tr>
+    <tr><td>Frontend</td><td>React 18 + Vite</td><td>UI, pages, routing</td></tr>
+    <tr><td>Frontend</td><td>TailwindCSS</td><td>Styling, responsive design</td></tr>
+    <tr><td>Frontend</td><td>Recharts</td><td>All charts and graphs</td></tr>
+    <tr><td>Frontend</td><td>PapaParse</td><td>Parsing CSV data from sheets</td></tr>
+    <tr><td>Backend</td><td>Node.js + Express</td><td>API server, business logic</td></tr>
+    <tr><td>Backend</td><td>JWT (JSON Web Tokens)</td><td>Secure authentication</td></tr>
+    <tr><td>Backend</td><td>bcrypt</td><td>Password hashing (12 rounds)</td></tr>
+    <tr><td>Backend</td><td>Helmet + CORS</td><td>Security headers</td></tr>
+    <tr><td>Database</td><td>PostgreSQL 15</td><td>Users, sessions, audit logs</td></tr>
+    <tr><td>Deployment</td><td>Digital Ocean + Nginx</td><td>Production hosting</td></tr>
+    <tr><td>Data Source</td><td>Google Sheets (CSV)</td><td>Client invoice data</td></tr>
+  </table>
+
+  <h2 class="ch">How Pages Are Structured</h2>
+  <p>All pages follow the same layout:</p>
+  <ul>
+    <li><strong>Header</strong> — Logo (desktop), notifications bell, profile dropdown</li>
+    <li><strong>Sidebar</strong> — Navigation links to all 7 pages (slide-out on mobile)</li>
+    <li><strong>Content Area</strong> — Page-specific data, charts, tables</li>
+  </ul>
+
+  <div class="box box-green">
+    <div class="box-title">Performance Optimization</div>
+    Pages are lazy-loaded (code-split) so the app loads fast. Google Sheets data is cached for 5 minutes on the server, meaning multiple users get instant responses after the first load. All heavy computations (filtering, sorting, calculating KPIs) happen client-side using React's useMemo — no server round-trips for filtering.
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!--  SECTION 3 — DATA FLOW                                                -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="page" id="s3">
+  <h1 class="section-title"><span class="num">3</span> Data Flow: Google Sheets → Dashboard</h1>
+  <div class="section-sub">Step-by-step journey of how spreadsheet data becomes live charts</div>
+
+  <h2 class="ch">The Complete Data Journey</h2>
+
+  <div class="flow">
+    <div class="flow-step">Google Sheets<br/>(Invoice Data)</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">Backend Server<br/>(Proxy + Cache)</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">CSV Parser<br/>(PapaParse)</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">useCSVData Hook<br/>(Analytics Engine)</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">Dashboard<br/>(Charts + KPIs)</div>
+  </div>
+
+  <h3 class="sub">Step 1 — Google Sheets as the Data Source</h3>
+  <p>We maintain one Google Sheet per month (April, May, June, July 2025). Each sheet has these columns:</p>
+  <table>
+    <tr><th>Column Name</th><th>What It Contains</th><th>Example</th></tr>
+    <tr><td>Contract Start</td><td>When this client's contract started</td><td>1 April</td></tr>
+    <tr><td>Invoice Number</td><td>Unique invoice ID</td><td>GPPL/2025-26/1</td></tr>
+    <tr><td>Client Name</td><td>Name of the client company</td><td>Carrier Airconditioning</td></tr>
+    <tr><td>Services</td><td>Base services being provided</td><td>Digital Marketing Services Campaign</td></tr>
+    <tr><td>Addons</td><td>Add-on services on top of base</td><td>Outdoor advertising, SSL renewal</td></tr>
+    <tr><td>Type</td><td>Contract type</td><td>Retainer / Project</td></tr>
+    <tr><td>Invoice Date</td><td>Date invoice was raised</td><td>1 April 2025</td></tr>
+    <tr><td>Service April MRR Amount(Rs)</td><td>Base service revenue</td><td>1,88,800</td></tr>
+    <tr><td>Addons MRR Amount(Rs)</td><td>Add-on revenue</td><td>50,000</td></tr>
+    <tr><td>Payment Status</td><td>Paid / Unpaid</td><td>Paid</td></tr>
+    <tr><td>Client Status</td><td>Active / Inactive</td><td>Active</td></tr>
+  </table>
+
+  <h3 class="sub">Step 2 — Backend Proxy (5-Minute Cache)</h3>
+  <p>The backend server fetches the Google Sheet as a CSV file and caches it for 5 minutes. This means:</p>
+  <ul>
+    <li>Multiple users loading the dashboard simultaneously only trigger ONE Google Sheets fetch</li>
+    <li>Response time for users is near-instant (milliseconds instead of seconds)</li>
+    <li>Google Sheets rate limits are not hit</li>
+    <li>To refresh data: wait 5 minutes, or manually clear the cache</li>
+  </ul>
+
+  <h3 class="sub">Step 3 — CSV Parsing &amp; Column Normalisation</h3>
+  <p>The frontend parser (PapaParse library) converts raw CSV text into structured JavaScript objects. Important fix applied: all column headers are trimmed of extra spaces (e.g. <code>"Services "</code> → <code>"Services"</code>) to ensure consistent field access.</p>
+
+  <h3 class="sub">Step 4 — Analytics Engine (useCSVData Hook)</h3>
+  <p>This is the brain of the application. From the raw parsed data it computes:</p>
+  <ul>
+    <li><strong>Client profiles</strong> — merges same client across multiple months</li>
+    <li><strong>MRR calculations</strong> — service MRR + addon MRR = total MRR</li>
+    <li><strong>At-Risk detection</strong> — if a client's revenue dropped ≥15% vs. previous month → flagged At Risk</li>
+    <li><strong>Service detection</strong> — reads the Services and Addons columns and auto-detects service categories using keyword patterns</li>
+    <li><strong>Upsell opportunities</strong> — compares detected services vs. all possible services to find gaps</li>
+    <li><strong>Wallet Intelligence metrics</strong> — health score, growth rates, retention %, revenue share</li>
+  </ul>
+
+  <h3 class="sub">Step 5 — Adding a New Month</h3>
+  <div class="box box-amber">
+    <div class="box-title">How to Add August 2025 Data</div>
+    1. Create a new Google Sheet tab named "august" with the same column headers<br/>
+    2. Open the backend file: <code>backend/src/routes/sheets.routes.js</code> — add the sheet ID for august<br/>
+    3. Open the frontend file: <code>frontend/src/utils/csvParser.js</code> — add <code>august: &#123; path: '/api/sheets/csv/august', month: 'August 2025', monthKey: 'august', order: 4 &#125;</code><br/>
+    4. Rebuild and deploy — August data appears automatically across all pages
+  </div>
+
+  <h2 class="ch">Indian Currency Format Handling</h2>
+  <p>The system handles Indian number format (lakhs, crores) correctly:</p>
+  <ul>
+    <li><code>3,71,700</code> → ₹3,71,700 (three lakh seventy-one thousand seven hundred)</li>
+    <li><code>2,94,995.28</code> → ₹2,94,995.28 (with paise)</li>
+    <li><code>1,88.800</code> → ₹1,88,800 (auto-corrects spreadsheet typos where period is used instead of comma)</li>
+    <li>Fields with "+" separator (multiple amounts) → summed automatically</li>
+  </ul>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!--  SECTION 4 — SECURITY                                                 -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="page" id="s4">
+  <h1 class="section-title"><span class="num">4</span> Security — How Data is Protected</h1>
+  <div class="section-sub">Authentication, authorisation, encryption, and data protection measures</div>
+
+  <h2 class="ch">Authentication System</h2>
+  <table>
+    <tr><th>Feature</th><th>How It Works</th></tr>
+    <tr><td>Password Storage</td><td>Passwords are NEVER stored as plain text. They are hashed using bcrypt with 12 rounds — impossible to reverse-engineer even if database is compromised</td></tr>
+    <tr><td>Login Tokens</td><td>JWT (JSON Web Tokens) stored in HTTP-only cookies — JavaScript on the page cannot read them, preventing XSS attacks</td></tr>
+    <tr><td>Session Timeout</td><td>Sessions automatically expire after 30 minutes of inactivity</td></tr>
+    <tr><td>Login Lockout</td><td>After 5 failed login attempts, account locks for 15 minutes</td></tr>
+    <tr><td>Password Reset</td><td>Secure email link with 1-hour expiry token — link can only be used once</td></tr>
+  </table>
+
+  <h2 class="ch">Access Control (Role-Based)</h2>
+  <table>
+    <tr><th>Feature</th><th>Account Manager</th><th>Finance</th><th>Admin</th></tr>
+    <tr><td>View dashboards</td><td>✅</td><td>✅</td><td>✅</td></tr>
+    <tr><td>View client data</td><td>✅</td><td>✅</td><td>✅</td></tr>
+    <tr><td>Export reports</td><td>✅</td><td>✅</td><td>✅</td></tr>
+    <tr><td>Edit client records</td><td>✅</td><td>❌</td><td>✅</td></tr>
+    <tr><td>Manage users</td><td>❌</td><td>❌</td><td>✅</td></tr>
+    <tr><td>Change system settings</td><td>❌</td><td>❌</td><td>✅</td></tr>
+  </table>
+
+  <h2 class="ch">Network &amp; API Security</h2>
+  <ul>
+    <li><strong>HTTPS enforced</strong> — all traffic to wallet.garageaistack.com is encrypted via SSL/TLS</li>
+    <li><strong>CORS protection</strong> — only requests from wallet.garageaistack.com are accepted by the backend</li>
+    <li><strong>Rate limiting</strong> — maximum 5 requests per 15 minutes on sensitive endpoints (login, password reset) to prevent brute-force attacks</li>
+    <li><strong>Helmet.js</strong> — sets 14 security HTTP headers automatically (prevents clickjacking, MIME sniffing, etc.)</li>
+    <li><strong>SQL injection prevention</strong> — all database queries use parameterised statements, never raw string concatenation</li>
+    <li><strong>Input validation</strong> — all form inputs validated server-side using express-validator</li>
+  </ul>
+
+  <h2 class="ch">Google Sheets Data Security</h2>
+  <ul>
+    <li>The Google Sheets URL is stored only in the backend environment file (not in frontend code)</li>
+    <li>The frontend never directly contacts Google — all requests go through the backend proxy</li>
+    <li>The backend .env file is excluded from GitHub via .gitignore — credentials never pushed to source control</li>
+    <li>Cache is in-memory only — data is not written to disk</li>
+  </ul>
+
+  <div class="box box-red">
+    <div class="box-title">Important — What Data Is Stored in the Database</div>
+    The PostgreSQL database stores ONLY user account data (names, emails, hashed passwords, roles, preferences). All client revenue data comes exclusively from Google Sheets at request time. No client financial data is permanently stored in the database.
+  </div>
+
+  <h2 class="ch">Audit Logs</h2>
+  <p>The system maintains audit logs for all significant actions: logins, password changes, profile updates, and user management actions. These logs record the user, timestamp, IP address, and action taken — useful for compliance and security reviews.</p>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!--  SECTION 5 — DASHBOARD                                                -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="page" id="s5">
+  <h1 class="section-title"><span class="num">5</span> Dashboard Page</h1>
+  <div class="section-sub">The main control room — real-time KPIs, charts, and insights at a glance</div>
+
+  <p>The Dashboard is the first page you see after login. It gives a complete overview of revenue performance for the selected time period. All data is pulled live from Google Sheets.</p>
+
+  <h2 class="ch" id="s5a">5.1 KPI Cards — The 4 Big Numbers</h2>
+  <table>
+    <tr><th>Card</th><th>What It Shows</th><th>How It's Calculated</th></tr>
+    <tr><td><strong>Total MRR</strong></td><td>Total monthly recurring revenue for the selected period</td><td>Sum of all client totalMRR in the filtered date range</td></tr>
+    <tr><td><strong>Total Revenue YTD</strong></td><td>Total revenue from all months combined (April–July)</td><td>Sum of ALL raw records regardless of date filter</td></tr>
+    <tr><td><strong>Active Clients</strong></td><td>Number of clients in the selected period</td><td>Count of unique clients in filtered data</td></tr>
+    <tr><td><strong>At Risk Revenue</strong></td><td>Total revenue at risk from clients with declining MRR</td><td>Sum of MRR for clients with ≥15% revenue drop vs previous month</td></tr>
+  </table>
+
+  <h2 class="ch" id="s5b">5.2 Date Range Filter</h2>
+  <p>The dashboard can be filtered to show data for different time periods:</p>
+  <table>
+    <tr><th>Filter</th><th>What It Shows</th></tr>
+    <tr><td>This Month</td><td>July 2025 data only</td></tr>
+    <tr><td>Last Month</td><td>June 2025 data only</td></tr>
+    <tr><td>Year to Date</td><td>All months: April + May + June + July 2025</td></tr>
+    <tr><td>Custom Range</td><td>Pick any start and end month (e.g. April to June)</td></tr>
+  </table>
+
+  <div class="box box-blue">
+    <div class="box-title">How Filtering Works</div>
+    When you select a filter, NO new network request is made. The system loads all 4 months of data once at startup, stores it in memory, and filters it instantly in the browser. This makes switching filters feel instantaneous.
+  </div>
+
+  <h2 class="ch" id="s5c">5.3 Charts</h2>
+
+  <h3 class="sub">Revenue Generated per Client (Bar Chart)</h3>
+  <p>Horizontal bar chart showing each client's total MRR for the selected period, sorted by revenue. Helps identify top revenue clients vs. lower-tier clients at a glance.</p>
+
+  <h3 class="sub">Service Category AOV (Average Order Value) Chart</h3>
+  <p>Shows the Average Order Value per service category (e.g. Digital Marketing, Performance Marketing, Web Development). Answers the question: "Which service category brings in the most per invoice?"</p>
+
+  <h3 class="sub">Monthly Revenue Trend (Area Chart)</h3>
+  <p>Shows how total MRR has changed month-over-month from April to July. Useful for spotting growth or decline trends across the portfolio.</p>
+
+  <h3 class="sub">Invoice Summary Bar</h3>
+  <p>Below the date filter, a summary bar shows: Service MRR, Addons MRR, Total MRR, number of invoices, and count of paid invoices for the selected period.</p>
+
+  <h2 class="ch" id="s5d">5.4 Client Revenue Table</h2>
+  <p>A sortable table showing all clients for the selected period with: Invoice Number, Client Type, Service MRR, Addons MRR, Total MRR, and Payment Status. Clicking a client name navigates to their detailed page.</p>
+
+  <h2 class="ch">5.5 Contracts Expiring Soon</h2>
+  <p>Shows clients whose contracts are coming up for renewal, sorted by days remaining. Colour-coded urgency: red (0–30 days), amber (31–60 days), green (61–90 days). Clicking navigates to the full Contracts page.</p>
+
+  <h2 class="ch">5.6 Upsell Opportunities Widget</h2>
+  <p>Shows the top 3–5 highest-priority clients who have service gaps — services Garage Collective offers but the client is NOT using. Each opportunity shows: client name, recommended services, estimated potential revenue gain, and a priority level (High / Medium / Low).</p>
+
+  <h2 class="ch">5.7 Service Revenue Mix</h2>
+  <p>A donut chart showing what percentage of total revenue comes from each service category (Digital Marketing, SEO, Design, etc.). Helps understand which services are the revenue backbone.</p>
+
+  <h2 class="ch">5.8 Notifications</h2>
+  <p>The bell icon in the header shows a real-time notification when: data loads for the first time, a new client appears in the sheet, a client becomes At Risk, or MRR changes. Notifications are session-based (not stored permanently).</p>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!--  SECTION 6 — CLIENT MANAGEMENT                                        -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="page" id="s6">
+  <h1 class="section-title"><span class="num">6</span> Client Management Page</h1>
+  <div class="section-sub">Complete client directory with search, filter, and quick stats</div>
+
+  <h2 class="ch">Overview</h2>
+  <p>The Client Management page is the full directory of all clients tracked across all months. Unlike the Dashboard which is filtered by date, this page always shows the complete picture across April–July 2025.</p>
+
+  <h2 class="ch">4 Stats Cards at the Top</h2>
+  <table>
+    <tr><th>Card</th><th>What It Shows</th></tr>
+    <tr><td>Total Clients</td><td>Total unique clients + how many are Active</td></tr>
+    <tr><td>Total Revenue</td><td>Combined revenue across all 4 months for all clients</td></tr>
+    <tr><td>Avg Revenue/Client</td><td>Total revenue ÷ number of clients = average per client</td></tr>
+    <tr><td>At Risk Clients</td><td>Count of clients flagged At Risk. <strong>Hover to see each at-risk client's name and latest MRR</strong></td></tr>
+  </table>
+
+  <h2 class="ch">Search, Filter &amp; Sort</h2>
+  <table>
+    <tr><th>Control</th><th>What It Does</th></tr>
+    <tr><td>Search box</td><td>Type client name, service type, or service name — filters the table instantly</td></tr>
+    <tr><td>All / Active / At Risk buttons</td><td>Filter table to show only active clients or only at-risk clients</td></tr>
+    <tr><td>Sort dropdown</td><td>Sort by Revenue (default), Name, Services, or Activity (months active)</td></tr>
+    <tr><td>Sort direction arrow</td><td>Toggle between ascending and descending order</td></tr>
+  </table>
+
+  <h2 class="ch">The Client Table</h2>
+  <p>Each row in the table shows:</p>
+  <ul>
+    <li><strong>Client Name</strong> — with status badge (Active / At Risk)</li>
+    <li><strong>Services</strong> — auto-detected service tags (e.g. Digital Marketing, Paid Ads, SEO)</li>
+    <li><strong>Months Active</strong> — how many months this client appears in the data</li>
+    <li><strong>Total Revenue</strong> — sum of all months</li>
+    <li><strong>Upsell</strong> — icon indicating upsell opportunity available</li>
+    <li><strong>Actions</strong> — View Details button → goes to Client Detail page</li>
+  </ul>
+
+  <h2 class="ch">At Risk Detection Logic</h2>
+  <div class="box box-red">
+    <div class="box-title">How a Client Gets Flagged "At Risk"</div>
+    The system compares a client's most recent month MRR vs. the previous month MRR. If revenue dropped by 15% or more, the client is automatically flagged as "At Risk". For example: if Carrier Airconditioning paid ₹2,00,000 in June and only ₹1,65,000 in July (a 17.5% drop), they become At Risk. This triggers a red badge and appears in the At Risk KPI card and AI insights.
+  </div>
+
+  <h2 class="ch">Service Auto-Detection</h2>
+  <p>The system reads the "Services" and "Addons" columns in the Google Sheet and uses keyword matching to detect which service categories apply. Detected services appear as tags on the client. This is used throughout the app for upsell analysis.</p>
+  <p>Services detected: <span class="tag">Digital Marketing</span> <span class="tag">SEO</span> <span class="tag">Social Media</span> <span class="tag">Performance Marketing</span> <span class="tag">Paid Ads</span> <span class="tag">Web Development</span> <span class="tag">Design</span> <span class="tag">Content Marketing</span> <span class="tag">Analytics</span> <span class="tag">Video Production</span> <span class="tag">E-Learning</span> <span class="tag">Email Marketing</span> <span class="tag">Outdoor Advertising</span> <span class="tag">Solar/Hardware</span> <span class="tag">Travel Services</span></p>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!--  SECTION 7 — CLIENT DETAIL                                            -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="page" id="s7">
+  <h1 class="section-title"><span class="num">7</span> Client Detail Page</h1>
+  <div class="section-sub">Deep-dive analytics for a single client — full revenue history, services, and trends</div>
+
+  <h2 class="ch">How to Access</h2>
+  <p>Click "View Details" on any client from the Client Management page, or click a client name in the Dashboard revenue table. The URL format is: <code>/client/[client-id]</code> where the ID is the normalised client name.</p>
+
+  <h2 class="ch">Header Card — Client Summary</h2>
+  <table>
+    <tr><th>Field</th><th>What It Shows</th></tr>
+    <tr><td>Client Name</td><td>Full company name from Google Sheets</td></tr>
+    <tr><td>Invoice Number</td><td>Most recent invoice number</td></tr>
+    <tr><td>Status Badge</td><td>Active / At Risk — auto-calculated</td></tr>
+    <tr><td>Trend Badge</td><td>Growth Client / Declining / Stable / Upsell Potential</td></tr>
+    <tr><td>Client Type</td><td>Retainer or Project (from the Type column in sheets)</td></tr>
+    <tr><td>Lifetime Revenue</td><td>Total revenue from this client across all tracked months</td></tr>
+  </table>
+
+  <h2 class="ch">Quick Stats Row</h2>
+  <table>
+    <tr><th>Stat</th><th>Calculation</th></tr>
+    <tr><td>Current MRR</td><td>Most recent month's total MRR (service + addons)</td></tr>
+    <tr><td>Avg Monthly Revenue</td><td>Lifetime revenue ÷ number of months tracked</td></tr>
+    <tr><td>Total Add-on Revenue</td><td>Sum of all addon MRR across all months</td></tr>
+    <tr><td>Active Services</td><td>Count of service categories auto-detected</td></tr>
+  </table>
+
+  <h2 class="ch">Month-by-Month Revenue Table</h2>
+  <p>A detailed table showing each month's data separately. For each month:</p>
+  <ul>
+    <li>Service line items with detected service name, category, and amount</li>
+    <li>Add-on line items separately identified</li>
+    <li>Service MRR subtotal, Addon MRR subtotal, Total MRR</li>
+    <li>Month-over-month change percentage (green for growth, red for decline)</li>
+  </ul>
+
+  <h2 class="ch">Trend Badge Logic</h2>
+  <table>
+    <tr><th>Badge</th><th>Condition</th></tr>
+    <tr><td><span class="tag tag-green">Growth Client</span></td><td>Latest month MRR is more than 10% higher than previous month</td></tr>
+    <tr><td><span class="tag tag-red">Declining</span></td><td>Latest month MRR is more than 10% lower than previous month</td></tr>
+    <tr><td><span class="tag tag-amber">Upsell Potential</span></td><td>Client is Stable but has 3+ missing services that could be pitched</td></tr>
+    <tr><td><span class="tag">Stable</span></td><td>Revenue change is within ±10%</td></tr>
+  </table>
+
+  <h2 class="ch">Add-on Insight Cards</h2>
+  <p>Below the monthly table, insight cards highlight add-on services the client is using. This is useful context for account managers preparing for client meetings — know what extras they're paying for before the call.</p>
+
+  <h2 class="ch">Monthly Revenue Trend Chart</h2>
+  <p>An area chart showing how this specific client's MRR has moved across the months they're active. If a client is only in 2 months, the chart shows those 2 data points. If in all 4 months, it shows the full April–July trend.</p>
+
+  <h2 class="ch">Client Comparison Charts</h2>
+  <p>Two additional charts are loaded lazily (for performance) below the trend chart:</p>
+  <ul>
+    <li><strong>Service MRR vs Addons MRR</strong> — stacked bar showing how much of each month's revenue came from base services vs. add-ons</li>
+    <li><strong>Client vs Portfolio Average</strong> — compares this client's MRR to the average across all clients, so you know if they're above or below average</li>
+  </ul>
+
+  <h2 class="ch">Edit Client</h2>
+  <p>The "Edit Client" button opens a modal where you can manually add a new month's revenue record for this client (for months not yet in Google Sheets). Manually added records are merged with sheet data in the same view and persist for the session.</p>
+
+  <div class="box box-blue">
+    <div class="box-title">Normalised Client Matching</div>
+    Client names are normalised for matching across months: "Pvt Ltd", "Private Limited", "Ltd" suffixes are removed and text is lowercased before comparison. This means "Carrier Airconditioning" and "Carrier Airconditioning & Refrigeration" are recognised as the same client across months.
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!--  SECTION 8 — WALLET INTELLIGENCE                                      -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="page" id="s8">
+  <h1 class="section-title"><span class="num">8</span> Wallet Intelligence Page</h1>
+  <div class="section-sub">Business analytics, health scoring, revenue share, and growth analysis</div>
+
+  <p>This is the most analytical page in the system. It looks at the entire client portfolio from a strategic perspective — not just "what did we earn" but "how healthy is the business, who is growing, who is at risk, and where are the opportunities."</p>
+
+  <h2 class="ch">4 KPI Cards</h2>
+  <table>
+    <tr><th>Card</th><th>Calculation</th></tr>
+    <tr><td>Total Wallet</td><td>Combined revenue from all clients across all months (the total "wallet" we manage)</td></tr>
+    <tr><td>Avg Client Revenue</td><td>Total wallet ÷ number of unique clients</td></tr>
+    <tr><td>Highest Revenue</td><td>The single client who paid the most across all months — their name and amount</td></tr>
+    <tr><td>At Risk / Declining</td><td>Count of clients whose revenue dropped ≥15% month-over-month</td></tr>
+  </table>
+
+  <h2 class="ch" id="s8a">8.1 Business Health Score</h2>
+  <p>A composite score from 0–100 measuring overall portfolio health. Three sub-metrics each contribute points:</p>
+  <table>
+    <tr><th>Metric</th><th>Max Points</th><th>How Scored</th></tr>
+    <tr><td>Revenue Growth</td><td>30 pts</td><td>30 pts if latest MRR &gt;5% above average; 18 pts if ±5%; 5 pts if below -5%</td></tr>
+    <tr><td>Client Retention</td><td>40 pts</td><td>40 pts if ≥80% of clients appear in multiple months; 25 pts if ≥60%; 10 pts if below</td></tr>
+    <tr><td>At-Risk Rate</td><td>30 pts</td><td>30 pts if &lt;10% clients are at risk; 18 pts if &lt;25%; 5 pts if more</td></tr>
+  </table>
+  <table>
+    <tr><th>Score Range</th><th>Label</th><th>Meaning</th></tr>
+    <tr><td>80–100</td><td><span class="tag tag-green">Healthy</span></td><td>Portfolio growing, clients retained, low risk</td></tr>
+    <tr><td>50–79</td><td><span class="tag tag-amber">Moderate Risk</span></td><td>Some concerns — watch at-risk clients</td></tr>
+    <tr><td>0–49</td><td><span class="tag tag-red">Critical</span></td><td>Urgent action needed — significant churn or decline</td></tr>
+  </table>
+
+  <h2 class="ch" id="s8b">8.2 Revenue Insights &amp; Charts</h2>
+
+  <h3 class="sub">Revenue Share Pie Chart</h3>
+  <p>Shows what % of total portfolio revenue comes from each client. Helps identify over-dependence on a single client (concentration risk). If one client represents &gt;30% of revenue and they churn, it's a major impact.</p>
+
+  <h3 class="sub">Month-over-Month Growth Table</h3>
+  <p>For every client that has data in at least 2 months, shows: latest MRR, previous month MRR, and % growth. Sorted from highest growth to lowest (declining clients at the bottom with negative %).</p>
+
+  <h3 class="sub">Service Coverage Analysis</h3>
+  <p>Bar chart showing how many clients are using each service. Tells you which services are most popular and which ones are underused (potential for cross-selling).</p>
+
+  <h3 class="sub">Client Rankings Bar Chart</h3>
+  <p>Horizontal bar showing all clients ranked by total lifetime revenue. Instantly shows the top-tier clients vs. smaller accounts.</p>
+
+  <h3 class="sub">Top Add-on Buyers</h3>
+  <p>Lists the clients who buy the most add-on services. These are the best candidates for further upselling because they already have a pattern of expanding services.</p>
+
+  <h3 class="sub">Declining Revenue Clients</h3>
+  <p>Lists clients with &gt;5% revenue decline, with the exact % drop. Priority action list for account managers — these clients need immediate re-engagement.</p>
+
+  <h2 class="ch" id="s8c">8.3 Wallet Share — What it Means</h2>
+  <div class="box box-purple">
+    <div class="box-title">Understanding Wallet Share</div>
+    <p style="margin-bottom:8px"><strong>Wallet Share</strong> = (What client pays Garage) ÷ (Client's total marketing budget) × 100</p>
+    <p style="margin-bottom:8px">Example: If VIP Industries spends ₹20 lakhs/month on all marketing and pays Garage ₹3.7 lakhs, our wallet share is <strong>18.5%</strong>.</p>
+    <p>The goal of WalletTracker is to grow this percentage by identifying and pitching the services the client currently buys elsewhere.</p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!--  SECTION 9 — AI OVERVIEW                                              -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="page" id="s9">
+  <h1 class="section-title"><span class="num">9</span> AI Overview Page</h1>
+  <div class="section-sub">Data-driven insights, predictions, and smart recommendations</div>
+
+  <h2 class="ch">What "AI" Means in This Context</h2>
+  <p>The AI insights in this page are not from an external AI API. They are rule-based analytical insights generated from the actual Google Sheets data. The system analyses patterns in revenue, client behaviour, and service usage to produce actionable recommendations — the same conclusions a skilled analyst would draw, automated.</p>
+
+  <h2 class="ch">AI Insight Cards</h2>
+  <p>Each insight card shows: a title, a detailed recommendation, an insight type (growth / risk / opportunity / insight), and a confidence percentage.</p>
+
+  <table>
+    <tr><th>Insight Type</th><th>What Triggers It</th><th>What It Recommends</th></tr>
+    <tr><td>Revenue Growth Detected</td><td>A client shows the highest month-over-month growth</td><td>Consider expanding services for this client — they are growing and receptive</td></tr>
+    <tr><td>Churn Risk Alert</td><td>One or more clients have declining revenue</td><td>Names the declining clients and recommends immediate re-engagement</td></tr>
+    <tr><td>High-Priority Upsell</td><td>Clients with large service gaps and high revenue</td><td>Shows total estimated revenue gain from upsell across all high-priority clients</td></tr>
+    <tr><td>New Client Retention</td><td>Clients appearing in only 1 month of data</td><td>Focus on onboarding and relationship building to prevent early churn</td></tr>
+    <tr><td>Add-on Revenue Pattern</td><td>Clients buying add-ons</td><td>Highlights which clients are good targets for more add-on services</td></tr>
+    <tr><td>Service Concentration Risk</td><td>One service dominates revenue</td><td>Recommends diversifying service mix to reduce dependency</td></tr>
+  </table>
+
+  <h2 class="ch">Revenue Forecast Chart</h2>
+  <p>An area chart projecting future revenue based on the current growth trend. Uses a simple linear projection from the last 2–3 months' trend. Shows "Projected" months in a lighter colour alongside actual months.</p>
+
+  <div class="box box-amber">
+    <div class="box-title">Confidence Scores — How to Read Them</div>
+    The confidence % next to each insight reflects how strongly the data supports the recommendation. 90%+ = very clear signal. 70–89% = likely but worth verifying. Below 70% = treat as a heads-up, not a certainty. All confidence scores are calculated from the actual data patterns, not manually set.
+  </div>
+
+  <h2 class="ch">Priority Action List</h2>
+  <p>Below the insight cards, a ranked action list shows what the account management team should do this week, ordered by business impact:</p>
+  <ol>
+    <li>Re-engage declining clients (churn risk is highest priority)</li>
+    <li>Pitch high-priority upsell services to top clients</li>
+    <li>Strengthen onboarding for single-month clients</li>
+    <li>Expand add-on services for proven buyers</li>
+  </ol>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!--  SECTION 10 — CONTRACTS                                               -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="page" id="s10">
+  <h1 class="section-title"><span class="num">10</span> Contracts &amp; Renewals Page</h1>
+  <div class="section-sub">Contract status, renewal tracking, and expiry management</div>
+
+  <h2 class="ch">Overview</h2>
+  <p>The Contracts page tracks the contract lifecycle for every client. Contract data is inferred from the invoice dates and contract start dates in Google Sheets. Contracts are assumed to be 12-month retainers by default unless otherwise specified.</p>
+
+  <h2 class="ch">Stats Cards</h2>
+  <table>
+    <tr><th>Card</th><th>Meaning</th></tr>
+    <tr><td>Total Contracts</td><td>Total number of active client contracts</td></tr>
+    <tr><td>Expiring Soon</td><td>Contracts expiring within 90 days — need renewal action</td></tr>
+    <tr><td>Total Contract Value</td><td>Combined MRR of all active contract clients</td></tr>
+    <tr><td>Renewal Rate</td><td>% of contracts marked as renewed (based on continuous monthly data)</td></tr>
+  </table>
+
+  <h2 class="ch">Contract Status Tabs</h2>
+  <p>Filter contracts by status:</p>
+  <ul>
+    <li><strong>All</strong> — full list of all clients</li>
+    <li><strong>Active</strong> — currently paying clients</li>
+    <li><strong>Expiring Soon</strong> — within 90 days of estimated end date</li>
+    <li><strong>At Risk</strong> — clients flagged at-risk (may not renew)</li>
+  </ul>
+
+  <h2 class="ch">Contract Table</h2>
+  <p>Each row shows: Client Name, Start Date, Estimated End Date, Days Until Expiry, Monthly Value (MRR), and Renewal Status. Rows are colour-coded by urgency:</p>
+  <ul>
+    <li><span class="tag tag-red">Red</span> — expires in 0–30 days — immediate action needed</li>
+    <li><span class="tag tag-amber">Amber</span> — expires in 31–60 days — start renewal conversation</li>
+    <li><span class="tag tag-green">Green</span> — expires in 61–90 days — plan ahead</li>
+  </ul>
+
+  <h2 class="ch">How Contract Dates Are Calculated</h2>
+  <p>Since Google Sheets contains the "Contract Start" field, the system adds 12 months to calculate the estimated end date. For example, if Contract Start = "1 April 2025", the estimated end date = "31 March 2026". Days remaining = end date − today's date.</p>
+
+  <div class="box box-green">
+    <div class="box-title">Best Practice — Contract Renewal Timeline</div>
+    Start renewal conversations at 90 days before expiry. Send a formal renewal proposal at 60 days. Confirm and sign at 30 days. Contracts renewed before expiry maintain continuous revenue — a gap in renewal means a gap in invoicing.
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!--  SECTION 11 — REPORTS                                                 -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="page" id="s11">
+  <h1 class="section-title"><span class="num">11</span> Reports &amp; Scheduling Page</h1>
+  <div class="section-sub">Generate, download, and schedule automated business reports</div>
+
+  <h2 class="ch">Available Report Types</h2>
+  <table>
+    <tr><th>Report</th><th>What It Contains</th><th>Best Used For</th></tr>
+    <tr><td>Monthly Revenue Report</td><td>All client MRRs, service breakdown, payment status for each month</td><td>Monthly billing review meetings</td></tr>
+    <tr><td>Client Expansion Report</td><td>Clients sorted by revenue growth, upsell opportunities per client</td><td>Account management planning sessions</td></tr>
+    <tr><td>Service Performance Report</td><td>Revenue by service category, AOV per service, service coverage</td><td>Understanding which services drive most revenue</td></tr>
+    <tr><td>Risk &amp; Churn Report</td><td>At-risk clients, declining revenue %, re-engagement priority list</td><td>Leadership review — risk assessment</td></tr>
+    <tr><td>At Risk Revenue Report</td><td>Detailed breakdown of revenue at risk with client-level data</td><td>Finance review — revenue protection</td></tr>
+    <tr><td>Addon Revenue Report</td><td>Which clients buy add-ons, how much, which add-on types</td><td>Understanding upsell success rate</td></tr>
+  </table>
+
+  <h2 class="ch">Export Formats</h2>
+  <table>
+    <tr><th>Format</th><th>Best For</th></tr>
+    <tr><td>PDF</td><td>Sharing in meetings, printing, email attachments — professional layout with tables</td></tr>
+    <tr><td>Excel (.xlsx)</td><td>Further analysis, pivot tables, sharing with finance team</td></tr>
+    <tr><td>CSV</td><td>Importing into other tools (CRMs, databases, Power BI)</td></tr>
+  </table>
+
+  <h2 class="ch">Report Scheduling</h2>
+  <p>Reports can be scheduled to generate automatically on a recurring basis and the schedule is saved in your browser (localStorage):</p>
+  <ul>
+    <li><strong>Daily</strong> — generates every day at a set time</li>
+    <li><strong>Weekly</strong> — generates on a chosen day of the week</li>
+    <li><strong>Monthly</strong> — generates on a chosen date each month</li>
+  </ul>
+  <p>Scheduled reports show the next run date. You can delete any schedule at any time.</p>
+
+  <h2 class="ch">System Logic Documentation</h2>
+  <p>A special button on the Reports page downloads a "System Logic Document" — a Word-compatible document explaining exactly how all calculations work (MRR formula, at-risk detection, health score, upsell scoring, etc.). This is useful for onboarding new team members.</p>
+
+  <div class="box box-blue">
+    <div class="box-title">How PDF Reports Are Generated</div>
+    Reports are generated entirely in the browser using the jsPDF library with the autotable plugin. No server processing is required. The data is taken from the already-loaded Google Sheets data, formatted into tables, and downloaded as a PDF file. This means reports can be generated even if the backend is temporarily unavailable.
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!--  SECTION 12 — SETTINGS                                                -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="page" id="s12">
+  <h1 class="section-title"><span class="num">12</span> Settings &amp; Profile Page</h1>
+  <div class="section-sub">Account management, security settings, and notification preferences</div>
+
+  <h2 class="ch">Profile Tab</h2>
+  <p>Update your personal information:</p>
+  <ul>
+    <li><strong>Full Name</strong> — displayed in header and throughout the app</li>
+    <li><strong>Phone Number</strong> — optional contact number</li>
+    <li><strong>Department</strong> — team/department you belong to</li>
+    <li><strong>Time Zone</strong> — default is Asia/Kolkata (IST)</li>
+    <li><strong>Email Address</strong> — read-only (cannot be changed after signup for security)</li>
+    <li><strong>Role</strong> — read-only, managed by Admin</li>
+  </ul>
+
+  <h2 class="ch">Security Tab</h2>
+  <p>Change your password with enforced rules:</p>
+  <ul>
+    <li>Minimum 8 characters</li>
+    <li>At least one uppercase letter</li>
+    <li>At least one number</li>
+    <li>At least one special character (!@#$%^&amp;*)</li>
+  </ul>
+  <p>A real-time password strength meter shows Weak / Fair / Good / Strong as you type. You must enter your current password to change it (prevents unauthorised changes even if you leave your session open).</p>
+
+  <h2 class="ch">Notifications Tab</h2>
+  <p>Control which email notifications you receive:</p>
+  <ul>
+    <li>Contract expiring alerts</li>
+    <li>At-risk client alerts</li>
+    <li>Upsell opportunity alerts</li>
+    <li>Email frequency: Real-time / Daily digest / Weekly</li>
+    <li>In-app notifications toggle</li>
+    <li>Notification sound toggle</li>
+  </ul>
+
+  <h2 class="ch">User Management Tab (Admin Only)</h2>
+  <p>Visible only to users with the Admin role. Shows all registered users with:</p>
+  <ul>
+    <li>Name, email, role</li>
+    <li>Account status (Active / Locked)</li>
+    <li>Last login date</li>
+  </ul>
+  <p>Admins can deactivate accounts but cannot see passwords (they are hashed and never retrievable).</p>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!--  SECTION 13 — UPSELL STRATEGY                                         -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="page" id="s13">
+  <h1 class="section-title"><span class="num">13</span> Upsell Strategy — How to Grow Revenue</h1>
+  <div class="section-sub">How the system identifies upsell gaps and how to act on them</div>
+
+  <h2 class="ch">How Upsell Opportunities Are Identified</h2>
+  <p>The system analyses each client's currently detected services and compares them against the full list of services Garage Collective offers. The gap = upsell opportunity.</p>
+
+  <div class="flow">
+    <div class="flow-step">Client's<br/>Current Services</div>
+    <div class="flow-arrow">vs</div>
+    <div class="flow-step">All Services<br/>Garage Offers</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">Gap Analysis</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">Upsell<br/>Opportunity</div>
+  </div>
+
+  <h2 class="ch">Upsell Priority Scoring</h2>
+  <table>
+    <tr><th>Factor</th><th>High Priority Criteria</th></tr>
+    <tr><td>Client Revenue Size</td><td>Higher MRR clients get higher priority — they have more budget and are more valuable relationships</td></tr>
+    <tr><td>Number of Missing Services</td><td>More gaps = more opportunity. A client using only 1 service out of 10 you offer has 9 upsell opportunities</td></tr>
+    <tr><td>Client Status</td><td>Active, stable clients prioritised over At-Risk clients (pitch upsell after stabilising at-risk)</td></tr>
+    <tr><td>Probability Score</td><td>Based on client type, existing spend pattern, and industry — some services are more relevant to certain industries</td></tr>
+  </table>
+
+  <h2 class="ch">Estimated Revenue Gain Calculation</h2>
+  <p>Each upsell opportunity shows an "Estimated Gain" — calculated as: <strong>20% of the client's current average MRR per recommended service</strong>. This is a conservative estimate based on typical service pricing relative to existing spend.</p>
+
+  <h2 class="ch">How to Use Upsell Data in Client Meetings</h2>
+  <ol>
+    <li><strong>Before the meeting</strong> — open the client's Detail page. Note their detected services and which ones are missing.</li>
+    <li><strong>Review the upsell card</strong> — on Dashboard and Client Detail pages, the top recommended services are shown with estimated revenue gain.</li>
+    <li><strong>Prepare a pitch</strong> — use the missing services as the agenda: "We currently handle your Digital Marketing. We've seen great results adding SEO and Content Marketing for similar clients in your industry."</li>
+    <li><strong>Reference the data</strong> — you can show the client the revenue trend chart demonstrating the value you've already delivered, then propose adding more services.</li>
+    <li><strong>After the meeting</strong> — if a new service is agreed, it will appear in next month's Google Sheet and automatically update all charts and analyses.</li>
+  </ol>
+
+  <h2 class="ch">Service Upsell Priority by Client Type</h2>
+  <table>
+    <tr><th>Client Type</th><th>High Upsell Potential Services</th></tr>
+    <tr><td>Manufacturing / Industrial</td><td>Performance Marketing, Analytics, Content Marketing, Video Production</td></tr>
+    <tr><td>Banking / Finance</td><td>Compliance Content, SEO, Social Media Management, Analytics</td></tr>
+    <tr><td>Consumer Goods / Retail</td><td>Paid Ads, Social Media, Video Production, Email Marketing</td></tr>
+    <tr><td>Non-Profit / NGO</td><td>Content Marketing, Social Media, Email Marketing, Analytics</td></tr>
+    <tr><td>Education / EdTech</td><td>E-Learning, Content Marketing, SEO, Lead Generation</td></tr>
+    <tr><td>PR / Communications</td><td>Digital Marketing, Social Media, Analytics, Web Development</td></tr>
+  </table>
+
+  <h2 class="ch">Upsell Conversation Starters</h2>
+  <div class="box box-purple">
+    <div class="box-title">Ready-to-Use Talking Points</div>
+    <p style="margin-bottom:6px">🔹 <strong>"We've been handling your [current service] for [X months]. Your MRR has [grown/remained stable]. I'd like to discuss how we can expand impact with [missing service]."</strong></p>
+    <p style="margin-bottom:6px">🔹 <strong>"We noticed your competitor is investing heavily in [service]. Adding this to your package would cost approximately ₹[estimated gain] per month and put you ahead."</strong></p>
+    <p style="margin-bottom:6px">🔹 <strong>"Your add-on spend is already [₹X], which shows you see value in extending our services. Here's the next natural step: [recommended service]."</strong></p>
+    <p>🔹 <strong>"Clients similar to you who added [service] saw [outcome]. This month is a good time to start before [seasonal event/competitor move]."</strong></p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!--  SECTION 14 — HOW TO INCREASE WALLET SHARE                           -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="page" id="s14">
+  <h1 class="section-title"><span class="num">14</span> How to Increase Wallet Share</h1>
+  <div class="section-sub">Strategic framework for capturing more of each client's total marketing budget</div>
+
+  <h2 class="ch">What "Increasing Wallet Share" Means</h2>
+  <p>If a client's total monthly marketing budget is ₹15 lakhs and we invoice ₹3 lakhs, our wallet share is 20%. Every additional service we add — SEO, social media, paid ads, video — increases this share. The goal is to become the primary agency partner, not just one of many vendors.</p>
+
+  <h2 class="ch">The 5 Wallet Share Growth Strategies</h2>
+
+  <h3 class="sub">Strategy 1 — Service Consolidation ("One Agency" Model)</h3>
+  <p>Position Garage as the one-stop partner. Many clients use 3–4 different agencies (one for SEO, one for social, one for design). The pitch: consolidate everything with Garage for better coordination, unified reporting, and typically better pricing per service.</p>
+  <div class="box box-green">
+    <div class="box-title">WalletTracker Supports This With</div>
+    The "Missing Services" list on each client's upsell card shows exactly which services they likely use elsewhere — these are the consolidation targets.
+  </div>
+
+  <h3 class="sub">Strategy 2 — Add-on Expansion</h3>
+  <p>Clients who already buy add-ons are the best candidates for more add-ons. They have proven they are comfortable expanding the relationship. The add-on clients list on Wallet Intelligence shows who to target first.</p>
+
+  <h3 class="sub">Strategy 3 — Performance-Based Expansion</h3>
+  <p>When a service performs well, use the data to justify adding more. Example: "Your Performance Marketing spend generated X leads at ₹Y per lead. Let's increase the budget and add Content Marketing to nurture those leads."</p>
+
+  <h3 class="sub">Strategy 4 — Retainer Lock-In with Incentive</h3>
+  <p>Propose a consolidated retainer that bundles multiple services at a slight discount vs. individual pricing. Client gets value (lower per-service cost), Garage gets higher total MRR and better retention.</p>
+
+  <h3 class="sub">Strategy 5 — At-Risk Rescue = Retention + Upsell</h3>
+  <p>When a client's revenue is declining (At Risk flag), do NOT immediately pitch more services. First, address the reason for decline. Once the relationship is stabilised, introduce a service that directly addresses their pain point — this can actually increase wallet share during a recovery phase.</p>
+
+  <h2 class="ch">Wallet Share Growth Targets</h2>
+  <table>
+    <tr><th>Current Wallet Share</th><th>Target</th><th>Approach</th></tr>
+    <tr><td>&lt;20%</td><td>30–40%</td><td>Major consolidation opportunity — they're using other agencies heavily</td></tr>
+    <tr><td>20–40%</td><td>50–60%</td><td>Add 2–3 complementary services to existing package</td></tr>
+    <tr><td>40–60%</td><td>70%+</td><td>Deepen existing services, add strategic consulting layer</td></tr>
+    <tr><td>60%+</td><td>Maintain + grow</td><td>Focus on retention, introduce premium/strategic services</td></tr>
+  </table>
+
+  <h2 class="ch">Tracking Wallet Share Growth</h2>
+  <p>WalletTracker measures wallet share growth through:</p>
+  <ul>
+    <li><strong>Month-over-Month MRR change</strong> — per client trend chart on Client Detail page</li>
+    <li><strong>Addon Revenue growth</strong> — as add-ons increase, wallet share grows</li>
+    <li><strong>Business Health Score improvement</strong> — as retention improves and revenue grows, the health score rises</li>
+    <li><strong>New services appearing in sheets</strong> — when a new service is invoiced, it auto-appears in all analytics</li>
+  </ul>
+
+  <h2 class="ch">Monthly Review Ritual Using WalletTracker</h2>
+  <ol>
+    <li><strong>Open Dashboard</strong> — select "This Month" — review KPIs and compare to last month</li>
+    <li><strong>Check At Risk clients</strong> — hover the At Risk card — note names — schedule re-engagement calls</li>
+    <li><strong>Review Upsell opportunities</strong> — identify top 3 clients to pitch this month</li>
+    <li><strong>Open AI Overview</strong> — read all insight cards — add action items to CRM</li>
+    <li><strong>Check Contracts tab</strong> — identify contracts expiring in 90 days — schedule renewal conversations</li>
+    <li><strong>Export Monthly Report (PDF)</strong> — share with leadership and client-facing teams</li>
+  </ol>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!--  SECTION 15 — CLIENT PORTFOLIO SUMMARY                                -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="page" id="s15">
+  <h1 class="section-title"><span class="num">15</span> Current Client Portfolio Summary</h1>
+  <div class="section-sub">Complete list of all 13 clients with their service profiles — April to July 2025</div>
+
+  <table>
+    <tr>
+      <th>#</th>
+      <th>Client Name</th>
+      <th>Industry</th>
+      <th>Approx Monthly MRR</th>
+      <th>Status</th>
+      <th>Key Services</th>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td><strong>Enrich Data Services Pvt Ltd</strong></td>
+      <td>Data / Technology</td>
+      <td>₹8,26,000</td>
+      <td><span class="tag tag-green">Active</span></td>
+      <td>Digital Marketing, Analytics, Web Development</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td><strong>Utkarsh Small Finance Bank</strong></td>
+      <td>Banking / Finance</td>
+      <td>₹4,53,000</td>
+      <td><span class="tag tag-green">Active</span></td>
+      <td>Digital Marketing, Social Media, Performance Marketing</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td><strong>VIP Industries Ltd</strong></td>
+      <td>Consumer Goods</td>
+      <td>₹3,71,700</td>
+      <td><span class="tag tag-green">Active</span></td>
+      <td>Digital Marketing, Design, Social Media</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td><strong>Shyam Metalics &amp; Energy Ltd</strong></td>
+      <td>Manufacturing</td>
+      <td>₹2,95,000</td>
+      <td><span class="tag tag-green">Active</span></td>
+      <td>Digital Marketing, SEO, Content Marketing</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td><strong>Kaizzen PR Services Pvt Ltd</strong></td>
+      <td>PR / Communications</td>
+      <td>₹2,50,000</td>
+      <td><span class="tag tag-green">Active</span></td>
+      <td>Digital Marketing, Design, Social Media</td>
+    </tr>
+    <tr>
+      <td>6</td>
+      <td><strong>DJT Fashion Pvt Ltd</strong></td>
+      <td>Fashion &amp; Retail</td>
+      <td>₹2,06,500</td>
+      <td><span class="tag tag-green">Active</span></td>
+      <td>Digital Marketing, Social Media, Performance Marketing</td>
+    </tr>
+    <tr>
+      <td>7</td>
+      <td><strong>Carrier Airconditioning</strong></td>
+      <td>HVAC / Industrial</td>
+      <td>₹1,88,800</td>
+      <td><span class="tag tag-red">At Risk</span></td>
+      <td>Digital Marketing, Paid Ads, Outdoor Advertising</td>
+    </tr>
+    <tr>
+      <td>8</td>
+      <td><strong>TLG India Pvt Ltd</strong></td>
+      <td>Education</td>
+      <td>₹1,59,469</td>
+      <td><span class="tag tag-green">Active</span></td>
+      <td>Digital Marketing, Content Marketing, E-Learning</td>
+    </tr>
+    <tr>
+      <td>9</td>
+      <td><strong>The Indus Entrepreneurs – Delhi</strong></td>
+      <td>Business Networking</td>
+      <td>₹1,18,000</td>
+      <td><span class="tag tag-green">Active</span></td>
+      <td>Digital Marketing, Events, Social Media</td>
+    </tr>
+    <tr>
+      <td>10</td>
+      <td><strong>Center for Catalyzing Change</strong></td>
+      <td>Non-Profit / NGO</td>
+      <td>₹60,470</td>
+      <td><span class="tag tag-green">Active</span></td>
+      <td>Digital Marketing, Content Marketing</td>
+    </tr>
+    <tr>
+      <td>11–13</td>
+      <td><em>Additional clients in sheets</em></td>
+      <td>Various</td>
+      <td>—</td>
+      <td>—</td>
+      <td>See live dashboard for full data</td>
+    </tr>
+  </table>
+
+  <div class="box box-amber">
+    <div class="box-title">Note on Client Data</div>
+    Client data shown above is sourced from Google Sheets (April–July 2025). MRR figures are approximate monthly averages. The live dashboard at wallet.garageaistack.com always shows the most current data.
+  </div>
+
+  <h2 class="ch">Portfolio Concentration Analysis</h2>
+  <p>The top 3 clients (Enrich Data, Utkarsh Bank, VIP Industries) represent approximately <strong>44% of total portfolio revenue</strong>. This is a concentration risk — if any one of these clients reduces spend significantly, it would materially impact overall revenue. The recommended action is to grow mid-tier clients (₹2–4 lakh range) to reduce dependence on top 3.</p>
+
+  <h2 class="ch">Service Mix Across Portfolio</h2>
+  <p>The most common service across all clients is <strong>Digital Marketing</strong> (present in nearly every client). The biggest upsell gaps across the portfolio are:</p>
+  <ul>
+    <li><strong>Analytics</strong> — only 1–2 clients currently using it; high value proposition for all</li>
+    <li><strong>Email Marketing</strong> — very few clients; high ROI service easy to add</li>
+    <li><strong>Video Production</strong> — growing demand; most clients don't currently use it</li>
+    <li><strong>SEO</strong> — medium adoption; excellent retention service (long-term results)</li>
+  </ul>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!--  SECTION 16 — ROADMAP                                                 -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="page" id="s16">
+  <h1 class="section-title"><span class="num">16</span> Roadmap &amp; Next Steps</h1>
+  <div class="section-sub">What has been built, what is planned, and how to evolve the system</div>
+
+  <h2 class="ch">What is Complete and Live</h2>
+  <table>
+    <tr><th>Feature</th><th>Status</th></tr>
+    <tr><td>User authentication (login, signup, password reset)</td><td><span class="tag tag-green">✅ Live</span></td></tr>
+    <tr><td>Google Sheets data integration (April–July 2025)</td><td><span class="tag tag-green">✅ Live</span></td></tr>
+    <tr><td>Dashboard with KPIs, charts, date filtering</td><td><span class="tag tag-green">✅ Live</span></td></tr>
+    <tr><td>Client Management with search/filter/sort</td><td><span class="tag tag-green">✅ Live</span></td></tr>
+    <tr><td>Client Detail Page with full analytics</td><td><span class="tag tag-green">✅ Live</span></td></tr>
+    <tr><td>Wallet Intelligence with health score</td><td><span class="tag tag-green">✅ Live</span></td></tr>
+    <tr><td>AI Overview with insights and recommendations</td><td><span class="tag tag-green">✅ Live</span></td></tr>
+    <tr><td>Contracts &amp; Renewals tracking</td><td><span class="tag tag-green">✅ Live</span></td></tr>
+    <tr><td>Reports (PDF / Excel / CSV export)</td><td><span class="tag tag-green">✅ Live</span></td></tr>
+    <tr><td>Settings &amp; Profile management</td><td><span class="tag tag-green">✅ Live</span></td></tr>
+    <tr><td>Mobile-responsive design</td><td><span class="tag tag-green">✅ Live</span></td></tr>
+    <tr><td>Role-based access control</td><td><span class="tag tag-green">✅ Live</span></td></tr>
+  </table>
+
+  <h2 class="ch">Recommended Next Steps</h2>
+  <table>
+    <tr><th>Priority</th><th>Feature</th><th>Business Value</th></tr>
+    <tr><td><span class="tag tag-red">High</span></td><td>Add August 2025 sheet + ongoing monthly sheets</td><td>Keep data current — the tool is only as valuable as its data freshness</td></tr>
+    <tr><td><span class="tag tag-red">High</span></td><td>Add actual client wallet share % (require clients to share total budget)</td><td>True wallet share tracking — the core metric of the tool</td></tr>
+    <tr><td><span class="tag tag-amber">Medium</span></td><td>Email notification system (SMTP configured, needs email templates)</td><td>Automated alerts when a client goes At Risk or contract expires</td></tr>
+    <tr><td><span class="tag tag-amber">Medium</span></td><td>Edit Client modal — full CRUD for manual records</td><td>Allow account managers to add mid-month updates without waiting for sheet update</td></tr>
+    <tr><td><span class="tag tag-amber">Medium</span></td><td>CRM Integration (export data to HubSpot / Zoho)</td><td>Upsell opportunities flow directly into sales pipeline</td></tr>
+    <tr><td><span class="tag">Low</span></td><td>Client-facing portal (clients see their own data)</td><td>Transparency builds trust and stickiness</td></tr>
+    <tr><td><span class="tag">Low</span></td><td>WhatsApp / Slack alerts for at-risk events</td><td>Faster response to churn signals</td></tr>
+  </table>
+
+  <h2 class="ch">How to Add a New Month (August onwards)</h2>
+  <ol>
+    <li>Create the August 2025 Google Sheet with identical column headers</li>
+    <li>Add the Google Sheets share link to the backend environment file</li>
+    <li>Add one line to <code>csvParser.js</code>: <code>august: &#123; path: '/api/sheets/csv/august', month: 'August 2025', monthKey: 'august', order: 4 &#125;</code></li>
+    <li>Add the route in <code>sheets.routes.js</code> backend file</li>
+    <li>Update <code>useCSVData.js</code> — add august to the MONTH_MAP and FULL_MONTH_ORDER</li>
+    <li>Deploy — August data auto-appears across all pages, charts, and analytics</li>
+  </ol>
+
+  <h2 class="ch">Technical Maintenance</h2>
+  <ul>
+    <li><strong>Server</strong>: Digital Ocean Droplet (Ubuntu 24.04) — manage at cloud.digitalocean.com</li>
+    <li><strong>Domain</strong>: wallet.garageaistack.com — configured in Nginx</li>
+    <li><strong>Backend process</strong>: Managed by PM2 (auto-restarts on crash)</li>
+    <li><strong>Code repository</strong>: github.com/vinod308/wallettracker</li>
+    <li><strong>To deploy updates</strong>: SSH into server → <code>cd /var/www/wallettracker</code> → <code>git pull origin main</code> → <code>cd frontend &amp;&amp; npm run build</code> → <code>pm2 restart all</code></li>
+    <li><strong>Database backups</strong>: PostgreSQL — recommended weekly backup using <code>pg_dump</code></li>
+  </ul>
+
+  <hr/>
+
+  <div class="box box-purple">
+    <div class="box-title">Summary — WalletTracker in One Paragraph</div>
+    Garage WalletTracker is a live business intelligence tool that turns our Google Sheets invoice data into actionable analytics. It shows who is paying, who is at risk of leaving, what services each client is missing, how healthy our overall business is, and exactly where to focus to grow revenue. The system is live, secure, mobile-ready, and built to scale as we add more clients and months. The single most important metric it tracks is Wallet Share — and the single most important action it drives is Upsell.
+  </div>
+
+  <p style="text-align:center; color:#9ca3af; font-size:12px; margin-top:40px;">
+    Garage WalletTracker Documentation v1.0 — May 2026 — Prepared by Garage Collective<br/>
+    Live at: wallet.garageaistack.com | Code: github.com/vinod308/wallettracker<br/>
+    Confidential — Internal Use Only
+  </p>
+</div>
+
+</body>
+</html>

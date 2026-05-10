@@ -209,6 +209,8 @@ export function generateInvoicePDF(invoice, client) {
     drect(RX, rY, RIGHT_W, TERMS_H);
     sf('normal', 6.5, 70);
     tx('Terms of Delivery', RX + 1.5, rY + 3.5);
+    sf('bold', 8.5, 0);
+    tx('30 Days', RX + 1.5, rY + TERMS_H - 3);
     rY += TERMS_H;
 
     // Left column — seller 30 | consignee 21 | buyer 22 = 73
@@ -456,7 +458,7 @@ export function generateInvoicePDF(invoice, client) {
     // ════════════════════════════════════════════════════════════════
     // 8. BANK DETAILS (right) + COMPANY PAN (left bottom)
     // ════════════════════════════════════════════════════════════════
-    const BANK_H = 58;
+    const BANK_H = 72;
     drect(ML, y, CW, BANK_H);
     const DIVX = ML + CW / 2 + 5;
     dline(DIVX, y, DIVX, y + BANK_H);
@@ -520,6 +522,19 @@ export function generateInvoicePDF(invoice, client) {
     dline(BREX - 45, y + BANK_H - 10, BREX, y + BANK_H - 10);
     sf('normal', 7.5, 0);
     tx('Authorised Signatory', BREX, y + BANK_H - 5, { align: 'right' });
+
+    // Disclaimer text — positioned dynamically above PAN line
+    const disclaimer =
+        'Payment should be cleared within the above mentioned due date. ' +
+        'We reserve the right to charge interest at 18% in case of delay of payment after due date. ' +
+        'Recipient of service would bear Rs.500/- for bank cheque return charges. ' +
+        'TDS, if applicable, may be deducted at the rate of 2% under the provisions of section 194C ' +
+        'of the Income Tax Act, 1961, on the Taxable Value.';
+    const discW = DIVX - ML - 5;
+    sf('normal', 6, 0);
+    const discLines = doc.splitTextToSize(disclaimer, discW);
+    let dY = y + 5;
+    discLines.forEach(l => { tx(l, ML + 2, dY); dY += 3.3; });
 
     // Company PAN at bottom-left of bank section
     const panY = y + BANK_H - 6;

@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Boss Feedback Plan — Garage WalletTracker</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f0f2f5; color: #1a1a2e; font-size: 15px; line-height: 1.6; }
+
+    /* TOP BAR */
+    .topbar { background: linear-gradient(135deg,#1a1a2e 0%,#16213e 60%,#0f3460 100%); color:#fff; padding:20px 40px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; box-shadow:0 2px 20px rgba(0,0,0,.3); }
+    .topbar h1 { font-size:20px; font-weight:700; }
+    .topbar p  { font-size:12px; color:#a0aec0; margin-top:2px; }
+    .badge { background:#e53e3e; color:#fff; font-size:11px; font-weight:600; padding:4px 12px; border-radius:20px; }
+
+    /* LAYOUT */
+    .container { max-width:1150px; margin:0 auto; padding:32px 24px 80px; }
+
+    /* CARD */
+    .card { background:#fff; border-radius:12px; box-shadow:0 1px 4px rgba(0,0,0,.08); margin-bottom:28px; overflow:hidden; }
+    .card-header { padding:18px 24px; border-bottom:1px solid #e8ecf0; display:flex; align-items:center; gap:12px; }
+    .card-header .icon { width:36px; height:36px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+    .card-header h2 { font-size:16px; font-weight:700; }
+    .card-header p  { font-size:12px; color:#718096; margin-top:2px; }
+    .card-body { padding:24px; }
+
+    /* ACCENT COLORS */
+    .sec-reports  .card-header { border-left:4px solid #ed8936; } .sec-reports .icon  { background:#fff3e0; }
+    .sec-client   .card-header { border-left:4px solid #3182ce; } .sec-client .icon   { background:#ebf8ff; }
+    .sec-invoice  .card-header { border-left:4px solid #38a169; } .sec-invoice .icon  { background:#f0fff4; }
+    .sec-payment  .card-header { border-left:4px solid #805ad5; } .sec-payment .icon  { background:#faf5ff; }
+    .sec-smtp     .card-header { border-left:4px solid #0bc5ea; } .sec-smtp .icon     { background:#e6fffa; }
+    .sec-questions .card-header { border-left:4px solid #d69e2e; } .sec-questions .icon { background:#fffff0; }
+    .sec-timeline  .card-header { border-left:4px solid #553c9a; } .sec-timeline .icon  { background:#faf5ff; }
+
+    /* QUOTE */
+    .quote-box { background:#f7f9fc; border-left:3px solid #a0aec0; padding:12px 16px; border-radius:0 6px 6px 0; font-style:italic; color:#4a5568; margin-bottom:16px; font-size:13.5px; }
+
+    /* INFO BLOCK */
+    .info-block { background:#f7fafc; border:1px solid #e2e8f0; border-radius:8px; padding:16px; margin-bottom:16px; }
+    .info-block h4 { font-size:12px; font-weight:700; color:#2d3748; margin-bottom:8px; text-transform:uppercase; letter-spacing:.5px; }
+
+    /* TABLES */
+    table { width:100%; border-collapse:collapse; font-size:13.5px; margin-top:8px; }
+    th { background:#f7fafc; color:#4a5568; font-weight:600; padding:10px 14px; text-align:left; border-bottom:2px solid #e2e8f0; font-size:12px; text-transform:uppercase; letter-spacing:.4px; }
+    td { padding:10px 14px; border-bottom:1px solid #edf2f7; color:#2d3748; vertical-align:top; }
+    tr:last-child td { border-bottom:none; }
+    tr:hover td { background:#f7fafc; }
+
+    /* FLOW */
+    .flow { display:flex; flex-direction:column; }
+    .flow-step { display:flex; align-items:flex-start; gap:16px; position:relative; }
+    .flow-step:not(:last-child)::after { content:''; position:absolute; left:17px; top:38px; width:2px; height:calc(100% + 2px); background:#e2e8f0; }
+    .flow-num { width:36px; height:36px; border-radius:50%; background:#ebf8ff; border:2px solid #3182ce; color:#3182ce; font-weight:700; font-size:14px; display:flex; align-items:center; justify-content:center; flex-shrink:0; position:relative; z-index:1; }
+    .flow-num.auto { background:#f0fff4; border-color:#38a169; color:#38a169; }
+    .flow-content { padding:6px 0 20px; }
+    .flow-content strong { font-size:14px; display:block; margin-bottom:2px; }
+    .flow-content span   { font-size:13px; color:#718096; }
+    .auto-tag { display:inline-block; background:#c6f6d5; color:#276749; font-size:10px; font-weight:700; padding:2px 8px; border-radius:10px; margin-left:8px; }
+
+    /* CHECKLIST */
+    .checklist { list-style:none; }
+    .checklist li { display:flex; align-items:flex-start; gap:10px; padding:8px 0; border-bottom:1px solid #edf2f7; font-size:13.5px; }
+    .checklist li:last-child { border-bottom:none; }
+    .checklist li::before { content:'○'; color:#cbd5e0; font-size:16px; flex-shrink:0; margin-top:1px; }
+    .checklist li .tag { font-size:10px; font-weight:700; padding:2px 8px; border-radius:10px; margin-left:auto; white-space:nowrap; }
+    .tag-be { background:#bee3f8; color:#2b6cb0; }
+    .tag-fe { background:#fbd38d; color:#7b341e; }
+    .tag-db { background:#d6bcfa; color:#553c9a; }
+
+    /* QUESTIONS */
+    .q-item { background:#fffff0; border:1px solid #f6e05e; border-radius:8px; padding:14px 16px; margin-bottom:12px; }
+    .q-item .q-num  { font-size:11px; font-weight:700; color:#d69e2e; margin-bottom:4px; text-transform:uppercase; }
+    .q-item .q-text { font-size:14px; font-weight:600; color:#2d3748; margin-bottom:8px; }
+    .q-item textarea { width:100%; border:1px solid #e2e8f0; border-radius:6px; padding:8px 12px; font-size:13px; color:#2d3748; font-family:inherit; resize:vertical; min-height:44px; background:#fff; }
+    .q-item textarea:focus { outline:none; border-color:#d69e2e; }
+    .q-item .note { font-size:12px; color:#718096; margin-top:6px; }
+    .q-item .note span { font-weight:600; color:#d69e2e; }
+
+    /* TIMELINE */
+    .trow { display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:12px; padding:12px 0; border-bottom:1px solid #edf2f7; align-items:center; }
+    .trow.hdr { font-weight:700; font-size:12px; color:#718096; text-transform:uppercase; letter-spacing:.4px; padding-bottom:8px; }
+    .trow:last-child { border-bottom:none; }
+    .p-high   { display:inline-block; background:#fed7d7; color:#c53030; font-size:11px; font-weight:700; padding:3px 10px; border-radius:10px; }
+    .p-medium { display:inline-block; background:#fefcbf; color:#975a16; font-size:11px; font-weight:700; padding:3px 10px; border-radius:10px; }
+    .ebar { height:6px; background:#e2e8f0; border-radius:3px; overflow:hidden; margin-top:4px; }
+    .efill { height:100%; background:linear-gradient(90deg,#3182ce,#0bc5ea); border-radius:3px; }
+
+    /* NAV */
+    .nav-pills { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:28px; }
+    .nav-pill { padding:8px 16px; border-radius:20px; border:1px solid #e2e8f0; background:#fff; font-size:13px; font-weight:600; color:#4a5568; cursor:pointer; text-decoration:none; transition:all .15s; }
+    .nav-pill:hover { background:#1a1a2e; color:#fff; border-color:#1a1a2e; }
+    .nav-pill.active-pill { background:#1a1a2e; color:#fff; border-color:#1a1a2e; }
+
+    /* SUMMARY */
+    .sbar { display:grid; grid-template-columns:repeat(auto-fit,minmax(155px,1fr)); gap:16px; margin-bottom:28px; }
+    .scard { background:#fff; border-radius:10px; padding:16px 20px; box-shadow:0 1px 4px rgba(0,0,0,.08); border-top:3px solid #3182ce; }
+    .scard:nth-child(2) { border-top-color:#38a169; }
+    .scard:nth-child(3) { border-top-color:#0bc5ea; }
+    .scard:nth-child(4) { border-top-color:#d69e2e; }
+    .scard .lbl { font-size:11px; font-weight:700; color:#718096; text-transform:uppercase; letter-spacing:.5px; }
+    .scard .val { font-size:26px; font-weight:800; color:#1a1a2e; margin-top:4px; }
+    .scard .sub { font-size:12px; color:#a0aec0; margin-top:2px; }
+
+    /* STATUS */
+    .st-pending   { background:#fefcbf; color:#744210; padding:3px 10px; border-radius:10px; font-size:12px; font-weight:600; }
+    .st-due       { background:#fbd38d; color:#7b341e; padding:3px 10px; border-radius:10px; font-size:12px; font-weight:600; }
+    .st-overdue   { background:#fed7d7; color:#c53030; padding:3px 10px; border-radius:10px; font-size:12px; font-weight:600; }
+    .st-completed { background:#c6f6d5; color:#276749; padding:3px 10px; border-radius:10px; font-size:12px; font-weight:600; }
+
+    /* MISC */
+    .divider { height:1px; background:#e2e8f0; margin:20px 0; }
+    .two-col { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+    .tip { background:#ebf8ff; border-left:3px solid #3182ce; padding:10px 14px; border-radius:0 6px 6px 0; font-size:13px; color:#2b6cb0; margin-top:12px; }
+    .new-badge { display:inline-block; background:#c6f6d5; color:#276749; font-size:10px; font-weight:800; padding:2px 8px; border-radius:10px; margin-left:8px; }
+    .upd-badge { display:inline-block; background:#bee3f8; color:#2b6cb0; font-size:10px; font-weight:800; padding:2px 8px; border-radius:10px; margin-left:8px; }
+    code { background:#edf2f7; padding:2px 6px; border-radius:4px; font-size:12px; font-family:'Courier New',monospace; }
+    .inv-number-box { background:#1a1a2e; color:#68d391; font-family:'Courier New',monospace; font-size:18px; font-weight:700; padding:14px 22px; border-radius:8px; letter-spacing:2px; display:inline-block; margin:8px 0; }
+
+    /* ── MULTI-STEP FORM ── */
+    .msf-wrap { border:1px solid #e2e8f0; border-radius:12px; overflow:hidden; max-width:640px; }
+    .msf-steps { display:flex; background:#f7fafc; border-bottom:1px solid #e2e8f0; }
+    .msf-step { flex:1; padding:12px 8px; text-align:center; font-size:12px; font-weight:600; color:#a0aec0; border-bottom:3px solid transparent; cursor:default; transition:all .2s; }
+    .msf-step.done   { color:#38a169; border-bottom-color:#38a169; }
+    .msf-step.active { color:#3182ce; border-bottom-color:#3182ce; background:#fff; }
+    .msf-step .snum  { display:block; width:24px; height:24px; border-radius:50%; background:#e2e8f0; color:#718096; font-weight:700; font-size:12px; margin:0 auto 4px; line-height:24px; }
+    .msf-step.active .snum { background:#3182ce; color:#fff; }
+    .msf-step.done   .snum { background:#38a169; color:#fff; }
+    .msf-step .stxt  { font-size:11px; }
+    .msf-body { padding:24px; background:#fff; }
+    .msf-body h4 { font-size:15px; font-weight:700; color:#1a1a2e; margin-bottom:4px; }
+    .msf-body p  { font-size:12px; color:#718096; margin-bottom:16px; }
+    .frow { display:grid; gap:12px; margin-bottom:12px; }
+    .frow.c2 { grid-template-columns:1fr 1fr; }
+    .frow.c3 { grid-template-columns:1fr 1fr 1fr; }
+    .ff label { font-size:11px; font-weight:700; color:#4a5568; text-transform:uppercase; letter-spacing:.4px; display:block; margin-bottom:4px; }
+    .ff input, .ff select { width:100%; border:1px solid #e2e8f0; border-radius:6px; padding:9px 11px; font-size:13px; color:#2d3748; background:#f7fafc; }
+    .ff input:focus { outline:none; border-color:#3182ce; background:#fff; }
+    .req { color:#e53e3e; margin-left:2px; }
+    .ff .hint { font-size:11px; color:#a0aec0; margin-top:3px; }
+    .ff .err  { font-size:11px; color:#e53e3e; margin-top:3px; display:none; }
+    .msf-nav { display:flex; justify-content:space-between; align-items:center; margin-top:20px; padding-top:16px; border-top:1px solid #e2e8f0; }
+    .msf-nav .step-info { font-size:12px; color:#718096; }
+    .btn-prev { background:#f7fafc; border:1px solid #e2e8f0; border-radius:6px; padding:9px 20px; font-size:13px; font-weight:600; color:#4a5568; cursor:pointer; }
+    .btn-next { background:#3182ce; border:none; border-radius:6px; padding:9px 22px; font-size:13px; font-weight:700; color:#fff; cursor:pointer; }
+    .btn-submit { background:linear-gradient(135deg,#38a169,#2f855a); border:none; border-radius:6px; padding:9px 22px; font-size:13px; font-weight:700; color:#fff; cursor:pointer; }
+    .review-row { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px dashed #e2e8f0; font-size:13px; }
+    .review-row:last-child { border-bottom:none; }
+    .review-row .rlbl { color:#718096; font-weight:600; }
+    .review-row .rval { color:#1a1a2e; font-weight:600; }
+    .review-group { margin-bottom:12px; }
+    .review-group-title { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:#3182ce; margin-bottom:6px; padding-bottom:4px; border-bottom:1px solid #bee3f8; }
+
+    /* ── CLIENT PAGE MOCKUP ── */
+    .mockup { border:1px solid #e2e8f0; border-radius:10px; overflow:hidden; font-size:13px; }
+    .mockup-bar { background:#1a1a2e; padding:8px 16px; display:flex; align-items:center; gap:6px; }
+    .dot { width:10px; height:10px; border-radius:50%; }
+    .mockup-inner { padding:16px; background:#f7fafc; }
+    .page-heading { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+    .page-heading h3 { font-size:15px; font-weight:700; }
+    .btn-ob { background:#3182ce; color:#fff; border:none; border-radius:6px; padding:8px 14px; font-size:12px; font-weight:700; cursor:pointer; }
+    .client-tabs { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; padding-bottom:12px; border-bottom:2px solid #e2e8f0; }
+    .ctab { background:#fff; border:1px solid #e2e8f0; border-radius:6px; padding:7px 16px; font-size:13px; font-weight:600; color:#4a5568; cursor:pointer; }
+    .ctab.active { background:#3182ce; color:#fff; border-color:#3182ce; }
+    .ctab.add { background:transparent; border:2px dashed #cbd5e0; color:#a0aec0; font-size:18px; padding:4px 14px; }
+    .cdata { background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:16px; margin-bottom:12px; }
+    .drow { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:8px; }
+    .ditem label { font-size:10px; font-weight:700; color:#718096; text-transform:uppercase; display:block; }
+    .ditem span  { font-size:13px; font-weight:600; color:#1a1a2e; }
+    .btn-inv { background:linear-gradient(135deg,#38a169,#2f855a); color:#fff; border:none; border-radius:8px; padding:10px 22px; font-size:14px; font-weight:700; cursor:pointer; }
+
+    /* ── INVOICE PREVIEW ── */
+    .inv-wrap { border:2px solid #e2e8f0; border-radius:8px; background:#fff; font-size:12px; max-width:700px; }
+    .inv-head { background:#1a1a2e; color:#fff; padding:12px 20px; display:flex; justify-content:space-between; align-items:center; }
+    .inv-head h3 { font-size:16px; font-weight:800; letter-spacing:1px; }
+    .inv-irn  { background:#f7fafc; border-bottom:1px solid #e2e8f0; padding:8px 20px; font-size:10px; color:#718096; font-family:monospace; }
+    .inv-body { padding:16px 20px; }
+    .inv-parties { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px; }
+    .iparty { border:1px solid #e2e8f0; border-radius:6px; padding:10px; }
+    .iparty .plbl { font-size:10px; font-weight:700; color:#718096; text-transform:uppercase; margin-bottom:4px; }
+    .iparty .pname { font-size:13px; font-weight:700; }
+    .iparty .pinfo { font-size:11px; color:#718096; margin-top:2px; line-height:1.5; }
+    .inv-meta { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:14px; }
+    .imeta { border:1px solid #e2e8f0; border-radius:6px; padding:8px 10px; }
+    .imeta .ml { font-size:10px; color:#718096; font-weight:600; }
+    .imeta .mv { font-size:12px; font-weight:700; margin-top:2px; }
+    .inv-total td { font-weight:700; background:#f7fafc; }
+    .inv-taxbox { background:#f7fafc; border:1px solid #e2e8f0; border-radius:6px; padding:10px; margin-top:12px; font-size:11px; }
+    .inv-bank { margin-top:12px; border:1px solid #e2e8f0; border-radius:6px; padding:10px; }
+    .bank-title { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:#718096; margin-bottom:6px; }
+    .bank-row { display:grid; grid-template-columns:130px 1fr; font-size:11px; margin-bottom:3px; }
+    .bank-row span:first-child { color:#718096; }
+    .bank-row span:last-child  { font-weight:600; }
+    .inv-sig { text-align:right; margin-top:12px; padding-top:10px; border-top:1px solid #e2e8f0; }
+    .inv-footer { text-align:center; font-size:10px; color:#a0aec0; padding:8px; border-top:1px solid #e2e8f0; }
+
+    /* ── SMTP / EMAIL TEMPLATE ── */
+    .smtp-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+    .smtp-field { margin-bottom:14px; }
+    .smtp-field label { font-size:11px; font-weight:700; color:#4a5568; text-transform:uppercase; letter-spacing:.5px; display:block; margin-bottom:5px; }
+    .smtp-field input, .smtp-field select {
+      width:100%; border:1px solid #e2e8f0; border-radius:6px; padding:9px 12px;
+      font-size:13px; color:#2d3748; background:#f7fafc; font-family:inherit;
+    }
+    .smtp-field .desc { font-size:11px; color:#a0aec0; margin-top:4px; }
+    .smtp-section { background:#f7fafc; border:1px solid #e2e8f0; border-radius:10px; padding:20px; margin-bottom:16px; }
+    .smtp-section h4 { font-size:13px; font-weight:700; color:#2d3748; margin-bottom:14px; text-transform:uppercase; letter-spacing:.5px; border-bottom:1px solid #e2e8f0; padding-bottom:8px; }
+    .template-box { border:1px solid #e2e8f0; border-radius:10px; overflow:hidden; }
+    .template-subjectbar { background:#f7fafc; padding:12px 16px; border-bottom:1px solid #e2e8f0; display:flex; align-items:center; gap:10px; }
+    .template-subjectbar span { font-size:12px; font-weight:700; color:#718096; min-width:60px; }
+    .template-subjectbar .subj { font-size:13px; color:#1a1a2e; font-weight:600; }
+    .template-body { padding:20px; background:#fff; font-size:13px; color:#2d3748; line-height:1.8; }
+    .template-body .tvar { background:#ebf8ff; color:#2b6cb0; padding:1px 6px; border-radius:4px; font-size:12px; font-weight:700; font-family:monospace; }
+    .template-body hr { border:none; border-top:1px solid #e2e8f0; margin:12px 0; }
+    .zoho-badge { display:inline-flex; align-items:center; gap:6px; background:#fff; border:1px solid #e2e8f0; border-radius:20px; padding:4px 12px; font-size:12px; font-weight:700; color:#e05c00; }
+
+    @media(max-width:700px){
+      .two-col,.smtp-grid { grid-template-columns:1fr; }
+      .trow { grid-template-columns:1fr 1fr; }
+      .topbar { flex-direction:column; gap:10px; text-align:center; }
+      .sbar { grid-template-columns:1fr 1fr; }
+      .inv-parties,.msf-steps { flex-wrap:wrap; }
+      .frow.c3 { grid-template-columns:1fr 1fr; }
+      .drow { grid-template-columns:1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div>
+    <h1>Garage WalletTracker — Boss Feedback Plan</h1>
+    <p>Meeting: 2026-05-04 &nbsp;|&nbsp; Updated: 2026-05-05 &nbsp;|&nbsp; Sections 1, 2 + SMTP added</p>
+  </div>
+  <span class="badge">Pending Review</span>
+</div>
+
+<div class="container">
+
+  <!-- NAV -->
+  <div class="nav-pills">
+    <a href="#reports"   class="nav-pill">📊 Reports</a>
+    <a href="#client"    class="nav-pill">👤 Client Onboarding</a>
+    <a href="#invoice"   class="nav-pill">🧾 Invoice</a>
+    <a href="#payment"   class="nav-pill">💳 Payment</a>
+    <a href="#smtp"      class="nav-pill">✉️ SMTP &amp; Email Template</a>
+    <a href="#questions" class="nav-pill">❓ Questions</a>
+    <a href="#timeline"  class="nav-pill">📅 Plan</a>
+  </div>
+
+  <!-- SUMMARY -->
+  <div class="sbar">
+    <div class="scard"><div class="lbl">Sections</div><div class="val">5</div><div class="sub">From boss feedback</div></div>
+    <div class="scard"><div class="lbl">New Features</div><div class="val">3</div><div class="sub">Invoice, SMTP, Payment</div></div>
+    <div class="scard"><div class="lbl">Zoho Mail</div><div class="val">SMTP</div><div class="sub">Configured &amp; templated</div></div>
+    <div class="scard"><div class="lbl">Est. Duration</div><div class="val">~14d</div><div class="sub">Total implementation</div></div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- SECTION 1: REPORTS                     -->
+  <!-- ═══════════════════════════════════════ -->
+  <div class="card sec-reports" id="reports">
+    <div class="card-header">
+      <div class="icon">📊</div>
+      <div><h2>Section 1 — Reports &amp; Scheduling</h2><p>No download — view inline / popup only</p></div>
+    </div>
+    <div class="card-body">
+      <div class="quote-box">"We don't need download because it's internally — rather we see on the page popup or anything else."</div>
+      <div class="two-col">
+        <div class="info-block">
+          <h4>What Changes</h4>
+          <ul style="padding-left:18px;font-size:13.5px;color:#4a5568;">
+            <li style="margin-bottom:6px;">Remove <strong>"Download Report"</strong> button</li>
+            <li style="margin-bottom:6px;">Replace with <strong>"View Report"</strong> → full modal on same page</li>
+            <li style="margin-bottom:6px;">Reports render as HTML table / chart inside app</li>
+            <li>PDF download stays <strong>only for Invoices</strong></li>
+          </ul>
+        </div>
+        <div class="info-block">
+          <h4>My Suggestions</h4>
+          <ul style="padding-left:18px;font-size:13.5px;color:#4a5568;">
+            <li style="margin-bottom:6px;">Add <strong>Print</strong> button inside modal (browser print)</li>
+            <li style="margin-bottom:6px;">Paginate large reports inside modal</li>
+            <li>Estimated effort: <strong>1 day</strong></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- SECTION 2A: CLIENT ONBOARDING          -->
+  <!-- ═══════════════════════════════════════ -->
+  <div class="card sec-client" id="client">
+    <div class="card-header">
+      <div class="icon">👤</div>
+      <div>
+        <h2>Section 2A — Client Onboarding &amp; Horizontal Tabs <span class="upd-badge">UPDATED</span></h2>
+        <p>Multi-step onboarding form → client tabs added horizontally → Generate Invoice</p>
+      </div>
+    </div>
+    <div class="card-body">
+
+      <div class="quote-box">"+ Client Onboarding button on right. Form opens as popup. After submit — client tab added below heading horizontal left align. Click client tab → all data shown on top. Then Generate Invoice option."</div>
+
+      <!-- PAGE MOCKUP -->
+      <h4 style="font-size:13px;font-weight:700;margin-bottom:12px;color:#2d3748;">Client Management Page — UI Preview</h4>
+      <div class="mockup" style="margin-bottom:24px;">
+        <div class="mockup-bar">
+          <div class="dot" style="background:#e53e3e;"></div>
+          <div class="dot" style="background:#d69e2e;"></div>
+          <div class="dot" style="background:#38a169;"></div>
+          <span style="color:#a0aec0;font-size:12px;margin-left:8px;">Client Management</span>
+        </div>
+        <div class="mockup-inner">
+          <div class="page-heading">
+            <h3>Client Management</h3>
+            <button class="btn-ob">+ Client Onboarding</button>
+          </div>
+          <div class="client-tabs">
+            <div class="ctab active">Utkarsh Bank</div>
+            <div class="ctab">HDFC Life</div>
+            <div class="ctab">Bajaj Finserv</div>
+            <div class="ctab add">+</div>
+          </div>
+          <div class="cdata">
+            <div style="font-size:10px;font-weight:700;color:#718096;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">Client Details — Utkarsh Small Finance Bank Limited</div>
+            <div class="drow">
+              <div class="ditem"><label>GST Number</label><span>09AABCU9355J1ZS</span></div>
+              <div class="ditem"><label>State</label><span>Uttar Pradesh, Code: 09</span></div>
+              <div class="ditem"><label>Onboarding Date</label><span>15-Jan-2025</span></div>
+            </div>
+            <div class="drow">
+              <div class="ditem"><label>Contact Person</label><span>Ramesh Kumar</span></div>
+              <div class="ditem"><label>Contact Email</label><span>ramesh@utkarsh.com</span></div>
+              <div class="ditem"><label>Alternate Contact</label><span>Priya Sharma</span></div>
+            </div>
+            <div class="drow">
+              <div class="ditem"><label>Bank Name</label><span>HDFC Bank</span></div>
+              <div class="ditem"><label>Account Number</label><span>50200012345678</span></div>
+              <div class="ditem"><label>IFSC Code</label><span>HDFC0001234</span></div>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:flex-end;">
+            <button class="btn-inv">🧾 Generate Invoice</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- MULTI STEP FORM -->
+      <h4 style="font-size:13px;font-weight:700;margin-bottom:12px;color:#2d3748;">Client Onboarding — Multi-Step Popup Form</h4>
+      <div class="msf-wrap">
+
+        <!-- Step Indicators -->
+        <div class="msf-steps">
+          <div class="msf-step done">
+            <span class="snum">✓</span>
+            <span class="stxt">Basic Info</span>
+          </div>
+          <div class="msf-step active">
+            <span class="snum">2</span>
+            <span class="stxt">Bank Details</span>
+          </div>
+          <div class="msf-step">
+            <span class="snum">3</span>
+            <span class="stxt">Contacts</span>
+          </div>
+          <div class="msf-step">
+            <span class="snum">4</span>
+            <span class="stxt">Review &amp; Submit</span>
+          </div>
+        </div>
+
+        <!-- STEP 1 PREVIEW (shown as done above, body shows step 2 as active demo) -->
+        <!-- Showing Step 2 as active demo -->
+        <div class="msf-body">
+          <h4>Step 2 of 4 — Bank Account Details</h4>
+          <p>Enter the client's bank details for reference. These will appear on invoices.</p>
+
+          <div class="frow">
+            <div class="ff">
+              <label>Bank Name <span class="req">*</span></label>
+              <input type="text" value="HDFC Bank Limited" />
+            </div>
+          </div>
+          <div class="frow c2">
+            <div class="ff">
+              <label>Account Number <span class="req">*</span></label>
+              <input type="text" value="50200012345678" />
+              <div class="hint">Numeric only, minimum 9 digits</div>
+            </div>
+            <div class="ff">
+              <label>IFSC Code <span class="req">*</span></label>
+              <input type="text" value="HDFC0001351" />
+              <div class="hint">11 characters — e.g. HDFC0001234</div>
+            </div>
+          </div>
+
+          <div class="msf-nav">
+            <button class="btn-prev">← Back</button>
+            <span class="step-info">Step 2 of 4</span>
+            <button class="btn-next">Next →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ALL STEPS TABLE -->
+      <div style="margin-top:20px;">
+        <h4 style="font-size:13px;font-weight:700;margin-bottom:12px;color:#2d3748;">All 4 Steps — Fields &amp; Validations</h4>
+        <table>
+          <tr><th>Step</th><th>Fields</th><th>Validation</th></tr>
+          <tr>
+            <td><strong>Step 1</strong><br><span style="font-size:11px;color:#718096;">Basic Info</span></td>
+            <td>Client / Company Name, Address, State, State Code, GST Number</td>
+            <td>Name required (min 3), GST: 15-char regex <code>^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$</code>, Address required (min 10)</td>
+          </tr>
+          <tr>
+            <td><strong>Step 2</strong><br><span style="font-size:11px;color:#718096;">Bank Details</span></td>
+            <td>Bank Name, Account Number, IFSC Code</td>
+            <td>Bank name required, Account: numeric min 9 digits, IFSC: 11-char regex <code>^[A-Z]{4}0[A-Z0-9]{6}$</code></td>
+          </tr>
+          <tr>
+            <td><strong>Step 3</strong><br><span style="font-size:11px;color:#718096;">Contacts</span></td>
+            <td>Contact Person, Contact Email, Alternate Contact Person, Alternate Email</td>
+            <td>Contact person required (min 2 chars), Contact email required + valid format, Alternate fields optional (email validated if filled)</td>
+          </tr>
+          <tr>
+            <td><strong>Step 4</strong><br><span style="font-size:11px;color:#718096;">Review &amp; Submit</span></td>
+            <td>Shows summary of all entered data</td>
+            <td>User reviews → clicks "Submit &amp; Add Client" → tab added horizontally</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- STEP 4 REVIEW PREVIEW -->
+      <div style="margin-top:16px;">
+        <h4 style="font-size:13px;font-weight:700;margin-bottom:12px;color:#2d3748;">Step 4 — Review &amp; Submit (Preview)</h4>
+        <div class="msf-wrap">
+          <div class="msf-steps">
+            <div class="msf-step done"><span class="snum">✓</span><span class="stxt">Basic Info</span></div>
+            <div class="msf-step done"><span class="snum">✓</span><span class="stxt">Bank Details</span></div>
+            <div class="msf-step done"><span class="snum">✓</span><span class="stxt">Contacts</span></div>
+            <div class="msf-step active"><span class="snum">4</span><span class="stxt">Review &amp; Submit</span></div>
+          </div>
+          <div class="msf-body">
+            <h4>Step 4 of 4 — Review &amp; Submit</h4>
+            <p>Please confirm all details before adding this client.</p>
+            <div class="review-group">
+              <div class="review-group-title">Basic Information</div>
+              <div class="review-row"><span class="rlbl">Client Name</span><span class="rval">Utkarsh Small Finance Bank Limited</span></div>
+              <div class="review-row"><span class="rlbl">GST Number</span><span class="rval">09AABCU9355J1ZS</span></div>
+              <div class="review-row"><span class="rlbl">Address</span><span class="rval">Utkarsh Tower, NH-31, Varanasi, UP</span></div>
+              <div class="review-row"><span class="rlbl">State</span><span class="rval">Uttar Pradesh — Code: 09</span></div>
+            </div>
+            <div class="review-group">
+              <div class="review-group-title">Bank Details</div>
+              <div class="review-row"><span class="rlbl">Bank Name</span><span class="rval">HDFC Bank Limited</span></div>
+              <div class="review-row"><span class="rlbl">Account Number</span><span class="rval">50200012345678</span></div>
+              <div class="review-row"><span class="rlbl">IFSC Code</span><span class="rval">HDFC0001351</span></div>
+            </div>
+            <div class="review-group">
+              <div class="review-group-title">Contact Information</div>
+              <div class="review-row"><span class="rlbl">Contact Person</span><span class="rval">Ramesh Kumar</span></div>
+              <div class="review-row"><span class="rlbl">Contact Email</span><span class="rval">ramesh@utkarsh.com</span></div>
+              <div class="review-row"><span class="rlbl">Alternate Contact</span><span class="rval">Priya Sharma</span></div>
+            </div>
+            <div class="msf-nav">
+              <button class="btn-prev">← Edit</button>
+              <span class="step-info">Step 4 of 4</span>
+              <button class="btn-submit">✓ Submit &amp; Add Client</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- SECTION 2B: INVOICE                    -->
+  <!-- ═══════════════════════════════════════ -->
+  <div class="card sec-invoice" id="invoice">
+    <div class="card-header">
+      <div class="icon">🧾</div>
+      <div>
+        <h2>Section 2B — Invoice Generation <span class="upd-badge">FROM ACTUAL PDF</span></h2>
+        <p>GST-compliant Tax Invoice — pre-filled, auto PDF, digital signature, Zoho email</p>
+      </div>
+    </div>
+    <div class="card-body">
+
+      <!-- INVOICE LAYOUT PREVIEW -->
+      <h4 style="font-size:13px;font-weight:700;margin-bottom:12px;color:#2d3748;">Invoice Layout (Matches Actual Garage Productions Invoice)</h4>
+      <div class="inv-wrap" style="margin-bottom:24px;">
+        <div class="inv-head">
+          <h3>TAX INVOICE</h3>
+          <span style="font-size:11px;color:#a0aec0;">e-Invoice &nbsp;|&nbsp; <span style="color:#68d391;">●</span> GST Compliant</span>
+        </div>
+        <div class="inv-irn">
+          IRN: fb68f8940c4fbad6539cc29e95bff049358f1da19a84633e282e78904708b36a &nbsp;|&nbsp; Ack No: 142620178688696 &nbsp;|&nbsp; Ack Date: 30-Apr-26
+          <span style="float:right;background:#333;padding:2px 8px;border-radius:4px;color:#68d391;font-size:9px;">QR AUTO</span>
+        </div>
+        <div class="inv-body">
+          <div class="inv-parties">
+            <div class="iparty">
+              <div class="plbl">Seller — Pre-filled from Settings</div>
+              <div class="pname">Garage Productions Pvt. Ltd</div>
+              <div class="pinfo">C-102, Tower-C, ATS Bouquet, Sec-132, Noida UP 201304<br>CIN: U92100DL2015PTC285454<br>GSTIN: 09AAGCG1126N1ZG | UP, Code: 09<br>Email: finance@garageproductions.in | MSME: 773793747665</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <div class="iparty">
+                <div class="plbl">Consignee / Ship To — from Client</div>
+                <div class="pname">Utkarsh Small Finance Bank Limited</div>
+                <div class="pinfo">Utkarsh Tower, NH-31, Varanasi<br>GSTIN: 09AABCU9355J1ZS | UP, Code: 09</div>
+              </div>
+              <div class="iparty">
+                <div class="plbl">Buyer / Bill To — from Client</div>
+                <div class="pname">Utkarsh Small Finance Bank Limited</div>
+                <div class="pinfo">Utkarsh Tower, NH-31, Varanasi<br>GSTIN: 09AABCU9355J1ZS | UP, Code: 09</div>
+              </div>
+            </div>
+          </div>
+          <div class="inv-meta">
+            <div class="imeta"><div class="ml">Invoice No. (Auto)</div><div class="mv">GPPL/2026-27/19</div></div>
+            <div class="imeta"><div class="ml">Dated</div><div class="mv">30-Apr-26</div></div>
+            <div class="imeta"><div class="ml">Buyer's PO No. (Editable)</div><div class="mv">PO-27-04-104873</div></div>
+            <div class="imeta"><div class="ml">PO Date</div><div class="mv">20-Apr-26</div></div>
+            <div class="imeta"><div class="ml">Mode of Payment</div><div class="mv">Other</div></div>
+            <div class="imeta"><div class="ml">Terms of Delivery</div><div class="mv">—</div></div>
+          </div>
+          <table>
+            <tr><th>Sl</th><th>Particulars</th><th>HSN/SAC</th><th>Qty</th><th>Rate</th><th>Per</th><th>Amount</th></tr>
+            <tr>
+              <td>1</td>
+              <td><strong>Digital Marketing Services</strong><br><span style="font-size:11px;color:#718096;">for SEO Monthly Service for April 26</span></td>
+              <td>998361</td><td>—</td><td>3,50,000</td><td>—</td><td style="text-align:right;">3,50,000.00</td>
+            </tr>
+            <tr><td></td><td style="text-align:right;color:#718096;">CGST Output 9%</td><td></td><td></td><td style="text-align:right;">9%</td><td></td><td style="text-align:right;">31,500.00</td></tr>
+            <tr><td></td><td style="text-align:right;color:#718096;">SGST Output 9%</td><td></td><td></td><td style="text-align:right;">9%</td><td></td><td style="text-align:right;">31,500.00</td></tr>
+            <tr class="inv-total"><td colspan="6" style="text-align:right;">Total</td><td style="text-align:right;">₹ 4,13,000.00</td></tr>
+          </table>
+          <div style="font-size:12px;margin-top:10px;padding:8px;background:#f7fafc;border-radius:4px;">
+            <strong>Amount in words:</strong> INR Four Lakh Thirteen Thousand Only <span style="float:right;font-style:italic;color:#718096;">E. &amp; O.E</span>
+          </div>
+          <div class="inv-taxbox">
+            <strong>Tax Summary</strong>
+            <table style="margin-top:6px;font-size:11px;">
+              <tr><th>HSN/SAC</th><th>Taxable Value</th><th>CGST %</th><th>CGST Amt</th><th>SGST %</th><th>SGST Amt</th><th>Total Tax</th></tr>
+              <tr><td>998361</td><td>3,50,000.00</td><td>9%</td><td>31,500.00</td><td>9%</td><td>31,500.00</td><td><strong>63,000.00</strong></td></tr>
+            </table>
+            <div style="margin-top:6px;font-size:11px;"><strong>Tax in words:</strong> INR Sixty Three Thousand Only</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;">
+            <div class="inv-bank">
+              <div class="bank-title">Company's Bank Details (from Settings)</div>
+              <div class="bank-row"><span>A/c Holder Name</span><span>Garage Productions Pvt. Ltd</span></div>
+              <div class="bank-row"><span>Bank Name</span><span>HDFC Bank Limited</span></div>
+              <div class="bank-row"><span>A/c No.</span><span>50200016788341</span></div>
+              <div class="bank-row"><span>Branch &amp; IFSC</span><span>Sector 16 Noida &amp; HDFC0001351</span></div>
+              <div class="bank-row"><span>SWIFT Code</span><span>—</span></div>
+              <div style="margin-top:8px;font-size:10px;color:#718096;">Company PAN: AAGCG1126N</div>
+            </div>
+            <div class="inv-sig">
+              <div style="font-size:11px;color:#718096;margin-bottom:8px;">for Garage Productions Pvt. Ltd</div>
+              <div style="border:1px dashed #e2e8f0;border-radius:6px;padding:16px;background:#f7fafc;text-align:center;font-size:11px;color:#a0aec0;">
+                [ Digital Signature ]<br><span style="font-size:10px;">Saurabh Gupta — Auto-stamped</span>
+              </div>
+              <div style="font-size:11px;font-weight:700;margin-top:6px;">Authorised Signatory</div>
+            </div>
+          </div>
+        </div>
+        <div class="inv-footer">This is a Computer Generated Invoice</div>
+      </div>
+
+      <!-- FIELD TABLE -->
+      <h4 style="font-size:13px;font-weight:700;margin-bottom:12px;color:#2d3748;">All Invoice Fields — Source &amp; Editability</h4>
+      <table style="margin-bottom:20px;">
+        <tr><th>Field</th><th>Source</th><th>Editable?</th></tr>
+        <tr><td>IRN, Ack No., Ack Date</td><td>GST e-Invoice API (future phase)</td><td>🔒 Auto</td></tr>
+        <tr><td>Invoice No. (GPPL/YYYY-YY/XX)</td><td>System sequence — resets each FY</td><td>🔒 Auto</td></tr>
+        <tr><td>Dated</td><td>Current date</td><td>✅ Editable</td></tr>
+        <tr><td>Seller info (Name, Address, CIN, GSTIN, PAN, MSME, Email)</td><td>Settings → Company Info</td><td>🔒 Pre-filled</td></tr>
+        <tr><td>Consignee &amp; Buyer (Name, Address, GSTIN, State)</td><td>Client onboarding data</td><td>🔒 Pre-filled</td></tr>
+        <tr><td>Buyer's PO Number &amp; PO Date</td><td>User types</td><td>✅ Editable</td></tr>
+        <tr><td>Mode/Terms of Payment</td><td>User selects</td><td>✅ Editable</td></tr>
+        <tr><td>Particulars (Service description)</td><td>User types</td><td>✅ Editable</td></tr>
+        <tr><td>HSN/SAC Code</td><td>User selects from dropdown</td><td>✅ Editable</td></tr>
+        <tr><td>Rate &amp; Quantity</td><td>User enters</td><td>✅ Editable</td></tr>
+        <tr><td>Amount, CGST, SGST, Total, Tax Summary</td><td>Auto-calculated</td><td>🔒 Auto</td></tr>
+        <tr><td>Amount in Words &amp; Tax in Words</td><td>Auto-generated from total</td><td>🔒 Auto</td></tr>
+        <tr><td>Bank Details (from Settings)</td><td>Company bank account</td><td>🔒 Pre-filled</td></tr>
+        <tr><td>Digital Signature</td><td>Uploaded in Settings (Admin)</td><td>🔒 Auto-stamped</td></tr>
+      </table>
+
+      <!-- INVOICE NUMBER -->
+      <h4 style="font-size:13px;font-weight:700;margin-bottom:8px;color:#2d3748;">Invoice Number Format</h4>
+      <div class="inv-number-box">GPPL / 2026-27 / 019</div>
+      <p style="font-size:12px;color:#718096;margin-top:8px;">Matches actual invoice format &nbsp;|&nbsp; Resets each financial year &nbsp;|&nbsp; Prefix configurable in Settings</p>
+
+      <!-- GENERATION FLOW -->
+      <div class="divider"></div>
+      <h4 style="font-size:13px;font-weight:700;margin-bottom:16px;color:#2d3748;">Invoice Generation — Step by Step</h4>
+      <div class="flow">
+        <div class="flow-step"><div class="flow-num">1</div><div class="flow-content"><strong>Click "Generate Invoice" on client page</strong><span>Form opens pre-filled with client &amp; company data</span></div></div>
+        <div class="flow-step"><div class="flow-num">2</div><div class="flow-content"><strong>User fills Buyer's PO No., PO Date, Mode of Payment</strong><span>Optional but recommended for client reference</span></div></div>
+        <div class="flow-step"><div class="flow-num">3</div><div class="flow-content"><strong>User adds line items</strong><span>Particulars, HSN/SAC, quantity, rate — amount auto-calculated</span></div></div>
+        <div class="flow-step"><div class="flow-num">4</div><div class="flow-content"><strong>User selects GST rate (CGST + SGST)</strong><span>e.g. 9%+9% = 18% — tax auto-calculated</span></div></div>
+        <div class="flow-step"><div class="flow-num">5</div><div class="flow-content"><strong>User clicks "Preview Invoice"</strong><span>Full invoice rendered — looks exactly like the final PDF</span></div></div>
+        <div class="flow-step"><div class="flow-num">6</div><div class="flow-content"><strong>User clicks "Generate &amp; Send"</strong><span>Triggers all auto steps below</span></div></div>
+        <div class="flow-step"><div class="flow-num auto">7</div><div class="flow-content"><strong>Invoice number assigned <span class="auto-tag">AUTO</span></strong><span>GPPL/2026-27/XX — sequential, never repeats</span></div></div>
+        <div class="flow-step"><div class="flow-num auto">8</div><div class="flow-content"><strong>Digital signature stamped <span class="auto-tag">AUTO</span></strong><span>Saurabh Gupta's signature from Settings applied on PDF</span></div></div>
+        <div class="flow-step"><div class="flow-num auto">9</div><div class="flow-content"><strong>PDF generated &amp; stored <span class="auto-tag">AUTO</span></strong><span>Professional invoice PDF using exact template</span></div></div>
+        <div class="flow-step"><div class="flow-num auto">10</div><div class="flow-content"><strong>Email sent via Zoho SMTP <span class="auto-tag">AUTO</span></strong><span>To: client email &nbsp;|&nbsp; CC: saurabh@garageproductions.in &nbsp;|&nbsp; From: finance@garageproductions.in</span></div></div>
+        <div class="flow-step"><div class="flow-num auto">11</div><div class="flow-content"><strong>Invoice saved to client record <span class="auto-tag">AUTO</span></strong><span>Visible when client tab is selected</span></div></div>
+        <div class="flow-step"><div class="flow-num">12</div><div class="flow-content"><strong>User downloads PDF copy</strong><span>For own records — also stored in system permanently</span></div></div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- SECTION 2C: PAYMENT                    -->
+  <!-- ═══════════════════════════════════════ -->
+  <div class="card sec-payment" id="payment">
+    <div class="card-header">
+      <div class="icon">💳</div>
+      <div><h2>Section 2C — Payment Intelligence</h2><p>Reminders at 15/30/45 days + status tracking after invoice generated</p></div>
+    </div>
+    <div class="card-body">
+      <div class="quote-box">"Once invoice generate — payment reminder intelligence. 15 days, 30 days, 45 days options. Payment status: due, completed."</div>
+      <div class="two-col">
+        <div>
+          <h4 style="font-size:13px;font-weight:700;margin-bottom:12px;color:#2d3748;">Reminder Options</h4>
+          <div class="info-block" style="margin-bottom:8px;"><strong style="font-size:22px;">15</strong> <span style="color:#718096;">days after invoice date</span></div>
+          <div class="info-block" style="margin-bottom:8px;"><strong style="font-size:22px;">30</strong> <span style="color:#718096;">days after invoice date</span></div>
+          <div class="info-block"><strong style="font-size:22px;">45</strong> <span style="color:#718096;">days after invoice date</span></div>
+        </div>
+        <div>
+          <h4 style="font-size:13px;font-weight:700;margin-bottom:12px;color:#2d3748;">Payment Status Badges</h4>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div><span class="st-pending">PENDING</span><span style="font-size:12px;color:#718096;margin-left:8px;">Invoice sent, within window</span></div>
+            <div><span class="st-due">DUE</span><span style="font-size:12px;color:#718096;margin-left:8px;">Reminder date reached, unpaid</span></div>
+            <div><span class="st-overdue">OVERDUE</span><span style="font-size:12px;color:#718096;margin-left:8px;">Past all reminder windows</span></div>
+            <div><span class="st-completed">COMPLETED</span><span style="font-size:12px;color:#718096;margin-left:8px;">Payment received</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="tip"><strong>Suggestion:</strong> "Send Reminder" button on overdue invoices — sends reminder email (via Zoho SMTP) with invoice PDF re-attached. Add "Outstanding Invoices" KPI card on Dashboard.</div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- SECTION 3: SMTP + EMAIL TEMPLATE       -->
+  <!-- ═══════════════════════════════════════ -->
+  <div class="card sec-smtp" id="smtp">
+    <div class="card-header">
+      <div class="icon">✉️</div>
+      <div>
+        <h2>Section 3 — SMTP Configuration &amp; Email Template <span class="new-badge">NEW</span></h2>
+        <p>Zoho Mail SMTP settings + invoice email subject &amp; message template</p>
+      </div>
+    </div>
+    <div class="card-body">
+
+      <!-- ZOHO BADGE -->
+      <div style="margin-bottom:20px;display:flex;align-items:center;gap:12px;">
+        <div class="zoho-badge">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="#e05c00"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>
+          Zoho Mail SMTP
+        </div>
+        <span style="font-size:12px;color:#718096;">Used for: Invoice emails, Payment reminders, Password reset</span>
+      </div>
+
+      <!-- SMTP SETTINGS -->
+      <div class="smtp-section">
+        <h4>SMTP Server Configuration (Settings → Email Config)</h4>
+        <div class="smtp-grid">
+          <div>
+            <div class="smtp-field">
+              <label>SMTP Host</label>
+              <input type="text" value="smtp.zoho.in" readonly style="background:#edf2f7;color:#4a5568;" />
+              <div class="desc">Use <code>smtp.zoho.in</code> for India, <code>smtp.zoho.com</code> for global</div>
+            </div>
+            <div class="smtp-field">
+              <label>SMTP Port</label>
+              <input type="text" value="465" readonly style="background:#edf2f7;color:#4a5568;" />
+              <div class="desc">Port 465 = SSL (recommended) &nbsp;|&nbsp; Port 587 = TLS/STARTTLS</div>
+            </div>
+            <div class="smtp-field">
+              <label>Encryption</label>
+              <select>
+                <option selected>SSL (Port 465) — Recommended</option>
+                <option>TLS / STARTTLS (Port 587)</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <div class="smtp-field">
+              <label>From Email (Username)</label>
+              <input type="text" value="finance@garageproductions.in" />
+              <div class="desc">This must be a valid Zoho Mail account</div>
+            </div>
+            <div class="smtp-field">
+              <label>From Name</label>
+              <input type="text" value="Garage Productions — Finance" />
+              <div class="desc">Displayed as sender name in client's inbox</div>
+            </div>
+            <div class="smtp-field">
+              <label>App Password (Not regular password)</label>
+              <input type="password" value="••••••••••••••••" />
+              <div class="desc">Generate in Zoho → Account Security → App Passwords</div>
+            </div>
+          </div>
+        </div>
+        <div class="smtp-field" style="max-width:400px;">
+          <label>Default CC Email</label>
+          <input type="text" value="saurabh@garageproductions.in" />
+          <div class="desc">All invoices CC'd here — configurable per send if needed</div>
+        </div>
+
+        <!-- HOW TO GET APP PASSWORD -->
+        <div style="margin-top:16px;background:#fff8e1;border:1px solid #f6e05e;border-radius:8px;padding:14px 16px;">
+          <div style="font-size:12px;font-weight:700;color:#d69e2e;margin-bottom:8px;">📋 HOW TO SET UP ZOHO APP PASSWORD</div>
+          <ol style="padding-left:18px;font-size:13px;color:#4a5568;line-height:2;">
+            <li>Login to Zoho Mail → click your profile → <strong>My Account</strong></li>
+            <li>Go to <strong>Security</strong> → <strong>App Passwords</strong></li>
+            <li>Click <strong>"Generate New Password"</strong></li>
+            <li>Name it: <code>GarageWalletTracker</code></li>
+            <li>Copy the generated password — paste it in the field above</li>
+            <li>Enable <strong>2FA</strong> on the Zoho account first (required for App Passwords)</li>
+          </ol>
+        </div>
+      </div>
+
+      <!-- EMAIL TEMPLATE: INVOICE -->
+      <div class="smtp-section">
+        <h4>Email Template — Invoice to Client</h4>
+
+        <div class="template-box">
+          <div class="template-subjectbar">
+            <span>To:</span>
+            <span class="subj" style="color:#718096;font-style:italic;">
+              <span style="background:#ebf8ff;color:#2b6cb0;padding:1px 6px;border-radius:4px;font-family:monospace;font-size:12px;">{{client_email}}</span>
+            </span>
+          </div>
+          <div class="template-subjectbar">
+            <span>CC:</span>
+            <span class="subj">saurabh@garageproductions.in</span>
+          </div>
+          <div class="template-subjectbar">
+            <span>From:</span>
+            <span class="subj">Garage Productions — Finance &lt;finance@garageproductions.in&gt;</span>
+          </div>
+          <div class="template-subjectbar" style="border-bottom:2px solid #e2e8f0;">
+            <span>Subject:</span>
+            <span class="subj">
+              Invoice <span style="background:#ebf8ff;color:#2b6cb0;padding:1px 6px;border-radius:4px;font-family:monospace;font-size:12px;">{{invoice_number}}</span>
+              &nbsp;|&nbsp;
+              <span style="background:#ebf8ff;color:#2b6cb0;padding:1px 6px;border-radius:4px;font-family:monospace;font-size:12px;">{{service_name}}</span>
+              &nbsp;|&nbsp; Garage Productions Pvt. Ltd
+            </span>
+          </div>
+
+          <div class="template-body">
+            <p>Dear <span class="tvar">{{contact_person}}</span>,</p>
+            <br>
+            <p>Hope you are doing well.</p>
+            <br>
+            <p>Please find attached the <strong>Tax Invoice</strong> for services rendered by <strong>Garage Productions Pvt. Ltd</strong>.</p>
+            <br>
+            <table style="font-size:13px;border-collapse:collapse;width:auto;">
+              <tr>
+                <td style="padding:6px 14px 6px 0;color:#718096;font-weight:600;border:none;">Invoice Number</td>
+                <td style="padding:6px 0;font-weight:700;color:#1a1a2e;border:none;"><span class="tvar">{{invoice_number}}</span></td>
+              </tr>
+              <tr>
+                <td style="padding:6px 14px 6px 0;color:#718096;font-weight:600;border:none;">Invoice Date</td>
+                <td style="padding:6px 0;font-weight:700;border:none;"><span class="tvar">{{invoice_date}}</span></td>
+              </tr>
+              <tr>
+                <td style="padding:6px 14px 6px 0;color:#718096;font-weight:600;border:none;">Service</td>
+                <td style="padding:6px 0;font-weight:700;border:none;"><span class="tvar">{{service_name}}</span></td>
+              </tr>
+              <tr>
+                <td style="padding:6px 14px 6px 0;color:#718096;font-weight:600;border:none;">Amount</td>
+                <td style="padding:6px 0;font-weight:700;color:#38a169;border:none;">₹ <span class="tvar">{{total_amount}}</span></td>
+              </tr>
+              <tr>
+                <td style="padding:6px 14px 6px 0;color:#718096;font-weight:600;border:none;">Payment Due By</td>
+                <td style="padding:6px 0;font-weight:700;color:#e53e3e;border:none;"><span class="tvar">{{due_date}}</span></td>
+              </tr>
+            </table>
+            <br>
+            <p>Kindly process the payment at your earliest convenience. For any queries or clarifications, please feel free to reach out to us at <strong>finance@garageproductions.in</strong>.</p>
+            <hr>
+            <p style="font-size:12px;color:#718096;">
+              <strong>Payment Details</strong><br>
+              A/c Holder: Garage Productions Pvt. Ltd &nbsp;|&nbsp; Bank: HDFC Bank &nbsp;|&nbsp; A/c: 50200016788341 &nbsp;|&nbsp; IFSC: HDFC0001351
+            </p>
+            <hr>
+            <p>Thank you for your continued partnership.</p>
+            <br>
+            <p>
+              <strong>Warm Regards,</strong><br>
+              Finance Team<br>
+              <strong>Garage Productions Pvt. Ltd</strong><br>
+              <span style="font-size:12px;color:#718096;">finance@garageproductions.in &nbsp;|&nbsp; GSTIN: 09AAGCG1126N1ZG</span>
+            </p>
+            <br>
+            <p style="font-size:11px;color:#a0aec0;">📎 Attachment: <span class="tvar">Invoice_{{invoice_number}}.pdf</span></p>
+          </div>
+        </div>
+
+        <div style="margin-top:12px;font-size:12px;color:#718096;">
+          <strong>Template Variables (auto-replaced):</strong> &nbsp;
+          <code>{{invoice_number}}</code> &nbsp;
+          <code>{{contact_person}}</code> &nbsp;
+          <code>{{client_email}}</code> &nbsp;
+          <code>{{service_name}}</code> &nbsp;
+          <code>{{invoice_date}}</code> &nbsp;
+          <code>{{total_amount}}</code> &nbsp;
+          <code>{{due_date}}</code>
+        </div>
+      </div>
+
+      <!-- EMAIL TEMPLATE: PAYMENT REMINDER -->
+      <div class="smtp-section">
+        <h4>Email Template — Payment Reminder to Client</h4>
+        <div class="template-box">
+          <div class="template-subjectbar" style="border-bottom:2px solid #e2e8f0;">
+            <span>Subject:</span>
+            <span class="subj" style="color:#e53e3e;">
+              Payment Reminder — Invoice <span style="background:#fff5f5;color:#c53030;padding:1px 6px;border-radius:4px;font-family:monospace;font-size:12px;">{{invoice_number}}</span>
+              &nbsp;|&nbsp; Due: <span style="background:#fff5f5;color:#c53030;padding:1px 6px;border-radius:4px;font-family:monospace;font-size:12px;">{{due_date}}</span>
+            </span>
+          </div>
+          <div class="template-body">
+            <p>Dear <span class="tvar">{{contact_person}}</span>,</p>
+            <br>
+            <p>This is a <strong>friendly reminder</strong> that the payment for the following invoice is due.</p>
+            <br>
+            <table style="font-size:13px;border-collapse:collapse;width:auto;">
+              <tr><td style="padding:5px 14px 5px 0;color:#718096;font-weight:600;border:none;">Invoice No.</td><td style="border:none;font-weight:700;"><span class="tvar">{{invoice_number}}</span></td></tr>
+              <tr><td style="padding:5px 14px 5px 0;color:#718096;font-weight:600;border:none;">Amount Due</td><td style="border:none;font-weight:700;color:#e53e3e;">₹ <span class="tvar">{{total_amount}}</span></td></tr>
+              <tr><td style="padding:5px 14px 5px 0;color:#718096;font-weight:600;border:none;">Due Date</td><td style="border:none;font-weight:700;color:#e53e3e;"><span class="tvar">{{due_date}}</span></td></tr>
+            </table>
+            <br>
+            <p>If you have already made the payment, please disregard this message. Otherwise, we request you to process it at the earliest.</p>
+            <br>
+            <p>Please find the invoice re-attached for your reference.</p>
+            <hr>
+            <p><strong>Finance Team</strong><br>Garage Productions Pvt. Ltd<br><span style="font-size:12px;color:#718096;">finance@garageproductions.in</span></p>
+            <p style="font-size:11px;color:#a0aec0;margin-top:8px;">📎 Attachment: <span class="tvar">Invoice_{{invoice_number}}.pdf</span></p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- QUESTIONS                              -->
+  <!-- ═══════════════════════════════════════ -->
+  <div class="card sec-questions" id="questions">
+    <div class="card-header">
+      <div class="icon">❓</div>
+      <div><h2>Open Questions — Fill &amp; Confirm</h2><p>Answer these before implementation starts</p></div>
+    </div>
+    <div class="card-body">
+
+      <div class="q-item">
+        <div class="q-num">Q1 — Confirmed ✅</div>
+        <div class="q-text">CC email for all invoices?</div>
+        <textarea>CC: saurabh@garageproductions.in — configurable in Settings</textarea>
+      </div>
+
+      <div class="q-item">
+        <div class="q-num">Q2 — Confirmed ✅</div>
+        <div class="q-text">From email for sending invoices?</div>
+        <textarea>From: finance@garageproductions.in — Zoho Mail account</textarea>
+      </div>
+
+      <div class="q-item">
+        <div class="q-num">Q3</div>
+        <div class="q-text">Digital signature — is it Saurabh Gupta's signature? Who uploads it — Admin only?</div>
+        <textarea placeholder="Write answer here..."></textarea>
+        <div class="note">Assumption: <span>Admin uploads in Settings → Company Info. Same signature as on actual invoice.</span></div>
+      </div>
+
+      <div class="q-item">
+        <div class="q-num">Q4</div>
+        <div class="q-text">Zoho App Password — do you have 2FA enabled on finance@garageproductions.in? (Required to generate App Password)</div>
+        <textarea placeholder="Write answer here..."></textarea>
+        <div class="note">Assumption: <span>Will be set up. Admin provides the App Password during system setup.</span></div>
+      </div>
+
+      <div class="q-item">
+        <div class="q-num">Q5</div>
+        <div class="q-text">Invoice number prefix — keep GPPL (as on actual invoices) or change to something else?</div>
+        <textarea placeholder="Write answer here..."></textarea>
+        <div class="note">Assumption: <span>Keep GPPL — matches existing invoices. Configurable in Settings.</span></div>
+      </div>
+
+      <div class="q-item">
+        <div class="q-num">Q6</div>
+        <div class="q-text">GST e-Invoice IRN — integrate with GST portal API now or keep as placeholder for later phase?</div>
+        <textarea placeholder="Write answer here..."></textarea>
+        <div class="note">Assumption: <span>Placeholder for now — IRN field visible but manually entered. API integration in later phase.</span></div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- EXECUTION PLAN                         -->
+  <!-- ═══════════════════════════════════════ -->
+  <div class="card sec-timeline" id="timeline">
+    <div class="card-header">
+      <div class="icon">📅</div>
+      <div><h2>Execution Plan — Phase by Phase</h2><p>Implementation starts after this doc is confirmed</p></div>
+    </div>
+    <div class="card-body">
+
+      <div class="trow hdr"><div>Phase</div><div>Priority</div><div>Effort</div><div>Scope</div></div>
+      <div class="trow">
+        <div><strong>Phase 1 — Reports Fix</strong><br><span style="font-size:12px;color:#718096;">Remove download, add View modal + Print</span></div>
+        <div><span class="p-medium">Medium</span></div>
+        <div>1 day<div class="ebar"><div class="efill" style="width:10%"></div></div></div>
+        <div style="font-size:12px;color:#718096;">3 tasks</div>
+      </div>
+      <div class="trow">
+        <div><strong>Phase 2 — Client Onboarding + Tabs</strong><br><span style="font-size:12px;color:#718096;">Multi-step form, horizontal tabs, client data view</span></div>
+        <div><span class="p-high">High</span></div>
+        <div>2 days<div class="ebar"><div class="efill" style="width:20%"></div></div></div>
+        <div style="font-size:12px;color:#718096;">7 tasks</div>
+      </div>
+      <div class="trow">
+        <div><strong>Phase 3 — SMTP + Zoho Config</strong><br><span style="font-size:12px;color:#718096;">Zoho SMTP wiring, invoice &amp; reminder templates</span></div>
+        <div><span class="p-high">High</span></div>
+        <div>1 day<div class="ebar"><div class="efill" style="width:10%"></div></div></div>
+        <div style="font-size:12px;color:#718096;">4 tasks</div>
+      </div>
+      <div class="trow">
+        <div><strong>Phase 4 — Invoice System</strong><br><span style="font-size:12px;color:#718096;">Full invoice flow, PDF generation, email via Zoho</span></div>
+        <div><span class="p-high">High</span></div>
+        <div>5 days<div class="ebar"><div class="efill" style="width:50%"></div></div></div>
+        <div style="font-size:12px;color:#718096;">13 tasks</div>
+      </div>
+      <div class="trow">
+        <div><strong>Phase 5 — Payment Intelligence</strong><br><span style="font-size:12px;color:#718096;">Reminders, status tracking, dashboard KPI</span></div>
+        <div><span class="p-high">High</span></div>
+        <div>2 days<div class="ebar"><div class="efill" style="width:20%"></div></div></div>
+        <div style="font-size:12px;color:#718096;">5 tasks</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <h4 style="font-size:13px;font-weight:700;margin-bottom:12px;color:#2d3748;">Phase 3 — SMTP &amp; Email Template Checklist</h4>
+      <ul class="checklist">
+        <li>Install <code>nodemailer</code> + configure Zoho SMTP (host, port 465, SSL) <span class="tag tag-be">BE</span></li>
+        <li>Build <code>emailService.js</code> — send function with To, CC, From, attachments <span class="tag tag-be">BE</span></li>
+        <li>Build invoice email template (HTML) with all <code>{{variables}}</code> <span class="tag tag-be">BE</span></li>
+        <li>Build payment reminder email template (HTML) <span class="tag tag-be">BE</span></li>
+        <li>Store SMTP credentials in <code>.env</code> (never hardcoded) <span class="tag tag-be">BE</span></li>
+        <li>Settings page → Email Config section (host, port, from email, CC email, from name) <span class="tag tag-fe">FE</span></li>
+        <li>Test send — verify delivery in Zoho sent folder + client inbox <span class="tag tag-be">BE</span></li>
+      </ul>
+
+      <div class="divider"></div>
+
+      <h4 style="font-size:13px;font-weight:700;margin-bottom:12px;color:#2d3748;">Phase 4 — Invoice System Checklist</h4>
+      <ul class="checklist">
+        <li>DB migration: <code>invoices</code> + <code>invoice_line_items</code> tables <span class="tag tag-db">DB</span></li>
+        <li>Build <code>invoiceRepository.js</code> — data access layer <span class="tag tag-be">BE</span></li>
+        <li>Build <code>invoiceService.js</code> — business logic + invoice number generation <span class="tag tag-be">BE</span></li>
+        <li>Integrate PDF generation (puppeteer) — exact invoice template layout <span class="tag tag-be">BE</span></li>
+        <li>Digital signature stamping on PDF <span class="tag tag-be">BE</span></li>
+        <li>Amount in words + Tax in words auto-generation <span class="tag tag-be">BE</span></li>
+        <li>Wire invoice email through Zoho SMTP (PDF attached) <span class="tag tag-be">BE</span></li>
+        <li>Build <code>invoiceController.js</code> + <code>invoice.routes.js</code> <span class="tag tag-be">BE</span></li>
+        <li>Build <code>InvoiceForm.jsx</code> — pre-filled form with line items <span class="tag tag-fe">FE</span></li>
+        <li>Build <code>InvoicePreview.jsx</code> — preview matching PDF layout <span class="tag tag-fe">FE</span></li>
+        <li>Build <code>InvoiceList.jsx</code> — invoice history on client page <span class="tag tag-fe">FE</span></li>
+        <li>Build <code>InvoiceStatusBadge.jsx</code> — colored status tags <span class="tag tag-fe">FE</span></li>
+        <li>Build <code>PaymentReminderModal.jsx</code> — set 15/30/45 day reminder <span class="tag tag-fe">FE</span></li>
+      </ul>
+
+    </div>
+  </div>
+
+  <div style="text-align:center;padding:20px 0;color:#a0aec0;font-size:12px;">
+    Garage WalletTracker — Boss Feedback Plan &nbsp;|&nbsp; Meeting: 2026-05-04 &nbsp;|&nbsp; Zoho SMTP + Multi-step form added
+    <br>Review → Answer open questions → Confirm → We start Phase 1.
+  </div>
+
+</div>
+
+<script>
+  document.querySelectorAll('.nav-pill').forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      const t = document.querySelector(link.getAttribute('href'));
+      if (t) t.scrollIntoView({ behavior:'smooth', block:'start' });
+    });
+  });
+  const secs  = document.querySelectorAll('.card[id]');
+  const pills = document.querySelectorAll('.nav-pill');
+  window.addEventListener('scroll', () => {
+    let cur = '';
+    secs.forEach(s => { if (window.scrollY >= s.offsetTop - 120) cur = s.id; });
+    pills.forEach(p => {
+      const on = p.getAttribute('href') === '#' + cur;
+      p.style.background  = on ? '#1a1a2e' : '';
+      p.style.color       = on ? '#fff' : '';
+      p.style.borderColor = on ? '#1a1a2e' : '';
+    });
+  });
+</script>
+</body>
+</html>

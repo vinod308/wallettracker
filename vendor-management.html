@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vendor Management — Garage WalletTracker</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f0f2f5; color: #1a1a2e; font-size: 14px; line-height: 1.6; }
+
+    /* ── TOP BAR ── */
+    .topbar { background: linear-gradient(135deg,#1a1a2e 0%,#16213e 60%,#0f3460 100%); color:#fff; padding:18px 40px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; box-shadow:0 2px 20px rgba(0,0,0,.3); }
+    .topbar-left h1 { font-size:18px; font-weight:700; }
+    .topbar-left p  { font-size:11px; color:#a0aec0; margin-top:2px; }
+    .topbar-right { display:flex; align-items:center; gap:12px; }
+    .badge-new { background:#6366f1; color:#fff; font-size:11px; font-weight:600; padding:4px 14px; border-radius:20px; }
+
+    /* ── LAYOUT ── */
+    .container { max-width:1200px; margin:0 auto; padding:32px 24px 80px; }
+
+    /* ── SECTION TITLE ── */
+    .section-title { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; color:#718096; margin:40px 0 16px; padding-left:4px; border-left:3px solid #6366f1; padding-left:10px; }
+    .section-title:first-child { margin-top:0; }
+
+    /* ── STAT CARDS ── */
+    .stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:8px; }
+    .stat-card { background:#fff; border-radius:12px; padding:20px 24px; box-shadow:0 1px 4px rgba(0,0,0,.07); border-top:3px solid transparent; }
+    .stat-card.purple { border-color:#6366f1; }
+    .stat-card.orange { border-color:#f59e0b; }
+    .stat-card.red    { border-color:#ef4444; }
+    .stat-card.green  { border-color:#10b981; }
+    .stat-label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.8px; color:#718096; margin-bottom:8px; }
+    .stat-value { font-size:26px; font-weight:800; color:#1a1a2e; }
+    .stat-sub   { font-size:11px; color:#a0aec0; margin-top:4px; }
+
+    /* ── CARD ── */
+    .card { background:#fff; border-radius:12px; box-shadow:0 1px 4px rgba(0,0,0,.08); margin-bottom:28px; overflow:hidden; }
+    .card-header { padding:16px 24px; border-bottom:1px solid #e8ecf0; display:flex; align-items:center; justify-content:space-between; }
+    .card-header-left { display:flex; align-items:center; gap:10px; }
+    .card-header-left h2 { font-size:15px; font-weight:700; }
+    .card-header-left p  { font-size:12px; color:#718096; }
+    .card-body  { padding:0; }
+
+    /* ── BUTTONS ── */
+    .btn { display:inline-flex; align-items:center; gap:6px; padding:8px 16px; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; border:none; text-decoration:none; }
+    .btn-primary  { background:#6366f1; color:#fff; }
+    .btn-outline  { background:#fff; color:#4a5568; border:1px solid #e2e8f0; }
+    .btn-sm       { padding:5px 12px; font-size:12px; border-radius:6px; }
+    .btn-danger   { background:#fff; color:#e53e3e; border:1px solid #fed7d7; }
+
+    /* ── TABLE ── */
+    table { width:100%; border-collapse:collapse; }
+    thead tr { background:#f7fafc; }
+    th { padding:11px 16px; text-align:left; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; color:#718096; white-space:nowrap; }
+    td { padding:13px 16px; font-size:13px; color:#2d3748; border-top:1px solid #f0f2f5; vertical-align:middle; }
+    tr:hover td { background:#fafbff; }
+
+    /* ── BADGES ── */
+    .tag { display:inline-flex; align-items:center; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; }
+    .tag-active   { background:#e0f2fe; color:#0369a1; }
+    .tag-inactive { background:#f1f5f9; color:#64748b; }
+    .tag-paid     { background:#d1fae5; color:#065f46; }
+    .tag-pending  { background:#fef3c7; color:#92400e; }
+    .tag-overdue  { background:#fee2e2; color:#991b1b; }
+    .tag-partial  { background:#ede9fe; color:#5b21b6; }
+
+    /* ── VENDOR DETAIL ── */
+    .two-col { display:grid; grid-template-columns:340px 1fr; gap:20px; margin-bottom:28px; }
+    .info-card { background:#fff; border-radius:12px; box-shadow:0 1px 4px rgba(0,0,0,.08); padding:24px; }
+    .info-card h3 { font-size:14px; font-weight:700; color:#1a1a2e; margin-bottom:16px; padding-bottom:10px; border-bottom:1px solid #f0f2f5; display:flex; align-items:center; gap:8px; }
+    .info-row { display:flex; flex-direction:column; margin-bottom:14px; }
+    .info-row:last-child { margin-bottom:0; }
+    .info-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; color:#a0aec0; margin-bottom:3px; }
+    .info-value { font-size:13px; font-weight:600; color:#2d3748; }
+
+    /* ── PROFILE HEADER ── */
+    .vendor-header { background:linear-gradient(135deg,#1a1a2e,#312e81); border-radius:12px; padding:28px 32px; color:#fff; margin-bottom:20px; display:flex; align-items:center; gap:20px; }
+    .vendor-avatar { width:60px; height:60px; border-radius:14px; background:rgba(255,255,255,0.15); display:flex; align-items:center; justify-content:center; font-size:26px; font-weight:800; flex-shrink:0; }
+    .vendor-header h2 { font-size:20px; font-weight:700; margin-bottom:4px; }
+    .vendor-header p  { font-size:12px; color:rgba(255,255,255,0.65); }
+    .vendor-header-meta { display:flex; gap:20px; margin-top:12px; }
+    .vendor-meta-item { text-align:center; }
+    .vendor-meta-item .val { font-size:18px; font-weight:800; }
+    .vendor-meta-item .lbl { font-size:10px; color:rgba(255,255,255,0.6); text-transform:uppercase; letter-spacing:0.8px; }
+    .vendor-tags { display:flex; gap:8px; margin-top:8px; flex-wrap:wrap; }
+    .vendor-tags .tag { font-size:11px; background:rgba(255,255,255,0.15); color:#fff; }
+
+    /* ── FORM MOCKUP ── */
+    .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    .form-grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; }
+    .form-group { display:flex; flex-direction:column; gap:5px; }
+    .form-group.full { grid-column:1/-1; }
+    .form-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.7px; color:#718096; }
+    .form-input { padding:9px 12px; border:1px solid #e2e8f0; border-radius:8px; font-size:13px; color:#2d3748; background:#f8fafc; }
+    .form-section-title { font-size:12px; font-weight:700; color:#6366f1; text-transform:uppercase; letter-spacing:1px; grid-column:1/-1; padding-top:8px; border-top:1px solid #f0f2f5; margin-top:4px; }
+    .form-actions { display:flex; gap:10px; justify-content:flex-end; padding:16px 24px; border-top:1px solid #f0f2f5; }
+
+    /* ── SUMMARY ROW ── */
+    .summary-row { display:flex; gap:12px; padding:16px 24px; border-top:1px solid #f0f2f5; background:#f8fafc; }
+    .summary-item { flex:1; text-align:center; }
+    .summary-item .s-val { font-size:17px; font-weight:800; color:#1a1a2e; }
+    .summary-item .s-lbl { font-size:10px; color:#a0aec0; text-transform:uppercase; letter-spacing:0.7px; margin-top:2px; }
+
+    /* ── DIVIDER ── */
+    .divider { height:1px; background:#f0f2f5; margin:8px 0; }
+
+    /* ── NOTE BOX ── */
+    .note { background:#eef2ff; border-left:4px solid #6366f1; border-radius:0 8px 8px 0; padding:12px 16px; font-size:12px; color:#4338ca; margin-bottom:20px; }
+
+    /* ── ACTION ICONS ── */
+    .action-icons { display:flex; gap:6px; }
+    .icon-btn { width:30px; height:30px; border-radius:6px; border:1px solid #e2e8f0; background:#fff; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; font-size:13px; }
+    .icon-btn:hover { background:#f0f4ff; }
+
+    /* ── PROGRESS BAR ── */
+    .progress-bar { height:5px; background:#e2e8f0; border-radius:3px; margin-top:6px; }
+    .progress-fill { height:100%; border-radius:3px; }
+  </style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════
+     TOP BAR
+════════════════════════════════════════════ -->
+<div class="topbar">
+  <div class="topbar-left">
+    <h1>Garage WalletTracker</h1>
+    <p>Vendor Management Module — Design Preview</p>
+  </div>
+  <div class="topbar-right">
+    <span class="badge-new">Discussion Draft</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- ══════════════════════════════════════════
+       VIEW 1 — VENDOR LIST / DASHBOARD
+  ══════════════════════════════════════════ -->
+  <div class="section-title">View 1 — Vendor List &amp; Dashboard</div>
+  <div class="note">This is the main Vendor Management landing page. Shows overview stats and a list of all vendors with key payment info.</div>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card purple">
+      <div class="stat-label">Total Vendors</div>
+      <div class="stat-value">18</div>
+      <div class="stat-sub">6 active this month</div>
+    </div>
+    <div class="stat-card orange">
+      <div class="stat-label">Total Payable</div>
+      <div class="stat-value">Rs.4,82,000</div>
+      <div class="stat-sub">Across all pending bills</div>
+    </div>
+    <div class="stat-card red">
+      <div class="stat-label">Overdue Bills</div>
+      <div class="stat-value">Rs.1,18,000</div>
+      <div class="stat-sub">5 bills past due date</div>
+    </div>
+    <div class="stat-card green">
+      <div class="stat-label">Paid This Month</div>
+      <div class="stat-value">Rs.2,40,000</div>
+      <div class="stat-sub">12 bills settled</div>
+    </div>
+  </div>
+
+  <!-- Vendor Table -->
+  <div class="card" style="margin-top:20px;">
+    <div class="card-header">
+      <div class="card-header-left">
+        <h2>All Vendors</h2>
+        <p style="margin-left:8px;">&nbsp;—&nbsp; 18 vendors registered</p>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <input class="form-input" style="width:200px;padding:7px 12px;" placeholder="🔍  Search vendor..." />
+        <select class="form-input" style="width:140px;padding:7px 12px;">
+          <option>All Categories</option>
+          <option>Production House</option>
+          <option>Freelancer</option>
+          <option>Agency</option>
+          <option>Equipment</option>
+        </select>
+        <button class="btn btn-primary">+ Add Vendor</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Vendor Name</th>
+            <th>Category</th>
+            <th>GSTIN</th>
+            <th>Contact</th>
+            <th>Total Bills</th>
+            <th>Pending Amount</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="color:#a0aec0;font-size:12px;">01</td>
+            <td>
+              <div style="font-weight:700;color:#1a1a2e;">Pixel Motion Studio</div>
+              <div style="font-size:11px;color:#a0aec0;">pixelmotion@gmail.com</div>
+            </td>
+            <td><span class="tag tag-active">Production House</span></td>
+            <td style="font-size:12px;color:#4a5568;font-family:monospace;">07ABCDE1234F1Z5</td>
+            <td>
+              <div style="font-size:12px;">Rahul Mehta</div>
+              <div style="font-size:11px;color:#a0aec0;">+91 98765 43210</div>
+            </td>
+            <td style="font-weight:600;">8</td>
+            <td style="font-weight:700;color:#e53e3e;">Rs.48,000</td>
+            <td><span class="tag tag-overdue">Overdue</span></td>
+            <td>
+              <div class="action-icons">
+                <button class="icon-btn" title="View">👁</button>
+                <button class="icon-btn" title="Edit">✏️</button>
+                <button class="icon-btn" title="Delete">🗑</button>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="color:#a0aec0;font-size:12px;">02</td>
+            <td>
+              <div style="font-weight:700;color:#1a1a2e;">SoundCraft Audio</div>
+              <div style="font-size:11px;color:#a0aec0;">soundcraft@gmail.com</div>
+            </td>
+            <td><span class="tag" style="background:#ede9fe;color:#5b21b6;">Freelancer</span></td>
+            <td style="font-size:12px;color:#4a5568;font-family:monospace;">06XYZAB5678G2H9</td>
+            <td>
+              <div style="font-size:12px;">Priya Sharma</div>
+              <div style="font-size:11px;color:#a0aec0;">+91 91234 56789</div>
+            </td>
+            <td style="font-weight:600;">4</td>
+            <td style="font-weight:700;color:#f59e0b;">Rs.22,500</td>
+            <td><span class="tag tag-pending">Pending</span></td>
+            <td>
+              <div class="action-icons">
+                <button class="icon-btn" title="View">👁</button>
+                <button class="icon-btn" title="Edit">✏️</button>
+                <button class="icon-btn" title="Delete">🗑</button>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="color:#a0aec0;font-size:12px;">03</td>
+            <td>
+              <div style="font-weight:700;color:#1a1a2e;">CineGear Equipment</div>
+              <div style="font-size:11px;color:#a0aec0;">cinegear@outlook.com</div>
+            </td>
+            <td><span class="tag" style="background:#fef3c7;color:#92400e;">Equipment</span></td>
+            <td style="font-size:12px;color:#4a5568;font-family:monospace;">09LMNOP9012K3Z1</td>
+            <td>
+              <div style="font-size:12px;">Vikram Singh</div>
+              <div style="font-size:11px;color:#a0aec0;">+91 87654 32109</div>
+            </td>
+            <td style="font-weight:600;">11</td>
+            <td style="font-weight:700;color:#10b981;">Rs.0</td>
+            <td><span class="tag tag-paid">All Paid</span></td>
+            <td>
+              <div class="action-icons">
+                <button class="icon-btn" title="View">👁</button>
+                <button class="icon-btn" title="Edit">✏️</button>
+                <button class="icon-btn" title="Delete">🗑</button>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="color:#a0aec0;font-size:12px;">04</td>
+            <td>
+              <div style="font-weight:700;color:#1a1a2e;">Creative Minds Agency</div>
+              <div style="font-size:11px;color:#a0aec0;">creativeminds@agency.in</div>
+            </td>
+            <td><span class="tag" style="background:#d1fae5;color:#065f46;">Agency</span></td>
+            <td style="font-size:12px;color:#4a5568;font-family:monospace;">27QRSTUV3456N7P2</td>
+            <td>
+              <div style="font-size:12px;">Anita Desai</div>
+              <div style="font-size:11px;color:#a0aec0;">+91 70123 45678</div>
+            </td>
+            <td style="font-weight:600;">6</td>
+            <td style="font-weight:700;color:#6366f1;">Rs.35,000</td>
+            <td><span class="tag tag-partial">Partial</span></td>
+            <td>
+              <div class="action-icons">
+                <button class="icon-btn" title="View">👁</button>
+                <button class="icon-btn" title="Edit">✏️</button>
+                <button class="icon-btn" title="Delete">🗑</button>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="color:#a0aec0;font-size:12px;">05</td>
+            <td>
+              <div style="font-weight:700;color:#1a1a2e;">Aakash Lighting Co.</div>
+              <div style="font-size:11px;color:#a0aec0;">aakashlights@gmail.com</div>
+            </td>
+            <td><span class="tag" style="background:#fef3c7;color:#92400e;">Equipment</span></td>
+            <td style="font-size:12px;color:#4a5568;font-family:monospace;">22HIJKL6789M4Q8</td>
+            <td>
+              <div style="font-size:12px;">Suresh Kumar</div>
+              <div style="font-size:11px;color:#a0aec0;">+91 99887 76655</div>
+            </td>
+            <td style="font-weight:600;">3</td>
+            <td style="font-weight:700;color:#e53e3e;">Rs.12,500</td>
+            <td><span class="tag tag-overdue">Overdue</span></td>
+            <td>
+              <div class="action-icons">
+                <button class="icon-btn" title="View">👁</button>
+                <button class="icon-btn" title="Edit">✏️</button>
+                <button class="icon-btn" title="Delete">🗑</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Summary -->
+      <div class="summary-row">
+        <div class="summary-item">
+          <div class="s-val">18</div>
+          <div class="s-lbl">Total Vendors</div>
+        </div>
+        <div class="summary-item">
+          <div class="s-val" style="color:#e53e3e;">Rs.1,18,000</div>
+          <div class="s-lbl">Overdue</div>
+        </div>
+        <div class="summary-item">
+          <div class="s-val" style="color:#f59e0b;">Rs.2,47,000</div>
+          <div class="s-lbl">Pending</div>
+        </div>
+        <div class="summary-item">
+          <div class="s-val" style="color:#10b981;">Rs.2,40,000</div>
+          <div class="s-lbl">Paid This Month</div>
+        </div>
+        <div class="summary-item">
+          <div class="s-val" style="color:#6366f1;">Rs.4,82,000</div>
+          <div class="s-lbl">Total Payable</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════
+       VIEW 2 — ADD / EDIT VENDOR FORM
+  ══════════════════════════════════════════ -->
+  <div class="section-title">View 2 — Add / Edit Vendor Form</div>
+  <div class="note">Modal or full-page form for adding a new vendor or editing an existing one.</div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-left">
+        <h2>Add New Vendor</h2>
+      </div>
+      <button class="btn btn-outline btn-sm">✕ Cancel</button>
+    </div>
+    <div class="card-body" style="padding:24px;">
+
+      <!-- Basic Info -->
+      <div class="form-grid" style="margin-bottom:20px;">
+        <div class="form-section-title">Basic Information</div>
+        <div class="form-group">
+          <label class="form-label">Vendor / Company Name *</label>
+          <input class="form-input" placeholder="e.g. Pixel Motion Studio" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Vendor Category *</label>
+          <select class="form-input">
+            <option value="">Select category</option>
+            <option>Production House</option>
+            <option>Freelancer</option>
+            <option>Agency</option>
+            <option>Equipment Rental</option>
+            <option>Post Production</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">GSTIN</label>
+          <input class="form-input" placeholder="e.g. 07ABCDE1234F1Z5" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">PAN Number</label>
+          <input class="form-input" placeholder="e.g. ABCDE1234F" />
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Registered Address</label>
+          <input class="form-input" placeholder="Full address" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">State</label>
+          <input class="form-input" placeholder="e.g. Delhi" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">State Code</label>
+          <input class="form-input" placeholder="e.g. 07" />
+        </div>
+      </div>
+
+      <!-- Contact -->
+      <div class="form-grid" style="margin-bottom:20px;">
+        <div class="form-section-title">Contact Information</div>
+        <div class="form-group">
+          <label class="form-label">Contact Person *</label>
+          <input class="form-input" placeholder="Full name" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Mobile Number</label>
+          <input class="form-input" placeholder="+91 XXXXX XXXXX" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input class="form-input" placeholder="vendor@email.com" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Alternate Email</label>
+          <input class="form-input" placeholder="Optional" />
+        </div>
+      </div>
+
+      <!-- Bank -->
+      <div class="form-grid" style="margin-bottom:8px;">
+        <div class="form-section-title">Bank Details</div>
+        <div class="form-group">
+          <label class="form-label">Account Holder Name</label>
+          <input class="form-input" placeholder="As per bank records" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Bank Name</label>
+          <input class="form-input" placeholder="e.g. HDFC Bank" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Account Number</label>
+          <input class="form-input" placeholder="Account number" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">IFSC Code</label>
+          <input class="form-input" placeholder="e.g. HDFC0001234" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Branch</label>
+          <input class="form-input" placeholder="Branch name" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Payment Terms (Days)</label>
+          <select class="form-input">
+            <option>Immediate</option>
+            <option>Net 7</option>
+            <option>Net 15</option>
+            <option>Net 30</option>
+            <option>Net 45</option>
+          </select>
+        </div>
+      </div>
+
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-outline">Cancel</button>
+      <button class="btn btn-primary">Save Vendor</button>
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════
+       VIEW 3 — VENDOR DETAIL PAGE
+  ══════════════════════════════════════════ -->
+  <div class="section-title">View 3 — Vendor Detail Page</div>
+  <div class="note">Clicking a vendor from the list opens this page — shows full profile, bank details, and all bills received from that vendor.</div>
+
+  <!-- Vendor Profile Header -->
+  <div class="vendor-header">
+    <div class="vendor-avatar">P</div>
+    <div style="flex:1;">
+      <h2>Pixel Motion Studio</h2>
+      <div class="vendor-tags">
+        <span class="tag">Production House</span>
+        <span class="tag">GSTIN: 07ABCDE1234F1Z5</span>
+        <span class="tag">Net 30</span>
+      </div>
+      <p style="margin-top:8px;">Rahul Mehta &nbsp;·&nbsp; +91 98765 43210 &nbsp;·&nbsp; pixelmotion@gmail.com</p>
+    </div>
+    <div class="vendor-header-meta">
+      <div class="vendor-meta-item">
+        <div class="val">8</div>
+        <div class="lbl">Total Bills</div>
+      </div>
+      <div style="width:1px;background:rgba(255,255,255,0.15);margin:0 12px;"></div>
+      <div class="vendor-meta-item">
+        <div class="val" style="color:#fca5a5;">Rs.48,000</div>
+        <div class="lbl">Outstanding</div>
+      </div>
+      <div style="width:1px;background:rgba(255,255,255,0.15);margin:0 12px;"></div>
+      <div class="vendor-meta-item">
+        <div class="val" style="color:#6ee7b7;">Rs.1,92,000</div>
+        <div class="lbl">Total Paid</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Two column -->
+  <div class="two-col">
+    <!-- Left — Info -->
+    <div>
+      <div class="info-card" style="margin-bottom:16px;">
+        <h3>🏢 Company Details</h3>
+        <div class="info-row"><span class="info-label">Company Name</span><span class="info-value">Pixel Motion Studio</span></div>
+        <div class="info-row"><span class="info-label">GSTIN</span><span class="info-value" style="font-family:monospace;font-size:12px;">07ABCDE1234F1Z5</span></div>
+        <div class="info-row"><span class="info-label">PAN</span><span class="info-value" style="font-family:monospace;font-size:12px;">ABCDE1234F</span></div>
+        <div class="info-row"><span class="info-label">State</span><span class="info-value">Delhi (07)</span></div>
+        <div class="info-row"><span class="info-label">Address</span><span class="info-value">Plot 12, Okhla Industrial Area, Phase II, New Delhi – 110020</span></div>
+      </div>
+      <div class="info-card" style="margin-bottom:16px;">
+        <h3>🏦 Bank Details</h3>
+        <div class="info-row"><span class="info-label">Account Holder</span><span class="info-value">Pixel Motion Studio Pvt. Ltd.</span></div>
+        <div class="info-row"><span class="info-label">Bank Name</span><span class="info-value">ICICI Bank Limited</span></div>
+        <div class="info-row"><span class="info-label">Account No.</span><span class="info-value" style="font-family:monospace;font-size:12px;">123400056789</span></div>
+        <div class="info-row"><span class="info-label">IFSC Code</span><span class="info-value" style="font-family:monospace;font-size:12px;">ICIC0001234</span></div>
+        <div class="info-row"><span class="info-label">Branch</span><span class="info-value">Okhla, New Delhi</span></div>
+      </div>
+      <div class="info-card">
+        <h3>📞 Contact</h3>
+        <div class="info-row"><span class="info-label">Contact Person</span><span class="info-value">Rahul Mehta</span></div>
+        <div class="info-row"><span class="info-label">Mobile</span><span class="info-value">+91 98765 43210</span></div>
+        <div class="info-row"><span class="info-label">Email</span><span class="info-value">pixelmotion@gmail.com</span></div>
+        <div class="info-row"><span class="info-label">Payment Terms</span><span class="info-value">Net 30 Days</span></div>
+      </div>
+    </div>
+
+    <!-- Right — Bills -->
+    <div>
+      <div class="card" style="margin-bottom:0;">
+        <div class="card-header">
+          <div class="card-header-left"><h2>Bills Received</h2></div>
+          <button class="btn btn-primary btn-sm">+ Log New Bill</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Bill No.</th>
+              <th>Date</th>
+              <th>Description</th>
+              <th>Amount</th>
+              <th>Due Date</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="font-weight:700;font-size:12px;color:#6366f1;">BILL-001</td>
+              <td style="font-size:12px;">12 Mar 2026</td>
+              <td style="font-size:12px;">Video Production — HDFC Campaign</td>
+              <td style="font-weight:700;">Rs.85,000</td>
+              <td style="font-size:12px;">11 Apr 2026</td>
+              <td><span class="tag tag-paid">Paid</span></td>
+              <td><button class="btn btn-outline btn-sm">View</button></td>
+            </tr>
+            <tr>
+              <td style="font-weight:700;font-size:12px;color:#6366f1;">BILL-002</td>
+              <td style="font-size:12px;">28 Mar 2026</td>
+              <td style="font-size:12px;">Motion Graphics — SBI Promo</td>
+              <td style="font-weight:700;">Rs.42,000</td>
+              <td style="font-size:12px;">27 Apr 2026</td>
+              <td><span class="tag tag-paid">Paid</span></td>
+              <td><button class="btn btn-outline btn-sm">View</button></td>
+            </tr>
+            <tr>
+              <td style="font-weight:700;font-size:12px;color:#6366f1;">BILL-003</td>
+              <td style="font-size:12px;">05 Apr 2026</td>
+              <td style="font-size:12px;">Color Grading — Axis Bank TVC</td>
+              <td style="font-weight:700;">Rs.28,000</td>
+              <td style="font-size:12px;">05 May 2026</td>
+              <td><span class="tag tag-overdue">Overdue</span></td>
+              <td>
+                <div style="display:flex;gap:6px;">
+                  <button class="btn btn-outline btn-sm">View</button>
+                  <button class="btn btn-sm" style="background:#d1fae5;color:#065f46;border:1px solid #a7f3d0;">Mark Paid</button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td style="font-weight:700;font-size:12px;color:#6366f1;">BILL-004</td>
+              <td style="font-size:12px;">18 Apr 2026</td>
+              <td style="font-size:12px;">Photography — Kotak Campaign</td>
+              <td style="font-weight:700;">Rs.20,000</td>
+              <td style="font-size:12px;">18 May 2026</td>
+              <td><span class="tag tag-pending">Pending</span></td>
+              <td>
+                <div style="display:flex;gap:6px;">
+                  <button class="btn btn-outline btn-sm">View</button>
+                  <button class="btn btn-sm" style="background:#d1fae5;color:#065f46;border:1px solid #a7f3d0;">Mark Paid</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Bill summary -->
+        <div class="summary-row">
+          <div class="summary-item"><div class="s-val">8</div><div class="s-lbl">Total Bills</div></div>
+          <div class="summary-item"><div class="s-val" style="color:#10b981;">Rs.1,92,000</div><div class="s-lbl">Paid</div></div>
+          <div class="summary-item"><div class="s-val" style="color:#f59e0b;">Rs.20,000</div><div class="s-lbl">Pending</div></div>
+          <div class="summary-item"><div class="s-val" style="color:#e53e3e;">Rs.28,000</div><div class="s-lbl">Overdue</div></div>
+        </div>
+
+        <!-- Payment progress -->
+        <div style="padding:16px 24px;border-top:1px solid #f0f2f5;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+            <span style="font-size:12px;color:#718096;">Payment Progress</span>
+            <span style="font-size:12px;font-weight:700;color:#10b981;">80% Settled</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width:80%;background:linear-gradient(90deg,#10b981,#34d399);"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════
+       VIEW 4 — LOG NEW BILL (MODAL)
+  ══════════════════════════════════════════ -->
+  <div class="section-title">View 4 — Log New Bill Modal</div>
+  <div class="note">When "Log New Bill" is clicked on the vendor detail page, this form appears to record a new incoming bill from the vendor.</div>
+
+  <div class="card" style="max-width:640px;">
+    <div class="card-header">
+      <div class="card-header-left"><h2>Log New Bill — Pixel Motion Studio</h2></div>
+      <button class="btn btn-outline btn-sm">✕</button>
+    </div>
+    <div class="card-body" style="padding:24px;">
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Bill Number *</label>
+          <input class="form-input" placeholder="e.g. BILL-005 or PM/2026/005" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Bill Date *</label>
+          <input class="form-input" type="date" />
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Description / Work Done *</label>
+          <input class="form-input" placeholder="e.g. Video Production — HDFC Campaign Q2" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Bill Amount (Rs.) *</label>
+          <input class="form-input" placeholder="0.00" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">GST Amount (Rs.)</label>
+          <input class="form-input" placeholder="Auto-calculated or manual" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Total Amount (incl. GST)</label>
+          <input class="form-input" placeholder="0.00" style="background:#f0fdf4;border-color:#a7f3d0;font-weight:700;" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Due Date</label>
+          <input class="form-input" type="date" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Payment Status</label>
+          <select class="form-input">
+            <option>Pending</option>
+            <option>Paid</option>
+            <option>Partial</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Notes (Optional)</label>
+          <input class="form-input" placeholder="Any additional notes about this bill..." />
+        </div>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-outline">Cancel</button>
+      <button class="btn btn-primary">Save Bill</button>
+    </div>
+  </div>
+
+  <div style="margin-top:40px;padding:16px 20px;background:#1a1a2e;border-radius:10px;color:#a0aec0;font-size:12px;text-align:center;">
+    Garage WalletTracker — Vendor Management Design Preview &nbsp;·&nbsp; For discussion purposes only
+  </div>
+
+</div>
+</body>
+</html>
