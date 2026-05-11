@@ -53,8 +53,14 @@ const PageLoader = () => (
   </div>
 );
 
+const roleHome = (user) => {
+  if (user?.role === 'vendor')         return '/vendor-portal';
+  if (user?.role === 'vendor_manager') return '/vendors';
+  return '/dashboard';
+};
+
 const AppRouter = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   return (
     <BrowserRouter>
@@ -64,13 +70,13 @@ const AppRouter = () => {
           <Route
             path="/login"
             element={
-              isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage />
+              isAuthenticated ? <Navigate to={roleHome(user)} replace /> : <LoginPage />
             }
           />
           <Route
             path="/signup"
             element={
-              isAuthenticated ? <Navigate to="/dashboard" replace /> : <SignupPage />
+              isAuthenticated ? <Navigate to={roleHome(user)} replace /> : <SignupPage />
             }
           />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
@@ -207,7 +213,7 @@ const AppRouter = () => {
           <Route
             path="/"
             element={
-              isAuthenticated ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />
+              isAuthenticated ? <Navigate to={roleHome(user)} replace /> : <Navigate to="/login" replace />
             }
           />
 
