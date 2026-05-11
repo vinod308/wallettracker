@@ -71,9 +71,11 @@ export function generatePIPDF(invoice, vendor) {
     const subAmount   = parseFloat(invoice.sub_amount)   || 0;
     const gstAmount   = parseFloat(invoice.gst_amount)   || 0;
     const gstRate     = parseFloat(invoice.gst_rate)     || 18;
+    const taxType     = invoice.taxType || 'split';
     const halfGst     = gstRate / 2;
-    const cgstAmt     = gstAmount / 2;
-    const sgstAmt     = gstAmount / 2;
+    const cgstAmt     = taxType === 'igst' ? 0 : gstAmount / 2;
+    const sgstAmt     = taxType === 'igst' ? 0 : gstAmount / 2;
+    const igstAmt     = taxType === 'igst' ? gstAmount : 0;
 
     const vendorName = vendor.vendorName || vendor.vendor_name || '';
     const vendorType = vendor.vendorType || vendor.vendor_type || '—';
@@ -139,10 +141,24 @@ export function generatePIPDF(invoice, vendor) {
     y += 2;
 
     // ── 4. LINE ITEMS TABLE ────────────────────────────────────────────────────
+    const validLines = (invoice.lines || []).filter(l => l.description?.trim() && parseFloat(l.rate) > 0);
+    const lineRows = validLines.length > 0
+        ? validLines.map((l, i) => {
+            const lineTotal = (parseFloat(l.rate) || 0) * (parseFloat(l.qty) || 1);
+            return [i + 1, l.description, String(parseFloat(l.qty) || 1), fmtN(parseFloat(l.rate) || 0), fmtN(lineTotal)];
+        })
+        : [[1, invoice.description || 'Professional Services', '1', fmtN(subAmount), fmtN(subAmount)]];
+
+    const taxRows = taxType === 'igst'
+        ? [['', { content: `IGST @ ${gstRate}%`, styles: { halign: 'right' } }, '', { content: `${gstRate}%`, styles: { halign: 'right' } }, fmtN(igstAmt)]]
+        : [
+            ['', { content: `CGST @ ${halfGst}%`, styles: { halign: 'right' } }, '', { content: `${halfGst}%`, styles: { halign: 'right' } }, fmtN(cgstAmt)],
+            ['', { content: `SGST @ ${halfGst}%`, styles: { halign: 'right' } }, '', { content: `${halfGst}%`, styles: { halign: 'right' } }, fmtN(sgstAmt)],
+        ];
+
     const itemBody = [
-        [1, invoice.description || 'Professional Services', '1', fmtN(subAmount), fmtN(subAmount)],
-        ['', { content: `CGST @ ${halfGst}%`, styles: { halign: 'right' } }, '', { content: `${halfGst}%`, styles: { halign: 'right' } }, fmtN(cgstAmt)],
-        ['', { content: `SGST @ ${halfGst}%`, styles: { halign: 'right' } }, '', { content: `${halfGst}%`, styles: { halign: 'right' } }, fmtN(sgstAmt)],
+        ...lineRows,
+        ...taxRows,
         ['', '', '', { content: 'Total', styles: { halign: 'right', fontStyle: 'bold' } },
             { content: 'Rs. ' + fmtN(totalAmount), styles: { fontStyle: 'bold', halign: 'right' } }],
     ];
