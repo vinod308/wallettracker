@@ -88,7 +88,10 @@ export function generateInvoicePDF(invoice, client) {
     const MR = 10;
     const CW = PW - ML - MR; // 190mm
 
-    const isSplit = invoice.taxType !== 'igst';
+    const isSplit  = invoice.taxType === 'split' || invoice.taxType === 'split5';
+    const halfRate = invoice.taxType === 'split' ? 0.09 : invoice.taxType === 'split5' ? 0.025 : 0;
+    const fullRate = invoice.taxType === 'igst'  ? 0.18 : invoice.taxType === 'igst5'  ? 0.05  : 0;
+    const rateLabel = invoice.taxType === 'split' ? '9' : invoice.taxType === 'split5' ? '2.5' : invoice.taxType === 'igst' ? '18' : '5';
     const total   = parseFloat(invoice.total)   || 0;
     const cgst    = parseFloat(invoice.cgst)    || 0;
     const sgst    = parseFloat(invoice.sgst)    || 0;
@@ -266,22 +269,22 @@ export function generateInvoicePDF(invoice, client) {
         const rate    = parseFloat(l.rate) || 0;
         const qty     = parseFloat(l.qty)  || 1;
         const amount  = rate * qty;
-        const cgstAmt = isSplit ? amount * 0.09 : 0;
-        const sgstAmt = isSplit ? amount * 0.09 : 0;
-        const igstAmt = !isSplit ? amount * 0.18 : 0;
+        const cgstAmt = isSplit ? amount * halfRate : 0;
+        const sgstAmt = isSplit ? amount * halfRate : 0;
+        const igstAmt = !isSplit ? amount * fullRate : 0;
 
         // Service row
         itemBody.push([i + 1, l.description, l.hsn || '', qty > 0 ? qty : '', fmtN(rate), '', fmtN(amount)]);
 
         // Tax sub-rows
         if (isSplit) {
-            itemBody.push(['', { content: 'CGST Output 9%', styles: { halign: 'right' } }, '', '',
-                { content: '9 %', styles: { halign: 'right' } }, '', fmtN(cgstAmt)]);
-            itemBody.push(['', { content: 'SGST Output 9%', styles: { halign: 'right' } }, '', '',
-                { content: '9 %', styles: { halign: 'right' } }, '', fmtN(sgstAmt)]);
+            itemBody.push(['', { content: `CGST Output ${rateLabel}%`, styles: { halign: 'right' } }, '', '',
+                { content: `${rateLabel} %`, styles: { halign: 'right' } }, '', fmtN(cgstAmt)]);
+            itemBody.push(['', { content: `SGST Output ${rateLabel}%`, styles: { halign: 'right' } }, '', '',
+                { content: `${rateLabel} %`, styles: { halign: 'right' } }, '', fmtN(sgstAmt)]);
         } else {
-            itemBody.push(['', { content: 'IGST Output 18%', styles: { halign: 'right' } }, '', '',
-                { content: '18 %', styles: { halign: 'right' } }, '', fmtN(igstAmt)]);
+            itemBody.push(['', { content: `IGST Output ${rateLabel}%`, styles: { halign: 'right' } }, '', '',
+                { content: `${rateLabel} %`, styles: { halign: 'right' } }, '', fmtN(igstAmt)]);
         }
     });
 
@@ -373,12 +376,12 @@ export function generateInvoicePDF(invoice, client) {
     Object.entries(hsnMap).forEach(([hsn, taxable]) => {
         tT += taxable;
         if (isSplit) {
-            const c = taxable * 0.09, s = taxable * 0.09;
+            const c = taxable * halfRate, s = taxable * halfRate;
             tC += c; tS += s;
-            hsnBody.push([hsn, fmtN(taxable), '9%', fmtN(c), '9%', fmtN(s), fmtN(c + s)]);
+            hsnBody.push([hsn, fmtN(taxable), `${rateLabel}%`, fmtN(c), `${rateLabel}%`, fmtN(s), fmtN(c + s)]);
         } else {
-            const ig = taxable * 0.18; tI += ig;
-            hsnBody.push([hsn, fmtN(taxable), '18%', fmtN(ig), '', '', fmtN(ig)]);
+            const ig = taxable * fullRate; tI += ig;
+            hsnBody.push([hsn, fmtN(taxable), `${rateLabel}%`, fmtN(ig), '', '', fmtN(ig)]);
         }
     });
     if (isSplit) {

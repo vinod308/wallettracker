@@ -64,6 +64,8 @@ const ClientOnboardingModal = ({ isOpen, onClose, onClientAdded, editClient }) =
                 e.state = 'State is required';
             if (!form.stateCode.trim())
                 e.stateCode = 'State code is required';
+            else if (!/^\d{6}$/.test(form.stateCode.trim()))
+                e.stateCode = 'Enter a valid 6-digit state code';
         }
         if (s === 1) {
             if (!form.bankName.trim())
@@ -262,10 +264,12 @@ const ClientOnboardingModal = ({ isOpen, onClose, onClientAdded, editClient }) =
                                 className={inp(errors.state ? 'border-red-400 bg-red-50' : 'border-gray-200')}
                             />
                         </Field>
-                        <Field label="State Code" required error={errors.stateCode} hint="2-digit GST state code">
+                        <Field label="State Code" required error={errors.stateCode} hint="6-digit state code">
                             <input
                                 value={form.stateCode} onChange={set('stateCode')}
-                                placeholder="e.g. 09"
+                                placeholder="e.g. 090001"
+                                maxLength={6}
+                                inputMode="numeric"
                                 className={inp(errors.stateCode ? 'border-red-400 bg-red-50' : 'border-gray-200')}
                             />
                         </Field>

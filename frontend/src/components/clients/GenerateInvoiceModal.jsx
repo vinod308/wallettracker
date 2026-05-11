@@ -42,9 +42,9 @@ const GenerateInvoiceModal = ({ isOpen, onClose, client, onInvoiceSaved }) => {
     const removeLine = (i) => setLines(prev => prev.filter((_, idx) => idx !== i));
 
     const subtotal = lines.reduce((s, l) => s + (parseFloat(l.rate) || 0) * (parseFloat(l.qty) || 0), 0);
-    const cgst     = taxType === 'split' ? subtotal * 0.09 : 0;
-    const sgst     = taxType === 'split' ? subtotal * 0.09 : 0;
-    const igst     = taxType === 'igst'  ? subtotal * 0.18 : 0;
+    const cgst     = taxType === 'split' ? subtotal * 0.09 : taxType === 'split5' ? subtotal * 0.025 : 0;
+    const sgst     = taxType === 'split' ? subtotal * 0.09 : taxType === 'split5' ? subtotal * 0.025 : 0;
+    const igst     = taxType === 'igst'  ? subtotal * 0.18 : taxType === 'igst5'  ? subtotal * 0.05  : 0;
     const total    = subtotal + cgst + sgst + igst;
 
     const hasLines = lines.some(l => l.description.trim() && parseFloat(l.rate) > 0);
@@ -230,7 +230,12 @@ const GenerateInvoiceModal = ({ isOpen, onClose, client, onInvoiceSaved }) => {
                 <div className="flex items-center gap-4 flex-wrap">
                     <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Tax Type:</span>
                     <div className="flex gap-4 flex-wrap">
-                        {[['split', 'CGST + SGST (9% + 9%)'], ['igst', 'IGST (18%)']].map(([val, label]) => (
+                        {[
+                            ['split',  'CGST + SGST (9% + 9%)'],
+                            ['igst',   'IGST (18%)'],
+                            ['split5', 'CGST + SGST (2.5% + 2.5%)'],
+                            ['igst5',  'IGST (5%)'],
+                        ].map(([val, label]) => (
                             <label key={val} className="flex items-center gap-2 cursor-pointer">
                                 <input type="radio" name="taxType" value={val} checked={taxType === val}
                                     onChange={() => setTaxType(val)} className="accent-primary-blue" />
@@ -311,13 +316,19 @@ const GenerateInvoiceModal = ({ isOpen, onClose, client, onInvoiceSaved }) => {
                 {/* Totals */}
                 <div className="ml-auto w-full sm:w-72 bg-gray-50 rounded-xl p-4 space-y-2">
                     <div className="flex justify-between text-sm text-gray-600"><span>Subtotal</span><span className="font-semibold">{fmt(subtotal)}</span></div>
-                    {taxType === 'split' ? (
+                    {(taxType === 'split' || taxType === 'split5') ? (
                         <>
-                            <div className="flex justify-between text-sm text-gray-600"><span>CGST @ 9%</span><span>{fmt(cgst)}</span></div>
-                            <div className="flex justify-between text-sm text-gray-600"><span>SGST @ 9%</span><span>{fmt(sgst)}</span></div>
+                            <div className="flex justify-between text-sm text-gray-600">
+                                <span>CGST @ {taxType === 'split' ? '9%' : '2.5%'}</span><span>{fmt(cgst)}</span>
+                            </div>
+                            <div className="flex justify-between text-sm text-gray-600">
+                                <span>SGST @ {taxType === 'split' ? '9%' : '2.5%'}</span><span>{fmt(sgst)}</span>
+                            </div>
                         </>
                     ) : (
-                        <div className="flex justify-between text-sm text-gray-600"><span>IGST @ 18%</span><span>{fmt(igst)}</span></div>
+                        <div className="flex justify-between text-sm text-gray-600">
+                            <span>IGST @ {taxType === 'igst' ? '18%' : '5%'}</span><span>{fmt(igst)}</span>
+                        </div>
                     )}
                     <div className="pt-2 border-t border-gray-200 flex justify-between font-bold text-gray-900">
                         <span>Grand Total</span>
