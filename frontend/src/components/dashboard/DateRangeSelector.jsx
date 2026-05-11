@@ -8,8 +8,11 @@ import React, { useState } from 'react';
 
 const DateRangeSelector = ({ selectedRange, onRangeChange, onCustomRangeChange, periodLabel }) => {
     const [showCustom, setShowCustom] = useState(false);
-    const [customStart, setCustomStart] = useState('2025-04-01');
-    const [customEnd, setCustomEnd] = useState('2025-07-31');
+    const today = new Date();
+    const defaultEnd   = today.toISOString().slice(0, 10);
+    const defaultStart = new Date(today.getFullYear(), 0, 1).toISOString().slice(0, 10);
+    const [customStart, setCustomStart] = useState(defaultStart);
+    const [customEnd,   setCustomEnd]   = useState(defaultEnd);
 
     const periods = [
         { value: 'this_month', label: 'This Month' },
@@ -71,8 +74,6 @@ const DateRangeSelector = ({ selectedRange, onRangeChange, onCustomRangeChange, 
                             type="date"
                             value={customStart}
                             onChange={(e) => setCustomStart(e.target.value)}
-                            min="2025-04-01"
-                            max="2025-07-31"
                             className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-blue focus:border-transparent"
                         />
                         <span className="text-gray-500">to</span>
@@ -80,8 +81,6 @@ const DateRangeSelector = ({ selectedRange, onRangeChange, onCustomRangeChange, 
                             type="date"
                             value={customEnd}
                             onChange={(e) => setCustomEnd(e.target.value)}
-                            min="2025-04-01"
-                            max="2025-07-31"
                             className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-blue focus:border-transparent"
                         />
                         <button
