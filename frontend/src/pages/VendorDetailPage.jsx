@@ -276,7 +276,7 @@ const VendorDetailPage = () => {
             </div>
 
             {/* Summary Cards */}
-            <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 mb-6">
                 <div className="bg-white/80 rounded-2xl shadow-card border border-gray-100/50 p-3 sm:p-4 text-center">
                     <p className="text-[10px] sm:text-xs text-gray-500 uppercase tracking-wider font-medium mb-1">
                         {isPortalVendor ? 'Total PIs' : 'Total POs'}

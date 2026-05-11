@@ -87,9 +87,9 @@ const ServiceRevenueMix = ({ services = [], loading = false }) => {
                     <div key={service.name || service.serviceName}>
                         {/* Service Name and Stats */}
                         <div className="flex justify-between items-center mb-2">
-                            <div className="flex items-center gap-2">
-                                <span className="text-sm font-medium text-gray-900">{service.name || service.serviceName}</span>
-                                <span className="text-xs text-gray-500">({service.clientCount} clients)</span>
+                            <div className="flex items-center gap-2 min-w-0">
+                                <span className="text-sm font-medium text-gray-900 truncate max-w-[130px] sm:max-w-none">{service.name || service.serviceName}</span>
+                                <span className="text-xs text-gray-500 flex-shrink-0">({service.clientCount} clients)</span>
                             </div>
                             <div className="flex items-center gap-3">
                                 <span className="text-sm font-semibold text-gray-900">

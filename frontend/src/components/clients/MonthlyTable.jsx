@@ -33,7 +33,7 @@ const MonthlyTable = ({ month, services = [], totalServiceMRR = 0, totalAddonsMR
                         <div className="w-2 h-8 bg-primary-blue rounded-full"></div>
                         <h3 className="text-lg font-semibold text-gray-900">{month}</h3>
                     </div>
-                    <div className="flex gap-5 text-sm">
+                    <div className="flex flex-wrap gap-3 sm:gap-5 text-sm">
                         <div>
                             <span className="text-gray-500">Services: </span>
                             <span className="font-semibold text-gray-900">{formatCurrency(totalServiceMRR)}</span>

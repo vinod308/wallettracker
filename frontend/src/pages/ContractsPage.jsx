@@ -190,7 +190,7 @@ const ContractsPage = () => {
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-3">
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-3">
                                         <div>
                                             <p className="text-xs text-gray-500">Start Date</p>
                                             <p className="text-sm font-medium text-gray-900">{contract.startDate}</p>

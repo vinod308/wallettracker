@@ -52,7 +52,7 @@ const ContractsExpiring = ({ contracts = [], loading = false }) => {
 
     return (
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-card border border-gray-100/50 p-6 hover:shadow-lg transition-shadow duration-300">
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-4">
                 <h3 className="text-base font-semibold text-gray-900">
                     Contracts Expiring Soon
                 </h3>
