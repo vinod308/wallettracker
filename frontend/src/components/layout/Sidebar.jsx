@@ -35,6 +35,16 @@ const navItems = [
         ),
     },
     {
+        name: 'Employee Management',
+        path: '/employees',
+        icon: (
+            <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c0 1.306.835 2.417 2 2.83V19h3v-.17c1.165-.413 2-1.524 2-2.83a4 4 0 00-5-3.858" />
+            </svg>
+        ),
+    },
+    {
         name: 'Wallet Intelligence',
         path: '/wallet',
         icon: (

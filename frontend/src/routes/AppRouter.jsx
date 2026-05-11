@@ -28,6 +28,8 @@ const VendorManagementPage  = lazy(() => import('../pages/VendorManagementPage')
 const VendorDetailPage      = lazy(() => import('../pages/VendorDetailPage'));
 const VendorSignupPage      = lazy(() => import('../pages/VendorSignupPage'));
 const VendorPortalPage      = lazy(() => import('../pages/VendorPortalPage'));
+const EmployeeManagementPage = lazy(() => import('../pages/EmployeeManagementPage'));
+const EmployeeDetailPage     = lazy(() => import('../pages/EmployeeDetailPage'));
 
 // Route Guards
 import ProtectedRoute from './ProtectedRoute';
@@ -170,6 +172,23 @@ const AppRouter = () => {
             element={
               <ProtectedRoute>
                 <VendorDetailPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/employees"
+            element={
+              <ProtectedRoute>
+                <EmployeeManagementPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/employees/:employeeId"
+            element={
+              <ProtectedRoute>
+                <EmployeeDetailPage />
               </ProtectedRoute>
             }
           />
