@@ -9,7 +9,7 @@ import {
     AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
     ResponsiveContainer, BarChart, Bar, Cell,
 } from 'recharts';
-import useCSVData from '../hooks/useCSVData';
+import useClientData from '../hooks/useClientData';
 import MainLayout from '../components/layout/MainLayout';
 import { formatCurrency } from '../utils/helpers';
 
@@ -20,9 +20,9 @@ const AIOverviewPage = () => {
         monthlyTrend,
         upsellOpportunities,
         walletIntelligence,
-    } = useCSVData();
+    } = useClientData();
 
-    // AI Insights - generated from actual CSV data
+    // AI Insights - generated from actual invoice data
     const aiInsights = useMemo(() => {
         if (!allClients.length || !walletIntelligence) return [];
         const insights = [];
@@ -132,10 +132,14 @@ const AIOverviewPage = () => {
                     reasons.push('Single month engagement');
                 }
 
-                // Not in July (latest month)
-                if (!client.months['july']) {
+                // No invoice in current or previous month
+                const _now = new Date();
+                const _curMk = `${_now.getFullYear()}-${String(_now.getMonth() + 1).padStart(2, '0')}`;
+                const _prevD = new Date(_now.getFullYear(), _now.getMonth() - 1, 1);
+                const _prevMk = `${_prevD.getFullYear()}-${String(_prevD.getMonth() + 1).padStart(2, '0')}`;
+                if (!client.months[_curMk] && !client.months[_prevMk]) {
                     riskScore += 35;
-                    reasons.push('No July invoice');
+                    reasons.push('No recent invoice');
                 }
 
                 // Revenue decline
@@ -185,14 +189,18 @@ const AIOverviewPage = () => {
         }
 
         // Re-engage inactive clients
-        const noJuly = allClients.filter(c => !c.months['july']);
-        if (noJuly.length > 0) {
+        const _n = new Date();
+        const _cm = `${_n.getFullYear()}-${String(_n.getMonth() + 1).padStart(2, '0')}`;
+        const _pd = new Date(_n.getFullYear(), _n.getMonth() - 1, 1);
+        const _pm = `${_pd.getFullYear()}-${String(_pd.getMonth() + 1).padStart(2, '0')}`;
+        const noRecent = allClients.filter(c => !c.months[_cm] && !c.months[_pm] && c.monthCount > 0);
+        if (noRecent.length > 0) {
             recs.push({
                 title: 'Re-engage Inactive Clients',
                 impact: 'High',
                 effort: 'Medium',
-                description: `${noJuly.length} clients have no July invoice. Launch targeted re-engagement with personalized offers.`,
-                expectedRevenue: noJuly.reduce((s, c) => s + (c.totalRevenue / c.monthCount) * 0.5, 0),
+                description: `${noRecent.length} clients have no recent invoice. Launch targeted re-engagement with personalized offers.`,
+                expectedRevenue: noRecent.reduce((s, c) => s + (c.totalRevenue / c.monthCount) * 0.5, 0),
             });
         }
 
@@ -294,7 +302,7 @@ const AIOverviewPage = () => {
                     </div>
                     <div>
                         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">AI Overview</h1>
-                        <p className="text-sm text-gray-500">Smart predictions and recommendations from your CSV data</p>
+                        <p className="text-sm text-gray-500">Smart predictions and recommendations from your invoice data</p>
                     </div>
                 </div>
             </div>

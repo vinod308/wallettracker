@@ -7,7 +7,7 @@
  */
 
 import React, { useState, useMemo } from 'react';
-import useCSVData from '../hooks/useCSVData';
+import useClientData from '../hooks/useClientData';
 import MainLayout from '../components/layout/MainLayout';
 import { formatCurrency } from '../utils/helpers';
 import jsPDF from 'jspdf';
@@ -50,7 +50,7 @@ const ReportsPage = () => {
         loading, allClients, rawData, kpis,
         serviceRevenueMix, upsellOpportunities, contracts,
         monthlyTrend, walletIntelligence,
-    } = useCSVData();
+    } = useClientData();
 
     // ── Report state ──────────────────────────────────────────────────────────
     const [selectedReportType, setSelectedReportType] = useState('');
@@ -415,7 +415,7 @@ const ReportsPage = () => {
         doc.setFontSize(12);
         doc.text(r.reportType + ' Report', 14, 25);
         doc.setFontSize(9);
-        doc.text('Generated: ' + new Date(r.generatedAt).toLocaleString() + ' | Source: Google Sheets', 14, 32);
+        doc.text('Generated: ' + new Date(r.generatedAt).toLocaleString() + ' | Source: Invoice Data', 14, 32);
         doc.setTextColor(0, 0, 0);
         let y = 45;
 
@@ -551,7 +551,7 @@ const ReportsPage = () => {
                 <div className="mb-6">
                     <h2 className="text-lg font-semibold text-gray-900">{r.reportType} Report</h2>
                     <p className="text-xs text-gray-400 mt-0.5">
-                        Generated {new Date(r.generatedAt).toLocaleString()} · Source: Google Sheets (Apr – Jul 2025) · {allClients.length} clients
+                        Generated {new Date(r.generatedAt).toLocaleString()} · Source: Invoice Data · {allClients.length} clients
                     </p>
                 </div>
 
@@ -809,7 +809,7 @@ const ReportsPage = () => {
                 <div className="mb-6">
                     <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Reports & Scheduling</h1>
                     <p className="mt-1 text-sm text-gray-600">
-                        Generate, export, and schedule reports from Google Sheets data — PDF, Excel, CSV
+                        Generate, export, and schedule reports from invoice data — PDF, Excel, CSV
                     </p>
                 </div>
 
@@ -859,7 +859,7 @@ const ReportsPage = () => {
                         </button>
                         {selectedReportType && (
                             <p className="text-sm text-gray-400">
-                                Source: Google Sheets (April – July 2025) · {allClients.length} clients
+                                Source: Invoice Data · {allClients.length} clients
                             </p>
                         )}
                     </div>

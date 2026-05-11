@@ -5,12 +5,12 @@
  */
 
 import React, { useState, useMemo } from 'react';
-import useCSVData from '../hooks/useCSVData';
+import useClientData from '../hooks/useClientData';
 import MainLayout from '../components/layout/MainLayout';
 import { formatCurrency } from '../utils/helpers';
 
 const ContractsPage = () => {
-    const { loading, error, contracts, allClients } = useCSVData();
+    const { loading, error, contracts, allClients } = useClientData();
     const [selectedFilter, setSelectedFilter] = useState('all');
     const [renewalStatuses, setRenewalStatuses] = useState({});
 
@@ -93,7 +93,7 @@ const ContractsPage = () => {
                 <div className="mb-6">
                     <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Contracts & Renewals</h1>
                     <p className="mt-1 text-sm text-gray-600">
-                        Auto-generated from CSV invoice data - {contracts.length} contracts tracked
+                        Tracked from invoice history — {contracts.length} contracts
                     </p>
                 </div>
 

@@ -7,13 +7,12 @@
 
 import React, { useMemo, lazy, Suspense, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import useCSVData from '../hooks/useCSVData';
+import useClientData from '../hooks/useClientData';
 import MainLayout from '../components/layout/MainLayout';
 import MonthlyTable from '../components/clients/MonthlyTable';
 import EditClientModal from '../components/clients/EditClientModal';
 import AddonInsightCard from '../components/clients/AddonInsightCard';
 import { formatCurrency } from '../utils/helpers';
-import { detectServices } from '../utils/csvParser';
 
 const ClientComparisonCharts = lazy(() => import('../components/clients/ClientComparisonCharts'));
 
@@ -44,110 +43,67 @@ const getServiceCategory = (svcName) => SERVICE_CATEGORY[svcName] || 'Standard';
 const ClientDetailPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { loading, getClientById, upsellOpportunities, addRecord } = useCSVData();
+    const { loading, getClientById, upsellOpportunities, addRecord } = useClientData();
     const [showEditModal, setShowEditModal] = useState(false);
 
     const client = useMemo(() => getClientById(decodeURIComponent(id)), [id, getClientById]);
 
-    // Build month-by-month analytics from Google Sheets data
+    // Build month-by-month analytics from invoice data
     const { months, lifetimeRevenue, badge } = useMemo(() => {
         if (!client) return { months: [], lifetimeRevenue: 0, badge: 'Stable' };
 
         const sortedMonths = Object.values(client.months)
             .sort((a, b) => b.monthOrder - a.monthOrder)
             .map(m => {
-                // Separate base services (Services column) from add-ons (Addons column).
-                // This is the authoritative split — the spreadsheet columns define
-                // what is a base service vs what is an add-on, not the parser heuristics.
+                // Build service breakdown from invoice line items
                 const serviceMap = {};
-                const addonMap   = {};
-
-                m.records.forEach(record => {
-                    // Base services — detected from the "Services" column only
-                    const detected = detectServices(record.services, '');
-                    detected.forEach(svc => {
-                        if (!serviceMap[svc]) {
-                            serviceMap[svc] = {
-                                serviceName: svc,
-                                category:    getServiceCategory(svc),
+                m.records.forEach(invoice => {
+                    (invoice.lines || []).forEach(line => {
+                        if (!line.description?.trim()) return;
+                        const svcName = line.description.trim();
+                        if (!serviceMap[svcName]) {
+                            serviceMap[svcName] = {
+                                serviceName: svcName,
+                                category:    getServiceCategory(svcName),
                                 amount:      0,
                                 recordType:  'Recurring',
                                 isAddon:     false,
                             };
                         }
+                        serviceMap[svcName].amount +=
+                            (parseFloat(line.rate) || 0) * (parseFloat(line.qty) || 1);
                     });
-
-                    // Add-on services — detected from the "Addons" column only
-                    const addonDetected = detectServices('', record.addons);
-                    addonDetected.forEach(svc => {
-                        // A service detected in the Addons column should only be
-                        // treated as an add-on if it is NOT already listed as a
-                        // base service for this record. This prevents a service
-                        // that appears in both columns from being double-counted.
-                        if (!serviceMap[svc]) {
-                            if (!addonMap[svc]) {
-                                addonMap[svc] = {
-                                    serviceName: svc,
-                                    category:    'Add-on',
-                                    amount:      0,
-                                    recordType:  'Recurring',
-                                    isAddon:     true,
-                                };
-                            }
-                        }
-                    });
-
-                    // Distribute service revenue evenly across detected base services
-                    const baseCount  = Object.keys(serviceMap).length || 1;
-                    const perService = record.serviceMRR / baseCount;
-                    Object.values(serviceMap).forEach(s => { s.amount += perService; });
-
-                    // Distribute addon revenue evenly across detected add-on services
-                    const addonCount = Object.keys(addonMap).length || 1;
-                    if (record.addonsMRR > 0) {
-                        const perAddon = record.addonsMRR / addonCount;
-                        Object.values(addonMap).forEach(a => { a.amount += perAddon; });
-                    }
                 });
 
-                const services = [
-                    ...Object.values(serviceMap).map(s => ({ ...s, amount: Math.round(s.amount) })),
-                    ...Object.values(addonMap).filter(a => a.amount > 0).map(a => ({ ...a, amount: Math.round(a.amount) })),
-                ];
-
-                const monthLabels = { april: 'April 2025', may: 'May 2025', june: 'June 2025', july: 'July 2025' };
-
                 return {
-                    month: monthLabels[m.monthKey] || m.month,
-                    monthKey: m.monthKey,
-                    monthOrder: m.monthOrder,
-                    services,
+                    month:           m.month,
+                    monthKey:        m.monthKey,
+                    monthOrder:      m.monthOrder,
+                    services:        Object.values(serviceMap).map(s => ({ ...s, amount: Math.round(s.amount) })),
                     totalServiceMRR: Math.round(m.serviceMRR),
-                    totalAddonsMRR: Math.round(m.addonsMRR),
-                    totalMRR: Math.round(m.totalMRR),
+                    totalAddonsMRR:  0,
+                    totalMRR:        Math.round(m.totalMRR),
                 };
             });
 
-        // Determine badge
         let badgeLabel = 'Stable';
         if (sortedMonths.length >= 2) {
-            const latest = sortedMonths[0].totalMRR;
+            const latest   = sortedMonths[0].totalMRR;
             const previous = sortedMonths[1].totalMRR;
-            const change = previous > 0 ? ((latest - previous) / previous) * 100 : 0;
+            const change   = previous > 0 ? ((latest - previous) / previous) * 100 : 0;
             if (change > 10) badgeLabel = 'Growth Client';
             else if (change < -10) badgeLabel = 'Declining';
         }
 
-        // Check for upsell
         const upsell = upsellOpportunities.find(u => u.clientId === client.id);
         if (upsell && upsell.missingServices.length >= 3 && badgeLabel === 'Stable') {
             badgeLabel = 'Upsell Potential';
         }
 
         return {
-            months: sortedMonths,
-            lifetimeRevenue: Math.round(client.totalRevenue),
-            badge: badgeLabel,
+            months:          sortedMonths,
+            lifetimeRevenue: client.totalRevenue,
+            badge:           badgeLabel,
         };
     }, [client, upsellOpportunities]);
 
@@ -250,7 +206,7 @@ const ClientDetailPage = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <p className="text-lg font-medium text-red-800">Client not found</p>
-                    <p className="text-sm text-gray-500 mt-1">This client doesn't exist in the Google Sheets data</p>
+                    <p className="text-sm text-gray-500 mt-1">Client not found or has no invoice records</p>
                 </div>
             </MainLayout>
         );
@@ -294,7 +250,7 @@ const ClientDetailPage = () => {
                     <div className="sm:text-right flex-shrink-0">
                         <p className="text-xs text-gray-500 uppercase tracking-wide font-medium">Lifetime Revenue</p>
                         <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1">{formatCurrency(lifetimeRevenue)}</p>
-                        <p className="text-xs text-gray-500 mt-0.5">Apr - Jul 2025</p>
+                        <p className="text-xs text-gray-500 mt-0.5">{months.length > 0 ? `${months[months.length - 1].month} – ${months[0].month}` : 'No data'}</p>
                         <button
                             onClick={() => setShowEditModal(true)}
                             className="mt-3 px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors"
@@ -328,7 +284,7 @@ const ClientDetailPage = () => {
 
                 {/* Detected Services */}
                 <div className="mt-4 pt-4 border-t border-gray-100">
-                    <p className="text-xs text-gray-500 mb-2">Services Detected from Google Sheets</p>
+                    <p className="text-xs text-gray-500 mb-2">Services from Invoice History</p>
                     <div className="flex flex-wrap gap-1.5">
                         {client.detectedServices.map((svc, idx) => (
                             <span key={idx} className="px-2.5 py-1 bg-indigo-50 text-indigo-700 text-xs rounded-lg font-medium">
@@ -384,7 +340,7 @@ const ClientDetailPage = () => {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
                         <p className="text-lg font-medium text-gray-500">No revenue data found</p>
-                        <p className="text-sm text-gray-400 mt-1">This client has no revenue records for April – July 2025</p>
+                        <p className="text-sm text-gray-400 mt-1">No invoices have been generated for this client yet</p>
                     </div>
                 )}
             </div>

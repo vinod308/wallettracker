@@ -1,14 +1,14 @@
 /**
  * Dashboard Page
  * Main dashboard with dynamic date filtering, KPIs, charts, and analytics.
- * Data is fetched from Google Sheets via backend proxy (useCSVData hook).
+ * Data is read from localStorage (gw_onboarded_clients + gw_invoices) via useClientData hook.
  * Fires notifications into NotificationContext whenever data changes.
  */
 
 import React, { useMemo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import useCSVData from '../hooks/useCSVData';
+import useClientData from '../hooks/useClientData';
 import { useNotifications } from '../context/NotificationContext';
 import MainLayout from '../components/layout/MainLayout';
 import KPISection from '../components/dashboard/KPISection';
@@ -27,7 +27,7 @@ const DashboardPage = () => {
     const navigate = useNavigate();
     const { addNotification } = useNotifications();
 
-    // Core data hook — fetches Google Sheets once, filters instantly
+    // Core data hook — reads localStorage, filters instantly
     const {
         loading,
         error,
@@ -45,7 +45,7 @@ const DashboardPage = () => {
         contracts,
         handleRangeChange,
         handleCustomRange,
-    } = useCSVData();
+    } = useClientData();
 
     // ── Notification logic ──────────────────────────────────────────────────
     // Fire a notification when data first loads or when at-risk clients appear.
@@ -61,10 +61,10 @@ const DashboardPage = () => {
         const currentAtRisk  = kpis?.atRiskCount || 0;
         const currentMRR     = kpis?.totalMRR    || 0;
 
-        // First load — data arrived from Google Sheets
+        // First load
         if (prevClientCountRef.current === null) {
             addNotification(
-                'Dashboard data loaded from Google Sheets',
+                'Dashboard data loaded',
                 `${currentCount} clients · MRR ${formatCurrency(currentMRR)}`,
                 'data_loaded'
             );
@@ -107,13 +107,11 @@ const DashboardPage = () => {
     // ── Invoice summary ─────────────────────────────────────────────────────
     const invoiceSummary = useMemo(() => {
         if (!filteredData || filteredData.length === 0) return null;
-        const totalServiceMRR = filteredData.reduce((sum, r) => sum + r.serviceMRR, 0);
-        const totalAddonsMRR  = filteredData.reduce((sum, r) => sum + r.addonsMRR,  0);
-        const totalMRR        = filteredData.reduce((sum, r) => sum + r.totalMRR,   0);
-        const totalInvoices   = filteredData.filter(r => r.invoiceNumber).length;
-        const paidCount       = filteredData.filter(r =>
-            (r.paymentStatus || '').toLowerCase().includes('paid')
-        ).length;
+        const totalServiceMRR = filteredData.reduce((sum, r) => sum + (parseFloat(r.subtotal) || 0), 0);
+        const totalAddonsMRR  = 0;
+        const totalMRR        = filteredData.reduce((sum, r) => sum + (parseFloat(r.total)    || 0), 0);
+        const totalInvoices   = filteredData.length;
+        const paidCount       = filteredData.filter(r => (r.status || '').toLowerCase().includes('paid')).length;
         return { totalServiceMRR, totalAddonsMRR, totalMRR, totalInvoices, paidCount };
     }, [filteredData]);
 
@@ -121,17 +119,18 @@ const DashboardPage = () => {
     const clientTableData = useMemo(() => {
         return filteredClients.map(c => {
             const allRecords   = Object.values(c.filteredMonths || {}).flatMap(m => m.records || []);
-            const latestRecord = allRecords.sort((a, b) => (b.monthOrder || 0) - (a.monthOrder || 0))[0];
+            const latestRecord = allRecords.sort((a, b) =>
+                new Date(b.invoiceDate || b.createdAt || 0) - new Date(a.invoiceDate || a.createdAt || 0))[0];
             return {
                 id:            c.id,
                 clientName:    c.clientName,
-                invoiceNumber: latestRecord?.invoiceNumber || c.invoiceNumber || '-',
+                invoiceNumber: latestRecord?.invoiceNumber || c.invoiceNumber || '—',
                 clientType:    c.clientType,
                 industry:      c.clientType || '',
                 serviceMRR:    c.filteredServiceMRR,
-                addonsMRR:     c.filteredAddonsMRR,
+                addonsMRR:     c.filteredAddonsMRR || 0,
                 totalMRR:      c.filteredRevenue,
-                paymentStatus: latestRecord?.paymentStatus || 'Paid',
+                paymentStatus: latestRecord?.status || 'Generated',
                 status:        c.status || 'Active',
             };
         });

@@ -17,7 +17,7 @@ import {
     ResponsiveContainer, Cell, PieChart, Pie,
     AreaChart, Area,
 } from 'recharts';
-import useCSVData from '../hooks/useCSVData';
+import useClientData from '../hooks/useClientData';
 import MainLayout from '../components/layout/MainLayout';
 import { formatCurrency } from '../utils/helpers';
 
@@ -48,7 +48,7 @@ const WalletIntelligencePage = () => {
         serviceRevenueMix,
         monthlyTrend,
         kpis,
-    } = useCSVData();
+    } = useClientData();
 
     // ── Revenue share for charts ──────────────────────────────────────────────
     const revenueShareData = useMemo(() => {
@@ -187,7 +187,7 @@ const WalletIntelligencePage = () => {
                 <div className="mb-6">
                     <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Wallet Intelligence</h1>
                     <p className="mt-1 text-sm text-gray-600">
-                        Business analytics and insights — powered by Google Sheets data (April – July 2025)
+                        Business analytics and insights — powered by your invoice data
                     </p>
                 </div>
 
@@ -425,7 +425,7 @@ const WalletIntelligencePage = () => {
                     {/* Top upsell opportunities */}
                     <Card className="lg:col-span-2 p-6">
                         <h3 className="text-base font-semibold text-gray-900 mb-0.5">Top Upsell Opportunities</h3>
-                        <p className="text-xs text-gray-400 mb-4">Clients with highest expansion potential from Google Sheets data</p>
+                        <p className="text-xs text-gray-400 mb-4">Clients with highest expansion potential from invoice data</p>
                         {upsellOpportunities.length === 0 ? (
                             <p className="text-sm text-gray-400 text-center py-8">No upsell opportunities identified</p>
                         ) : (
