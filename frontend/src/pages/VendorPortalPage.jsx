@@ -61,6 +61,7 @@ export default function VendorPortalPage() {
             pincode:         vendor?.pincode          || '',
             country:         vendor?.country          || 'India',
             contact_person:  vendor?.contact_person   || '',
+            email:           vendor?.email            || '',
             mobile:          vendor?.mobile           || '',
             alt_mobile:      vendor?.alt_mobile       || '',
             website:         vendor?.website          || '',
@@ -413,6 +414,7 @@ export default function VendorPortalPage() {
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     {[
                                         { label: 'Contact Person', key: 'contact_person' },
+                                        { label: 'Email', key: 'email' },
                                         { label: 'Mobile', key: 'mobile' },
                                         { label: 'Alternate Mobile', key: 'alt_mobile' },
                                         { label: 'Website', key: 'website' },
