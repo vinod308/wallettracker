@@ -1,6 +1,7 @@
 /**
  * Database Migration Runner
  * Tracks applied migrations in schema_migrations table — safe to run multiple times.
+ * Gracefully handles migrations that were already applied before tracking was added.
  */
 
 const fs   = require('fs');
@@ -34,16 +35,18 @@ async function runMigrations() {
         const { rows } = await client.query('SELECT filename FROM schema_migrations');
         const applied = new Set(rows.map(r => r.filename));
 
-        const migrationsDir   = path.join(__dirname, 'migrations');
-        const migrationFiles  = fs.readdirSync(migrationsDir)
+        const migrationsDir  = path.join(__dirname, 'migrations');
+        const migrationFiles = fs.readdirSync(migrationsDir)
             .filter(f => f.endsWith('.sql'))
             .sort();
 
-        let ranCount = 0;
+        let ranCount     = 0;
+        let skippedCount = 0;
 
         for (const file of migrationFiles) {
             if (applied.has(file)) {
                 console.log(`⏭  Skipping (already applied): ${file}`);
+                skippedCount++;
                 continue;
             }
 
@@ -62,15 +65,22 @@ async function runMigrations() {
                 ranCount++;
             } catch (err) {
                 await client.query('ROLLBACK');
-                throw err;
+
+                // If table/index already exists, mark as applied and continue
+                if (err.code === '42P07' || err.code === '42701' || err.message.includes('already exists')) {
+                    await client.query(
+                        'INSERT INTO schema_migrations (filename) VALUES ($1) ON CONFLICT DO NOTHING',
+                        [file]
+                    );
+                    console.log(`⚠️  Already exists — marked as applied: ${file}\n`);
+                    skippedCount++;
+                } else {
+                    throw err;
+                }
             }
         }
 
-        if (ranCount === 0) {
-            console.log('✅ All migrations already applied — nothing to do.');
-        } else {
-            console.log(`🎉 ${ranCount} migration(s) applied successfully!`);
-        }
+        console.log(`\n🎉 Done! ${ranCount} applied, ${skippedCount} skipped.`);
 
     } catch (error) {
         console.error('❌ Migration failed:', error.message);
