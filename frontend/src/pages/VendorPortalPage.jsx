@@ -24,6 +24,10 @@ export default function VendorPortalPage() {
     const [showRaisePI, setShowRaisePI] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [showEditProfile, setShowEditProfile] = useState(false);
+    const [editForm, setEditForm] = useState({});
+    const [saving, setSaving] = useState(false);
+    const [editError, setEditError] = useState('');
 
     useEffect(() => { fetchData(); }, []);
 
@@ -41,6 +45,46 @@ export default function VendorPortalPage() {
             setError(err?.response?.data?.message || 'Failed to load your profile. Please try again.');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const openEdit = () => {
+        setEditError('');
+        setEditForm({
+            vendor_name:     vendor?.vendor_name     || '',
+            vendor_type:     vendor?.vendor_type     || 'Freelancer',
+            gst_number:      vendor?.gst_number      || '',
+            pan_number:      vendor?.pan_number       || '',
+            address:         vendor?.address          || '',
+            city:            vendor?.city             || '',
+            state:           vendor?.state            || '',
+            pincode:         vendor?.pincode          || '',
+            country:         vendor?.country          || 'India',
+            contact_person:  vendor?.contact_person   || '',
+            mobile:          vendor?.mobile           || '',
+            alt_mobile:      vendor?.alt_mobile       || '',
+            website:         vendor?.website          || '',
+            account_holder:  vendor?.account_holder   || '',
+            bank_name:       vendor?.bank_name        || '',
+            account_number:  vendor?.account_number   || '',
+            ifsc_code:       vendor?.ifsc_code        || '',
+            upi_id:          vendor?.upi_id           || '',
+        });
+        setShowEditProfile(true);
+    };
+
+    const handleSaveProfile = async () => {
+        if (!editForm.vendor_name?.trim()) { setEditError('Vendor name is required.'); return; }
+        setSaving(true);
+        setEditError('');
+        try {
+            await vendorService.updateMyProfile(editForm);
+            await fetchData();
+            setShowEditProfile(false);
+        } catch (err) {
+            setEditError(err?.response?.data?.message || 'Failed to save. Please try again.');
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -149,6 +193,18 @@ export default function VendorPortalPage() {
 
                         {/* Profile Tab */}
                         {tab === 'profile' && vendor && (
+                            <div>
+                            <div className="flex justify-end mb-4">
+                                <button
+                                    onClick={openEdit}
+                                    className="flex items-center gap-2 px-4 py-2 bg-[#4f46e5] text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 transition-colors shadow-sm"
+                                >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                    </svg>
+                                    Edit Profile
+                                </button>
+                            </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {[
                                     {
@@ -214,6 +270,7 @@ export default function VendorPortalPage() {
                                         </div>
                                     </div>
                                 ))}
+                            </div>
                             </div>
                         )}
 
@@ -291,6 +348,131 @@ export default function VendorPortalPage() {
             </div>
 
             <RaisePIModal isOpen={showRaisePI} onClose={() => setShowRaisePI(false)} onRaised={fetchData} />
+
+            {/* Edit Profile Modal */}
+            {showEditProfile && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+                        {/* Header */}
+                        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                            <h2 className="text-base font-bold text-gray-900">Edit Profile</h2>
+                            <button onClick={() => setShowEditProfile(false)} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
+                                <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        {/* Body */}
+                        <div className="overflow-y-auto p-6 space-y-6">
+                            {editError && (
+                                <div className="bg-red-50 border border-red-100 text-red-600 text-sm px-4 py-3 rounded-xl">{editError}</div>
+                            )}
+
+                            {/* Business */}
+                            <div>
+                                <p className="text-xs font-semibold text-indigo-600 uppercase tracking-wider mb-3">Business Information</p>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    {[
+                                        { label: 'Vendor Name *', key: 'vendor_name' },
+                                        { label: 'GST Number', key: 'gst_number' },
+                                        { label: 'PAN Number', key: 'pan_number' },
+                                        { label: 'Address', key: 'address' },
+                                        { label: 'City', key: 'city' },
+                                        { label: 'State', key: 'state' },
+                                        { label: 'Pincode', key: 'pincode' },
+                                        { label: 'Country', key: 'country' },
+                                    ].map(({ label, key }) => (
+                                        <div key={key}>
+                                            <label className="block text-xs text-gray-500 mb-1">{label}</label>
+                                            <input
+                                                value={editForm[key] || ''}
+                                                onChange={e => setEditForm(f => ({ ...f, [key]: e.target.value }))}
+                                                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                                            />
+                                        </div>
+                                    ))}
+                                    <div>
+                                        <label className="block text-xs text-gray-500 mb-1">Vendor Type</label>
+                                        <select
+                                            value={editForm.vendor_type || 'Freelancer'}
+                                            onChange={e => setEditForm(f => ({ ...f, vendor_type: e.target.value }))}
+                                            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white"
+                                        >
+                                            {['Freelancer', 'Agency', 'Company', 'Contractor', 'Consultant'].map(t => (
+                                                <option key={t}>{t}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Contact */}
+                            <div>
+                                <p className="text-xs font-semibold text-indigo-600 uppercase tracking-wider mb-3">Contact Information</p>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    {[
+                                        { label: 'Contact Person', key: 'contact_person' },
+                                        { label: 'Mobile', key: 'mobile' },
+                                        { label: 'Alternate Mobile', key: 'alt_mobile' },
+                                        { label: 'Website', key: 'website' },
+                                    ].map(({ label, key }) => (
+                                        <div key={key}>
+                                            <label className="block text-xs text-gray-500 mb-1">{label}</label>
+                                            <input
+                                                value={editForm[key] || ''}
+                                                onChange={e => setEditForm(f => ({ ...f, [key]: e.target.value }))}
+                                                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Banking */}
+                            <div>
+                                <p className="text-xs font-semibold text-indigo-600 uppercase tracking-wider mb-3">Banking Details</p>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    {[
+                                        { label: 'Account Holder', key: 'account_holder' },
+                                        { label: 'Bank Name', key: 'bank_name' },
+                                        { label: 'Account Number', key: 'account_number' },
+                                        { label: 'IFSC Code', key: 'ifsc_code' },
+                                        { label: 'UPI ID', key: 'upi_id' },
+                                    ].map(({ label, key }) => (
+                                        <div key={key}>
+                                            <label className="block text-xs text-gray-500 mb-1">{label}</label>
+                                            <input
+                                                value={editForm[key] || ''}
+                                                onChange={e => setEditForm(f => ({ ...f, [key]: e.target.value }))}
+                                                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Footer */}
+                        <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-3">
+                            <button
+                                onClick={() => setShowEditProfile(false)}
+                                className="px-4 py-2 text-sm font-medium text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleSaveProfile}
+                                disabled={saving}
+                                className="px-5 py-2 text-sm font-semibold bg-[#4f46e5] text-white rounded-xl hover:bg-indigo-700 transition-colors disabled:opacity-60 flex items-center gap-2"
+                            >
+                                {saving && <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />}
+                                {saving ? 'Saving...' : 'Save Changes'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
