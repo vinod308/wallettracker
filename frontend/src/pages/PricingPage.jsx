@@ -1,4 +1,4 @@
-/**
+﻿/**
  * PricingPage
  * Public-facing plan comparison page. Accessible at /pricing.
  * Shows all 4 plans with features, limits, and pricing.
@@ -156,7 +156,7 @@ const PricingPage = () => {
                                             </div>
                                         ) : isEnterprise ? (
                                             <a
-                                                href="mailto:sales@garagecollective.com?subject=Enterprise Plan Inquiry"
+                                                href="mailto:sales@moneygence.com?subject=Enterprise Plan Inquiry"
                                                 className={`block w-full text-center py-2 rounded-lg text-sm font-semibold text-white ${style.btn} transition-colors`}
                                             >
                                                 Contact Sales
@@ -211,8 +211,8 @@ const PricingPage = () => {
                 <div className="mt-12 text-center">
                     <p className="text-gray-500 text-sm">
                         Questions? Email us at{' '}
-                        <a href="mailto:sales@garagecollective.com" className="text-blue-600 hover:underline">
-                            sales@garagecollective.com
+                        <a href="mailto:sales@moneygence.com" className="text-blue-600 hover:underline">
+                            sales@moneygence.com
                         </a>
                     </p>
                 </div>

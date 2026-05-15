@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Reports & Scheduling Page
  * Google-Sheets-driven report generation with PDF, Excel, CSV export.
  * Report types: Monthly Revenue, Client Expansion, Service Performance,
@@ -61,7 +61,7 @@ const ReportsPage = () => {
     // ── Schedule state ────────────────────────────────────────────────────────
     const [schedules, setSchedules] = useState(() => {
         try {
-            const stored = localStorage.getItem('wallettracker_schedules');
+            const stored = localStorage.getItem('MoneyGence_schedules');
             return stored ? JSON.parse(stored) : [];
         } catch { return []; }
     });
@@ -76,7 +76,7 @@ const ReportsPage = () => {
 
     const saveSchedules = (updated) => {
         setSchedules(updated);
-        try { localStorage.setItem('wallettracker_schedules', JSON.stringify(updated)); } catch { /* ignore */ }
+        try { localStorage.setItem('MoneyGence_schedules', JSON.stringify(updated)); } catch { /* ignore */ }
     };
 
     const handleAddSchedule = () => {
@@ -411,7 +411,7 @@ const ReportsPage = () => {
         doc.rect(0, 0, pageWidth, 35, 'F');
         doc.setTextColor(255, 255, 255);
         doc.setFontSize(18);
-        doc.text('Garage WalletTracker', 14, 15);
+        doc.text('MoneyGence', 14, 15);
         doc.setFontSize(12);
         doc.text(r.reportType + ' Report', 14, 25);
         doc.setFontSize(9);
@@ -489,7 +489,7 @@ const ReportsPage = () => {
             doc.setPage(i);
             doc.setFontSize(8);
             doc.setTextColor(180, 180, 180);
-            doc.text(`Page ${i} of ${pages} | Garage WalletTracker | Confidential`, pageWidth / 2, doc.internal.pageSize.getHeight() - 10, { align: 'center' });
+            doc.text(`Page ${i} of ${pages} | MoneyGence | Confidential`, pageWidth / 2, doc.internal.pageSize.getHeight() - 10, { align: 'center' });
         }
         doc.save(`${r.reportType.replace(/\s+/g, '_')}_Report_${new Date().toISOString().split('T')[0]}.pdf`);
     };

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Google Sheets Proxy Route
  * Fetches CSV data from public Google Sheets and returns it to the frontend.
  * Caches responses (5-minute TTL) to avoid repeated API calls.
@@ -64,7 +64,7 @@ router.get('/csv/:sheet', async (req, res) => {
 
         // Node 18+ has native fetch; works without extra packages
         const response = await fetch(url, {
-            headers: { 'User-Agent': 'WalletTracker/1.0' },
+            headers: { 'User-Agent': 'MoneyGence/1.0' },
         });
 
         if (!response.ok) {

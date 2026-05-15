@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Input from '../common/Input';
 import Button from '../common/Button';
@@ -7,7 +7,7 @@ import { validateEmail } from '../../utils/validators';
 import { parseError } from '../../utils/helpers';
 import { ERROR_MESSAGES } from '../../utils/constants';
 
-const ADMIN_EMAIL    = 'vinod@garagemedia.net';
+const ADMIN_EMAIL    = 'vinod@moneygence.com';
 const EMPLOYEE_EMAIL = 'anjanjyot@garagecollective.agency';
 
 const PORTALS = [

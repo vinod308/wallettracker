@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Server Entry Point
  * Starts the Express server
  */
@@ -23,7 +23,7 @@ const server = app.listen(PORT, () => {
     logger.info(`
     ┌─────────────────────────────────────────────┐
     │                                             │
-    │   🚀 Garage WalletTracker API Server       │
+    │   🚀 MoneyGence API Server       │
     │                                             │
     │   Environment: ${config.NODE_ENV.padEnd(27)} │
     │   Port: ${PORT.toString().padEnd(35)} │

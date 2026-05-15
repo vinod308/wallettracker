@@ -1,7 +1,7 @@
-import React from 'react';
+﻿import React from 'react';
 import { Link } from 'react-router-dom';
 import SignupForm from '../components/auth/SignupForm';
-import logo from '../assets/logo.png';
+import logo from '../assets/logo.jpeg';
 
 const PERKS = [
     { icon: '📊', text: 'Real-time MRR & revenue tracking' },
@@ -25,7 +25,7 @@ const SignupPage = () => {
 
                 <div className="relative z-10">
                     <Link to="/">
-                        <img src={logo} alt="GarageWallet" className="h-9 object-contain" />
+                        <img src={logo} alt="MoneyGence" className="h-9 object-contain" />
                     </Link>
                 </div>
 
@@ -36,7 +36,7 @@ const SignupPage = () => {
                             Start growing faster.
                         </h2>
                         <p className="text-gray-500 text-base leading-relaxed">
-                            Join agencies that use GarageWallet to track ₹29L+ in monthly revenue and grow wallet share.
+                            Join agencies that use MoneyGence to track ₹29L+ in monthly revenue and grow wallet share.
                         </p>
                     </div>
 
@@ -53,7 +53,7 @@ const SignupPage = () => {
                 </div>
 
                 <div className="relative z-10">
-                    <p className="text-gray-400 text-xs">© 2026 GarageWallet · Built for agencies that grow.</p>
+                    <p className="text-gray-400 text-xs">© 2026 MoneyGence · AI Finance OS for Agencies & Businesses.</p>
                 </div>
             </div>
 
@@ -63,7 +63,7 @@ const SignupPage = () => {
 
                     <div className="lg:hidden text-center mb-8">
                         <Link to="/">
-                            <img src={logo} alt="GarageWallet" className="h-9 mx-auto object-contain" />
+                            <img src={logo} alt="MoneyGence" className="h-9 mx-auto object-contain" />
                         </Link>
                     </div>
 

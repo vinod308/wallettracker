@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Email Service
  * Handles all email communications
  * Uses exact email templates from specification
@@ -71,11 +71,11 @@ class EmailService {
 <body>
     <div class="container">
         <div class="header">
-            <h1>Reset Your GarageWallet Password</h1>
+            <h1>Reset Your MoneyGence Password</h1>
         </div>
         <div class="content">
             <p>Hello ${user.full_name},</p>
-            <p>We received a request to reset your password for your GarageWallet account.</p>
+            <p>We received a request to reset your password for your MoneyGence account.</p>
             <p>Click the button below to reset your password:</p>
             <div style="text-align: center;">
                 <a href="${resetLink}" class="button">Reset Password</a>
@@ -94,7 +94,7 @@ class EmailService {
             <p>If you have any questions or need assistance, please contact our support team.</p>
         </div>
         <div class="footer">
-            <p>&copy; 2026 Garage Collective. All rights reserved.</p>
+            <p>&copy; 2026 MoneyGence. All rights reserved.</p>
             <p>This is an automated message. Please do not reply to this email.</p>
         </div>
     </div>
@@ -105,7 +105,7 @@ class EmailService {
         const mailOptions = {
             from: config.EMAIL_FROM,
             to: user.email,
-            subject: 'Reset Your GarageWallet Password',
+            subject: 'Reset Your MoneyGence Password',
             html: htmlContent,
         };
 
@@ -140,11 +140,11 @@ class EmailService {
 <body>
     <div class="container">
         <div class="header">
-            <h1>Welcome to GarageWallet!</h1>
+            <h1>Welcome to MoneyGence!</h1>
         </div>
         <div class="content">
             <p>Hello ${user.full_name},</p>
-            <p>Welcome to GarageWallet! Your account has been created successfully.</p>
+            <p>Welcome to MoneyGence! Your account has been created successfully.</p>
             <p>You can now start tracking client revenue, managing contracts, and identifying upsell opportunities.</p>
             <div style="text-align: center;">
                 <a href="${config.CORS_ORIGIN}/dashboard" class="button">Go to Dashboard</a>
@@ -152,7 +152,7 @@ class EmailService {
             <p>If you have any questions, feel free to reach out to our support team.</p>
         </div>
         <div class="footer">
-            <p>&copy; 2026 Garage Collective. All rights reserved.</p>
+            <p>&copy; 2026 MoneyGence. All rights reserved.</p>
         </div>
     </div>
 </body>
@@ -162,7 +162,7 @@ class EmailService {
         const mailOptions = {
             from: config.EMAIL_FROM,
             to: user.email,
-            subject: 'Welcome to GarageWallet!',
+            subject: 'Welcome to MoneyGence!',
             html: htmlContent,
         };
 
@@ -215,7 +215,7 @@ class EmailService {
             </div>
         </div>
         <div class="footer">
-            <p>&copy; 2026 Garage Collective. All rights reserved.</p>
+            <p>&copy; 2026 MoneyGence. All rights reserved.</p>
         </div>
     </div>
 </body>

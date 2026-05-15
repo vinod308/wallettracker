@@ -1,11 +1,11 @@
-/**
+﻿/**
  * Forgot Password Page
  * Password reset request page (Section 2.3 of spec)
  */
 
 import React from 'react';
 import ForgotPasswordForm from '../components/auth/ForgotPasswordForm';
-import logo from '../assets/logo.png';
+import logo from '../assets/logo.jpeg';
 
 const ForgotPasswordPage = () => {
   return (
@@ -13,7 +13,7 @@ const ForgotPasswordPage = () => {
       <div className="max-w-md w-full">
         {/* Logo & Header */}
         <div className="text-center mb-8">
-          <img src={logo} alt="Garage WalletTracker" className="h-11 mx-auto mb-4 object-contain" />
+          <img src={logo} alt="MoneyGence" className="h-11 mx-auto mb-4 object-contain" />
           <h2 className="text-xl text-gray-800 font-semibold">
             Reset Your Password
           </h2>

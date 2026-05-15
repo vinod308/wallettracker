@@ -1,6 +1,6 @@
-import React from 'react';
+﻿import React from 'react';
 import { NavLink } from 'react-router-dom';
-import logo from '../../assets/logo.png';
+import logo from '../../assets/logo.jpeg';
 import { useAuth } from '../../hooks/useAuth';
 import PlanBadge from '../subscription/PlanBadge';
 
@@ -130,7 +130,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         >
             {/* Logo — shown inside sidebar on mobile when it slides open */}
             <div className="flex items-center px-5 py-4 border-b border-gray-100 lg:hidden shrink-0">
-                <img src={logo} alt="Garage WalletTracker" className="h-8 w-auto object-contain" />
+                <img src={logo} alt="MoneyGence" className="h-8 w-auto object-contain" />
             </div>
 
             <nav className="p-3 space-y-0.5 flex-1 overflow-y-auto">
@@ -155,7 +155,7 @@ const Sidebar = ({ isOpen, onClose }) => {
 
             <div className="shrink-0 border-t border-gray-100 bg-gray-900">
                 <PlanBadge />
-                <p className="text-xs text-gray-500 text-center pb-3">© 2026 Garage Collective</p>
+                <p className="text-xs text-gray-500 text-center pb-3">© 2026 MoneyGence</p>
             </div>
         </aside>
     );

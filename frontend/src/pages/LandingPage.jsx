@@ -1,6 +1,6 @@
-import React from 'react';
+﻿import React from 'react';
 import { Link } from 'react-router-dom';
-import logo from '../assets/logo.png';
+import logo from '../assets/logo.jpeg';
 
 const FEATURES = [
     { icon: '📊', title: 'Revenue Intelligence', desc: 'Track MRR, YTD revenue, and per-client wallet share in real-time with animated KPI cards.' },
@@ -39,7 +39,7 @@ const LandingPage = () => {
             <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-sm">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-16">
-                        <img src={logo} alt="GarageWallet" className="h-8 object-contain" />
+                        <img src={logo} alt="MoneyGence" className="h-8 object-contain" />
                         <div className="flex items-center gap-3">
                             <Link
                                 to="/login"
@@ -180,7 +180,7 @@ const LandingPage = () => {
                         💬
                     </div>
                     <blockquote className="text-xl font-medium text-gray-800 italic leading-relaxed mb-6">
-                        "GarageWallet gave us complete visibility into our wallet share. We identified ₹8L in upsell
+                        "MoneyGence gave us complete visibility into our wallet share. We identified ₹8L in upsell
                         opportunities in the first month."
                     </blockquote>
                     <div className="flex items-center justify-center gap-3">
@@ -206,7 +206,7 @@ const LandingPage = () => {
                         Ready to grow your wallet share?
                     </h2>
                     <p className="text-lg text-indigo-200 mb-8 max-w-xl mx-auto">
-                        Join agencies already tracking ₹29L+ in monthly revenue with GarageWallet.
+                        Join agencies already tracking ₹29L+ in monthly revenue with MoneyGence.
                     </p>
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                         <Link
@@ -228,8 +228,8 @@ const LandingPage = () => {
             {/* ── Footer ── */}
             <footer className="py-10 px-4 border-t border-gray-100 bg-white">
                 <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <img src={logo} alt="GarageWallet" className="h-7 object-contain" />
-                    <p className="text-sm text-gray-400">© 2026 GarageWallet. Built for agencies that grow.</p>
+                    <img src={logo} alt="MoneyGence" className="h-7 object-contain" />
+                    <p className="text-sm text-gray-400">© 2026 MoneyGence. AI Finance OS for Agencies & Businesses.</p>
                     <div className="flex items-center gap-5 text-sm text-gray-500">
                         <Link to="/login" className="hover:text-gray-700 transition-colors">Login</Link>
                         <Link to="/signup" className="hover:text-gray-700 transition-colors">Sign Up</Link>

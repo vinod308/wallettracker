@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Header Component
  * Top navigation bar with logo, notifications, and profile dropdown.
  * Notification bell shows the latest data-change event from NotificationContext.
@@ -8,7 +8,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useNotifications } from '../../context/NotificationContext';
-import logo from '../../assets/logo.png';
+import logo from '../../assets/logo.jpeg';
 // Icon map for notification types
 const notifIcon = (type) => {
     switch (type) {

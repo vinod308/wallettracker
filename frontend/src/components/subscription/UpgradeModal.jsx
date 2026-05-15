@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import subscriptionService from '../../services/subscriptionService';
@@ -245,7 +245,7 @@ const UpgradeModal = ({ isOpen, onClose, reason }) => {
                     <p className="text-xs text-gray-400">
                         All plans include Dashboard, Reports, Invoicing & GST integration.
                         Need help?{' '}
-                        <a href="mailto:support@garagecollective.com" className="text-indigo-600 hover:underline">
+                        <a href="mailto:support@moneygence.com" className="text-indigo-600 hover:underline">
                             Contact support
                         </a>
                     </p>

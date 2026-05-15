@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useSubscription } from '../context/SubscriptionContext';
 import subscriptionService from '../services/subscriptionService';
-import logo from '../assets/logo.png';
+import logo from '../assets/logo.jpeg';
 
 const PLAN_META = {
     basic: {
@@ -146,7 +146,7 @@ const PaymentPage = () => {
             {/* Top bar */}
             <div className="bg-white border-b border-gray-100 px-4 sm:px-6 py-4 flex items-center justify-between">
                 <Link to="/dashboard">
-                    <img src={logo} alt="GarageWallet" className="h-8 object-contain" />
+                    <img src={logo} alt="MoneyGence" className="h-8 object-contain" />
                 </Link>
                 <div className="flex items-center gap-2 text-sm text-gray-500">
                     <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -181,7 +181,7 @@ const PaymentPage = () => {
                                 <span className="text-2xl">{meta.icon}</span>
                                 <div>
                                     <div className="text-white font-bold text-lg">{meta.label} Plan</div>
-                                    <div className="text-white/80 text-xs">GarageWallet Subscription</div>
+                                    <div className="text-white/80 text-xs">MoneyGence Subscription</div>
                                 </div>
                             </div>
                         </div>

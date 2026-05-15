@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Environment Configuration
  * Centralized environment variable management
  */
@@ -14,7 +14,7 @@ module.exports = {
     // Database
     DB_HOST: process.env.DB_HOST || 'localhost',
     DB_PORT: process.env.DB_PORT || 5432,
-    DB_NAME: process.env.DB_NAME || 'wallettracker',
+    DB_NAME: process.env.DB_NAME || 'MoneyGence',
     DB_USER: process.env.DB_USER || 'postgres',
     DB_PASSWORD: process.env.DB_PASSWORD,
 
@@ -30,7 +30,7 @@ module.exports = {
     SMTP_SECURE: process.env.SMTP_SECURE === 'true',
     SMTP_USER: process.env.SMTP_USER,
     SMTP_PASSWORD: process.env.SMTP_PASSWORD,
-    EMAIL_FROM: process.env.EMAIL_FROM || 'noreply@garagecollective.com',
+    EMAIL_FROM: process.env.EMAIL_FROM || 'noreply@moneygence.com',
     EMAIL_CC_SAURABH: process.env.EMAIL_CC_SAURABH || '',
 
     // Rate Limiting

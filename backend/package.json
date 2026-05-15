@@ -1,7 +1,7 @@
 {
-  "name": "wallettracker-backend",
+  "name": "moneygence-backend",
   "version": "1.0.0",
-  "description": "Garage WalletTracker - Production Backend API",
+  "description": "MoneyGence — AI Finance OS Backend API",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
@@ -16,7 +16,7 @@
     "revenue",
     "saas"
   ],
-  "author": "Garage Collective",
+  "author": "MoneyGence",
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^5.1.1",

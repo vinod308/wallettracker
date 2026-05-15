@@ -1,7 +1,7 @@
-import React from 'react';
+﻿import React from 'react';
 import { Link } from 'react-router-dom';
 import LoginForm from '../components/auth/LoginForm';
-import logo from '../assets/logo.png';
+import logo from '../assets/logo.jpeg';
 
 const LEFT_STATS = [
     { value: '10+', label: 'Active Clients' },
@@ -24,7 +24,7 @@ const LoginPage = () => {
                 {/* Logo */}
                 <div className="relative z-10">
                     <Link to="/">
-                        <img src={logo} alt="GarageWallet" className="h-9 object-contain" />
+                        <img src={logo} alt="MoneyGence" className="h-9 object-contain" />
                     </Link>
                 </div>
 
@@ -32,7 +32,7 @@ const LoginPage = () => {
                 <div className="relative z-10 flex flex-col gap-8">
                     <div>
                         <h2 className="text-3xl font-bold text-gray-900 leading-tight mb-3">
-                            Revenue intelligence<br />for agencies that grow.
+                            Revenue intelligence<br />for agencies & service businesses.
                         </h2>
                         <p className="text-gray-500 text-base leading-relaxed">
                             Track wallet share, identify upsells, and manage client revenue — all in one place.
@@ -61,7 +61,7 @@ const LoginPage = () => {
 
                 {/* Footer */}
                 <div className="relative z-10">
-                    <p className="text-gray-400 text-xs">© 2026 GarageWallet · Built for agencies that grow.</p>
+                    <p className="text-gray-400 text-xs">© 2026 MoneyGence · AI Finance OS for Agencies & Businesses.</p>
                 </div>
             </div>
 
@@ -72,7 +72,7 @@ const LoginPage = () => {
                     {/* Mobile logo */}
                     <div className="lg:hidden text-center mb-8">
                         <Link to="/">
-                            <img src={logo} alt="GarageWallet" className="h-9 mx-auto object-contain" />
+                            <img src={logo} alt="MoneyGence" className="h-9 mx-auto object-contain" />
                         </Link>
                     </div>
 

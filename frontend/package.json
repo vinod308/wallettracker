@@ -1,7 +1,7 @@
 {
-  "name": "wallettracker-frontend",
+  "name": "moneygence-frontend",
   "version": "1.0.0",
-  "description": "Garage WalletTracker - Production Frontend",
+  "description": "MoneyGence — AI Finance OS for Agencies & Service Businesses",
   "type": "module",
   "scripts": {
     "dev": "vite",

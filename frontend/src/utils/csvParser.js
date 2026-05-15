@@ -1,6 +1,6 @@
-/**
+﻿/**
  * CSV Parser Utility
- * Parses Garage Wallet Tracker data from Google Sheets (via backend proxy).
+ * Parses MoneyGence data from Google Sheets (via backend proxy).
  * Backend fetches CSV from Google Sheets and serves it at /api/sheets/csv/:sheet
  * Handles Indian number format, multiline fields, "+" separated amounts.
  */

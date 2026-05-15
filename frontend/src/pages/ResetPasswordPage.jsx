@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Reset Password Page
  * Password reset with token page (Section 2.3.5 of spec)
  */
@@ -13,7 +13,7 @@ const ResetPasswordPage = () => {
         {/* Logo & Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-primary-blue mb-2">
-            Garage WalletTracker
+            MoneyGence
           </h1>
           <h2 className="text-xl text-gray-700 font-medium">
             Create New Password
