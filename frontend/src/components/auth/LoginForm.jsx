@@ -7,8 +7,6 @@ import { validateEmail } from '../../utils/validators';
 import { parseError } from '../../utils/helpers';
 import { ERROR_MESSAGES } from '../../utils/constants';
 
-const ADMIN_EMAIL    = 'vinod@moneygence.com';
-const EMPLOYEE_EMAIL = 'anjanjyot@garagecollective.agency';
 
 const PORTALS = [
     { type: 'admin',    label: 'Admin',    icon: '👑' },
@@ -60,21 +58,21 @@ const LoginForm = () => {
         setLoading(true);
         try {
             const response = await login({ email: formData.email, password: formData.password });
-            const role = response?.data?.user?.role;
+            const role = response?.data?.user?.role?.toLowerCase();
 
-            if (loginType === 'admin' && formData.email !== ADMIN_EMAIL) {
+            if (loginType === 'admin' && role !== 'admin') {
                 await logout();
                 setApiError('Access denied. This portal is for Admins only.');
                 return;
             }
-            if (loginType === 'employee' && formData.email !== EMPLOYEE_EMAIL) {
+            if (loginType === 'employee' && role !== 'employee') {
                 await logout();
                 setApiError('Access denied. This portal is for Employees only.');
                 return;
             }
             if (loginType === 'vendor' && role !== 'vendor') {
                 await logout();
-                setApiError('Access denied. This portal is for Vendors only. Use the sign-up link to register.');
+                setApiError('Access denied. This portal is for Vendors only.');
                 return;
             }
 
@@ -88,8 +86,7 @@ const LoginForm = () => {
 
     const selectPortal = (type) => {
         setLoginType(type);
-        const preEmail = type === 'admin' ? ADMIN_EMAIL : type === 'employee' ? EMPLOYEE_EMAIL : '';
-        setFormData(p => ({ ...p, email: preEmail }));
+        setFormData(p => ({ ...p, email: '' }));
         setErrors({});
         setApiError('');
     };

@@ -8,7 +8,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useNotifications } from '../../context/NotificationContext';
-import logo from '../../assets/logo.jpeg';
+import logo from '../../assets/logo-3.jpeg';
 // Icon map for notification types
 const notifIcon = (type) => {
     switch (type) {
@@ -69,7 +69,7 @@ const Header = ({ onMenuClick }) => {
 
                     {/* Logo — desktop only */}
                     <div className="hidden lg:flex items-center">
-                        <img src={logo} alt="Garage Wallet" className="h-9 w-auto object-contain" />
+                        <img src={logo} alt="Garage Wallet" className="h-14 max-w-[200px] object-contain" />
                     </div>
 
                     {/* Right: Notifications + Profile */}

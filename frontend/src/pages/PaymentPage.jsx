@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useSubscription } from '../context/SubscriptionContext';
 import subscriptionService from '../services/subscriptionService';
-import logo from '../assets/logo.jpeg';
+import logo from '../assets/logo-3.jpeg';
 
 const PLAN_META = {
     basic: {
@@ -146,7 +146,7 @@ const PaymentPage = () => {
             {/* Top bar */}
             <div className="bg-white border-b border-gray-100 px-4 sm:px-6 py-4 flex items-center justify-between">
                 <Link to="/dashboard">
-                    <img src={logo} alt="MoneyGence" className="h-8 object-contain" />
+                    <img src={logo} alt="MoneyGence" className="h-14 max-w-[200px] object-contain" />
                 </Link>
                 <div className="flex items-center gap-2 text-sm text-gray-500">
                     <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -1,7 +1,7 @@
 ﻿import React from 'react';
 import { Link } from 'react-router-dom';
 import SignupForm from '../components/auth/SignupForm';
-import logo from '../assets/logo.jpeg';
+import logo from '../assets/logo-3.jpeg';
 
 const PERKS = [
     { icon: '📊', text: 'Real-time MRR & revenue tracking' },
@@ -25,7 +25,7 @@ const SignupPage = () => {
 
                 <div className="relative z-10">
                     <Link to="/">
-                        <img src={logo} alt="MoneyGence" className="h-9 object-contain" />
+                        <img src={logo} alt="MoneyGence" className="h-14 max-w-[220px] object-contain" />
                     </Link>
                 </div>
 
@@ -63,7 +63,7 @@ const SignupPage = () => {
 
                     <div className="lg:hidden text-center mb-8">
                         <Link to="/">
-                            <img src={logo} alt="MoneyGence" className="h-9 mx-auto object-contain" />
+                            <img src={logo} alt="MoneyGence" className="h-14 max-w-[220px] mx-auto object-contain" />
                         </Link>
                     </div>
 

@@ -1,6 +1,6 @@
 ﻿import React from 'react';
 import { NavLink } from 'react-router-dom';
-import logo from '../../assets/logo.jpeg';
+import logo from '../../assets/logo-3.jpeg';
 import { useAuth } from '../../hooks/useAuth';
 import PlanBadge from '../subscription/PlanBadge';
 
@@ -130,7 +130,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         >
             {/* Logo — shown inside sidebar on mobile when it slides open */}
             <div className="flex items-center px-5 py-4 border-b border-gray-100 lg:hidden shrink-0">
-                <img src={logo} alt="MoneyGence" className="h-8 w-auto object-contain" />
+                <img src={logo} alt="MoneyGence" className="h-14 max-w-[180px] object-contain" />
             </div>
 
             <nav className="p-3 space-y-0.5 flex-1 overflow-y-auto">

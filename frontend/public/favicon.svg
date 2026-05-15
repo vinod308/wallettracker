@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1a2e8a"/>
+      <stop offset="100%" stop-color="#0d1a5c"/>
+    </linearGradient>
+    <linearGradient id="gBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#60aaff"/>
+      <stop offset="100%" stop-color="#2277ee"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Rounded square background -->
+  <rect width="100" height="100" rx="20" ry="20" fill="url(#bg)"/>
+
+  <!-- 4-pointed sparkle top-right -->
+  <path d="M68 14 L70 21 L77 23 L70 25 L68 32 L66 25 L59 23 L66 21 Z" fill="white" opacity="0.95"/>
+
+  <!-- M (white) -->
+  <text x="8" y="76"
+    font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif"
+    font-size="50" font-weight="900" fill="white" letter-spacing="-2">M</text>
+
+  <!-- G (blue gradient) -->
+  <text x="52" y="76"
+    font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif"
+    font-size="50" font-weight="900" fill="url(#gBlue)">G</text>
+</svg>

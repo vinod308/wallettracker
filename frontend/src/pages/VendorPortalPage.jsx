@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import vendorService from '../services/vendorService';
 import RaisePIModal from '../components/vendors/RaisePIModal';
-import logo from '../assets/logo.jpeg';
+import logo from '../assets/logo-3.jpeg';
 
 const STATUS_STYLES = {
     Pending:  'bg-yellow-50 text-yellow-700 border-yellow-200',
@@ -103,7 +103,7 @@ export default function VendorPortalPage() {
             <header className="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
                 <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <img src={logo} alt="MoneyGence" className="h-8 w-auto object-contain" />
+                        <img src={logo} alt="MoneyGence" className="h-14 max-w-[200px] object-contain" />
                         <div className="hidden sm:block w-px h-5 bg-gray-200" />
                         <span className="hidden sm:block text-sm font-semibold text-gray-500">Vendor Portal</span>
                     </div>
