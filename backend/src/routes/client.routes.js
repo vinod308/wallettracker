@@ -8,7 +8,8 @@ const router = express.Router();
 const clientController = require('../controllers/clientController');
 const clientValidators = require('../validators/clientValidators');
 const { authenticate } = require('../middleware/auth');
-const { requireRole } = require('../middleware/rbac');
+const { requireRole }  = require('../middleware/rbac');
+const planLimiter      = require('../middleware/planLimiter');
 
 // All client routes require authentication
 router.use(authenticate);
@@ -70,6 +71,7 @@ router.get(
 router.post(
     '/',
     requireRole(['Admin', 'Account Manager']),
+    planLimiter('client'),
     clientValidators.createClient,
     clientController.createClient
 );

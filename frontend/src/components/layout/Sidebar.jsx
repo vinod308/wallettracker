@@ -2,6 +2,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import logo from '../../assets/logo.png';
 import { useAuth } from '../../hooks/useAuth';
+import PlanBadge from '../subscription/PlanBadge';
 
 const navItems = [
     {
@@ -122,17 +123,17 @@ const Sidebar = ({ isOpen, onClose }) => {
                 fixed lg:sticky top-16 z-30 lg:z-auto
                 w-64 flex-shrink-0
                 bg-white border-r border-gray-100
-                h-[calc(100vh-4rem)] overflow-y-auto
+                h-[calc(100vh-4rem)] flex flex-col
                 transition-transform duration-300 ease-in-out
                 ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
             `}
         >
             {/* Logo — shown inside sidebar on mobile when it slides open */}
-            <div className="flex items-center px-5 py-4 border-b border-gray-100 lg:hidden">
+            <div className="flex items-center px-5 py-4 border-b border-gray-100 lg:hidden shrink-0">
                 <img src={logo} alt="Garage WalletTracker" className="h-8 w-auto object-contain" />
             </div>
 
-            <nav className="p-3 space-y-0.5">
+            <nav className="p-3 space-y-0.5 flex-1 overflow-y-auto">
                 {visibleItems.map((item) => (
                     <NavLink
                         key={item.path}
@@ -152,8 +153,9 @@ const Sidebar = ({ isOpen, onClose }) => {
                 ))}
             </nav>
 
-            <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-100 bg-white">
-                <p className="text-xs text-gray-400 text-center">© 2026 Garage Collective</p>
+            <div className="shrink-0 border-t border-gray-100 bg-gray-900">
+                <PlanBadge />
+                <p className="text-xs text-gray-500 text-center pb-3">© 2026 Garage Collective</p>
             </div>
         </aside>
     );

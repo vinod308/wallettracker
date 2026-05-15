@@ -6,6 +6,7 @@
 import React from 'react';
 import { AuthProvider } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
+import { SubscriptionProvider } from './context/SubscriptionContext';
 import { useInactivity } from './hooks/useInactivity';
 import AppRouter from './routes/AppRouter';
 import InactivityModal from './components/common/InactivityModal';
@@ -31,7 +32,9 @@ function App() {
   return (
     <AuthProvider>
       <NotificationProvider>
-        <AppContent />
+        <SubscriptionProvider>
+          <AppContent />
+        </SubscriptionProvider>
       </NotificationProvider>
     </AuthProvider>
   );

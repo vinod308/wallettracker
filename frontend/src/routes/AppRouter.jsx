@@ -9,6 +9,7 @@ import { useAuth } from '../hooks/useAuth';
 
 // Auth Pages (eagerly loaded — needed immediately)
 import LoginPage from '../pages/LoginPage';
+import LandingPage from '../pages/LandingPage';
 
 // Lazy-loaded pages (code-split for faster initial load)
 const SignupPage = lazy(() => import('../pages/SignupPage'));
@@ -30,6 +31,8 @@ const VendorSignupPage      = lazy(() => import('../pages/VendorSignupPage'));
 const VendorPortalPage      = lazy(() => import('../pages/VendorPortalPage'));
 const EmployeeManagementPage = lazy(() => import('../pages/EmployeeManagementPage'));
 const EmployeeDetailPage     = lazy(() => import('../pages/EmployeeDetailPage'));
+const PricingPage            = lazy(() => import('../pages/PricingPage'));
+const PaymentPage            = lazy(() => import('../pages/PaymentPage'));
 
 // Route Guards
 import ProtectedRoute from './ProtectedRoute';
@@ -209,11 +212,24 @@ const AppRouter = () => {
             }
           />
 
-          {/* Default Route */}
+          {/* Pricing page — public */}
+          <Route path="/pricing" element={<PricingPage />} />
+
+          {/* Payment checkout — protected */}
+          <Route
+            path="/payment"
+            element={
+              <ProtectedRoute>
+                <PaymentPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Default Route — landing page for guests, dashboard for authenticated */}
           <Route
             path="/"
             element={
-              isAuthenticated ? <Navigate to={roleHome(user)} replace /> : <Navigate to="/login" replace />
+              isAuthenticated ? <Navigate to={roleHome(user)} replace /> : <LandingPage />
             }
           />
 

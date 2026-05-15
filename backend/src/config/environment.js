@@ -39,4 +39,11 @@ module.exports = {
 
     // CORS
     CORS_ORIGIN: process.env.CORS_ORIGIN || 'http://localhost:5173',
+
+    // GST e-Invoice (NIC IRP) — einvoice1.gst.gov.in
+    GST_CLIENT_ID:     process.env.GST_CLIENT_ID,
+    GST_CLIENT_SECRET: process.env.GST_CLIENT_SECRET,
+    GST_USERNAME:      process.env.GST_USERNAME,
+    GST_PASSWORD:      process.env.GST_PASSWORD,
+    GST_GSTIN:         process.env.GST_GSTIN || '09AAGCG1126N1ZG',
 };
