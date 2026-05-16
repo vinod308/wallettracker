@@ -35,7 +35,7 @@ const VendorManagementPage = () => {
     const [typeFilter,     setTypeFilter]     = useState('all');
 
     // Tab
-    const [activeTab, setActiveTab] = useState('onboarded');
+    const [activeTab, setActiveTab] = useState('registered');
 
     // Registered (DB) state
     const [regVendors,      setRegVendors]      = useState([]);
