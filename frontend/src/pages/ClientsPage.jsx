@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MainLayout from '../components/layout/MainLayout';
 import ClientOnboardingModal from '../components/clients/ClientOnboardingModal';
+import api from '../services/api';
 
 const CLIENT_TYPE_COLORS = {
     'Retainer':   'bg-indigo-50 text-indigo-700 border-indigo-100',
@@ -9,23 +10,54 @@ const CLIENT_TYPE_COLORS = {
     'Project':    'bg-teal-50 text-teal-700 border-teal-100',
 };
 
+const STATUS_COLORS = {
+    'Active':   'bg-green-50 text-green-700',
+    'At Risk':  'bg-red-50 text-red-600',
+    'Inactive': 'bg-gray-50 text-gray-500',
+};
+
 const fmt = (n) => `₹${Number((n || 0).toFixed(0)).toLocaleString('en-IN')}`;
+
+const mapApiClient = (c) => ({
+    id: c.id,
+    clientName: c.client_name,
+    projectName: c.project_name,
+    clientType: c.client_type,
+    industry: c.industry || '',
+    status: c.status,
+    totalMrr: parseFloat(c.total_mrr || 0),
+    serviceCount: parseInt(c.service_count || 0),
+    _source: 'api',
+});
 
 const ClientsPage = () => {
     const navigate = useNavigate();
     const [clients,        setClients]        = useState([]);
+    const [loading,        setLoading]        = useState(true);
     const [showOnboarding, setShowOnboarding] = useState(false);
     const [searchQuery,    setSearchQuery]    = useState('');
     const [typeFilter,     setTypeFilter]     = useState('all');
 
-    const loadClients = () => {
-        const raw = JSON.parse(localStorage.getItem('gw_onboarded_clients') || '[]');
-        const migrated = raw.map((c, i) => c.id ? c : { ...c, id: `oc_legacy_${i}_${Date.now()}` });
-        if (raw.some(c => !c.id)) localStorage.setItem('gw_onboarded_clients', JSON.stringify(migrated));
-        setClients(migrated);
-    };
+    const loadClients = useCallback(async () => {
+        setLoading(true);
+        try {
+            const res = await api.get('/clients');
+            const apiClients = (res.data?.data?.clients || []).map(mapApiClient);
+            // Merge local-only clients not yet in DB
+            const local = JSON.parse(localStorage.getItem('gw_onboarded_clients') || '[]');
+            const apiNames = new Set(apiClients.map(c => c.clientName?.toLowerCase()));
+            const localOnly = local.filter(c => !apiNames.has((c.clientName || '').toLowerCase()));
+            setClients([...apiClients, ...localOnly]);
+        } catch {
+            const raw = JSON.parse(localStorage.getItem('gw_onboarded_clients') || '[]');
+            const migrated = raw.map((c, i) => c.id ? c : { ...c, id: `oc_legacy_${i}_${Date.now()}` });
+            setClients(migrated);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
 
-    useEffect(() => { loadClients(); }, []);
+    useEffect(() => { loadClients(); }, [loadClients]);
 
     const filtered = clients.filter(c => {
         const q = searchQuery.toLowerCase();
@@ -38,7 +70,6 @@ const ClientsPage = () => {
         return matchSearch && matchType;
     });
 
-    // Stats derived from invoices
     const invoices = JSON.parse(localStorage.getItem('gw_invoices') || '[]');
     const totalInvoiced = invoices.reduce((s, inv) => s + (inv.total || 0), 0);
     const paidThisMonth = invoices.filter(inv => {
@@ -48,12 +79,7 @@ const ClientsPage = () => {
         return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
     }).reduce((s, inv) => s + (inv.total || 0), 0);
 
-    const clientInvoiceMap = {};
-    invoices.forEach(inv => {
-        if (!clientInvoiceMap[inv.clientId]) clientInvoiceMap[inv.clientId] = { count: 0, pending: 0 };
-        clientInvoiceMap[inv.clientId].count++;
-        if (inv.status !== 'Paid') clientInvoiceMap[inv.clientId].pending += inv.total || 0;
-    });
+    const totalMrr = clients.filter(c => c._source === 'api').reduce((s, c) => s + (c.totalMrr || 0), 0);
 
     return (
         <MainLayout>
@@ -81,18 +107,18 @@ const ClientsPage = () => {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-5 mb-6">
                     <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-card border border-gray-100/50 p-5">
                         <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Total Clients</p>
-                        <h3 className="text-xl sm:text-2xl font-medium text-gray-900">{clients.length}</h3>
+                        <h3 className="text-xl sm:text-2xl font-medium text-gray-900">{loading ? '—' : clients.length}</h3>
                         <p className="text-xs text-gray-500 mt-1">Onboarded</p>
                     </div>
                     <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-card border border-gray-100/50 p-5">
-                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Total Invoiced</p>
-                        <h3 className="text-xl sm:text-2xl font-medium text-orange-600">{fmt(totalInvoiced)}</h3>
-                        <p className="text-xs text-gray-500 mt-1">All invoices</p>
+                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Total MRR</p>
+                        <h3 className="text-xl sm:text-2xl font-medium text-orange-600">{fmt(totalMrr || totalInvoiced)}</h3>
+                        <p className="text-xs text-gray-500 mt-1">Monthly recurring</p>
                     </div>
                     <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-card border border-gray-100/50 p-5">
-                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Total Invoices</p>
-                        <h3 className="text-xl sm:text-2xl font-medium text-primary-blue">{invoices.length}</h3>
-                        <p className="text-xs text-gray-500 mt-1">All time</p>
+                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Active Clients</p>
+                        <h3 className="text-xl sm:text-2xl font-medium text-primary-blue">{clients.filter(c => c.status === 'Active').length}</h3>
+                        <p className="text-xs text-gray-500 mt-1">Currently active</p>
                     </div>
                     <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-card border border-gray-100/50 p-5">
                         <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Paid This Month</p>
@@ -136,7 +162,12 @@ const ClientsPage = () => {
 
                 {/* Client List */}
                 <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-card border border-gray-100/50 overflow-hidden">
-                    {filtered.length === 0 ? (
+                    {loading ? (
+                        <div className="text-center py-20">
+                            <div className="w-8 h-8 border-2 border-primary-blue border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+                            <p className="text-gray-500 text-sm">Loading clients...</p>
+                        </div>
+                    ) : filtered.length === 0 ? (
                         <div className="text-center py-20">
                             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <svg className="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -162,69 +193,66 @@ const ClientsPage = () => {
                                     <tr>
                                         <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Client</th>
                                         <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Type</th>
-                                        <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden md:table-cell">GST / PAN</th>
-                                        <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden lg:table-cell">Contact</th>
-                                        <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Invoices</th>
-                                        <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Pending</th>
+                                        <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden md:table-cell">Industry</th>
+                                        <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden lg:table-cell">Status</th>
+                                        <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Services</th>
+                                        <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">MRR</th>
                                         <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
-                                    {filtered.map(c => {
-                                        const invInfo = clientInvoiceMap[c.id] || { count: 0, pending: 0 };
-                                        return (
-                                            <tr
-                                                key={c.id}
-                                                className="hover:bg-gray-50/50 transition-colors cursor-pointer"
-                                                onClick={() => navigate(`/clients/onboarded/${c.id}`)}
-                                            >
-                                                <td className="px-5 py-3">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="w-9 h-9 rounded-xl bg-primary-blue/10 flex items-center justify-center flex-shrink-0">
-                                                            <span className="text-primary-blue font-bold text-sm">
-                                                                {c.clientName.charAt(0).toUpperCase()}
-                                                            </span>
-                                                        </div>
-                                                        <div>
-                                                            <p className="font-semibold text-gray-900 text-sm">{c.clientName}</p>
-                                                            <p className="text-xs text-gray-400">{c.state || '—'}</p>
-                                                        </div>
+                                    {filtered.map(c => (
+                                        <tr
+                                            key={c.id}
+                                            className="hover:bg-gray-50/50 transition-colors cursor-pointer"
+                                            onClick={() => navigate(`/clients/onboarded/${c.id}`)}
+                                        >
+                                            <td className="px-5 py-3">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-9 h-9 rounded-xl bg-primary-blue/10 flex items-center justify-center flex-shrink-0">
+                                                        <span className="text-primary-blue font-bold text-sm">
+                                                            {(c.clientName || '?').charAt(0).toUpperCase()}
+                                                        </span>
                                                     </div>
-                                                </td>
-                                                <td className="px-4 py-3">
-                                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${CLIENT_TYPE_COLORS[c.clientType] || 'bg-gray-50 text-gray-600 border-gray-200'}`}>
-                                                        {c.clientType || 'Retainer'}
-                                                    </span>
-                                                </td>
-                                                <td className="px-4 py-3 hidden md:table-cell">
-                                                    <p className="text-xs text-gray-600 font-mono">{c.gstNumber || '—'}</p>
-                                                    <p className="text-xs text-gray-400 font-mono">{c.stateCode ? `State: ${c.stateCode}` : '—'}</p>
-                                                </td>
-                                                <td className="px-4 py-3 hidden lg:table-cell">
-                                                    <p className="text-xs text-gray-700 font-medium">{c.contactPerson || '—'}</p>
-                                                    <p className="text-xs text-gray-400">{c.mobileNumber || '—'}</p>
-                                                </td>
-                                                <td className="px-4 py-3 text-center">
-                                                    <span className={`text-sm font-bold ${invInfo.count > 0 ? 'text-primary-blue' : 'text-gray-300'}`}>
-                                                        {invInfo.count}
-                                                    </span>
-                                                </td>
-                                                <td className="px-4 py-3 text-right">
-                                                    <span className={`text-sm font-bold ${invInfo.pending > 0 ? 'text-orange-600' : 'text-gray-400'}`}>
-                                                        {invInfo.pending > 0 ? fmt(invInfo.pending) : '—'}
-                                                    </span>
-                                                </td>
-                                                <td className="px-4 py-3 text-right">
-                                                    <button
-                                                        onClick={e => { e.stopPropagation(); navigate(`/clients/onboarded/${c.id}`); }}
-                                                        className="px-3 py-1.5 text-xs font-medium text-primary-blue border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors"
-                                                    >
-                                                        View
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
+                                                    <div>
+                                                        <p className="font-semibold text-gray-900 text-sm">{c.clientName}</p>
+                                                        <p className="text-xs text-gray-400">{c.projectName || '—'}</p>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${CLIENT_TYPE_COLORS[c.clientType] || 'bg-gray-50 text-gray-600 border-gray-200'}`}>
+                                                    {c.clientType || 'Retainer'}
+                                                </span>
+                                            </td>
+                                            <td className="px-4 py-3 hidden md:table-cell">
+                                                <p className="text-xs text-gray-600">{c.industry || '—'}</p>
+                                            </td>
+                                            <td className="px-4 py-3 hidden lg:table-cell">
+                                                <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium ${STATUS_COLORS[c.status] || 'bg-gray-50 text-gray-500'}`}>
+                                                    {c.status || '—'}
+                                                </span>
+                                            </td>
+                                            <td className="px-4 py-3 text-center">
+                                                <span className={`text-sm font-bold ${(c.serviceCount || 0) > 0 ? 'text-primary-blue' : 'text-gray-300'}`}>
+                                                    {c.serviceCount || 0}
+                                                </span>
+                                            </td>
+                                            <td className="px-4 py-3 text-right">
+                                                <span className={`text-sm font-bold ${(c.totalMrr || 0) > 0 ? 'text-orange-600' : 'text-gray-400'}`}>
+                                                    {(c.totalMrr || 0) > 0 ? fmt(c.totalMrr) : '—'}
+                                                </span>
+                                            </td>
+                                            <td className="px-4 py-3 text-right">
+                                                <button
+                                                    onClick={e => { e.stopPropagation(); navigate(`/clients/onboarded/${c.id}`); }}
+                                                    className="px-3 py-1.5 text-xs font-medium text-primary-blue border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors"
+                                                >
+                                                    View
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
                                 </tbody>
                             </table>
                         </div>
