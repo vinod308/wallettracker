@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import logo from '../assets/logo-3.jpeg';
 
@@ -30,6 +30,87 @@ const STEPS = [
     { step: '02', title: 'Track Revenue', desc: 'Generate invoices, monitor MRR, and track payment status — all in one place.' },
     { step: '03', title: 'Grow Wallet Share', desc: 'Act on AI-powered upsell recommendations and grow revenue per client.' },
 ];
+
+const PLANS = [
+    {
+        name: 'Basic',
+        price: '₹2,990',
+        period: '/month',
+        limit: 'Up to 10 clients & vendors',
+        description: 'Perfect for small agencies getting started.',
+        features: [
+            '10 Clients & Vendors',
+            'GST Invoice Generation',
+            'Dashboard & KPIs',
+            'Vendor Management',
+            'Email Reports',
+            'Standard Support',
+        ],
+        cta: 'Get Started',
+        popular: false,
+        style: {
+            card: 'border-gray-200',
+            badge: '',
+            btn: 'bg-gray-900 hover:bg-gray-800 text-white',
+            header: 'bg-gray-50',
+            price: 'text-gray-900',
+        },
+    },
+    {
+        name: 'Pro',
+        price: '₹5,990',
+        period: '/month',
+        limit: 'Up to 500 clients & vendors',
+        description: 'For growing agencies managing multiple clients.',
+        features: [
+            '500 Clients & Vendors',
+            'GST + AI Finance Insights',
+            'Wallet Share Intelligence',
+            'Contracts & Renewals',
+            'Scheduled Reports & Export',
+            'Priority Support',
+        ],
+        cta: 'Start Free Trial',
+        popular: true,
+        style: {
+            card: 'border-indigo-400 ring-2 ring-indigo-100',
+            badge: 'Most Popular',
+            btn: 'bg-indigo-600 hover:bg-indigo-700 text-white',
+            header: 'bg-indigo-600',
+            price: 'text-white',
+        },
+    },
+    {
+        name: 'Enterprise',
+        price: '₹12,999',
+        period: '/month',
+        limit: 'Unlimited clients & vendors',
+        description: 'For large teams with custom needs and SLA.',
+        features: [
+            'Unlimited Clients & Vendors',
+            'Custom Integrations',
+            'Dedicated Account Manager',
+            'SLA & Uptime Guarantee',
+            'Custom AI Models',
+            'On-premise Option',
+        ],
+        cta: 'Book a Call',
+        popular: false,
+        style: {
+            card: 'border-amber-300',
+            badge: '',
+            btn: 'bg-amber-500 hover:bg-amber-600 text-white',
+            header: 'bg-amber-500',
+            price: 'text-white',
+        },
+    },
+];
+
+const CHECK = () => (
+    <svg className="w-4 h-4 text-green-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+    </svg>
+);
 
 const LandingPage = () => {
     return (
@@ -85,12 +166,14 @@ const LandingPage = () => {
                         >
                             ⚡ Start Free Trial
                         </Link>
-                        <button className="flex items-center gap-2 px-7 py-3.5 bg-white border border-gray-200 text-gray-700 text-base font-semibold rounded-2xl hover:border-gray-300 hover:bg-gray-50 transition-all">
+                        <Link
+                            to="/signup"
+                            className="flex items-center gap-2 px-7 py-3.5 bg-white border border-gray-200 text-gray-700 text-base font-semibold rounded-2xl hover:border-gray-300 hover:bg-gray-50 transition-all"
+                        >
                             📺 Book Live Demo
-                        </button>
+                        </Link>
                     </div>
 
-                    {/* Feature badges — correct JSX (not template-literal .join) */}
                     <div className="flex flex-wrap items-center justify-center gap-3">
                         {BADGES.map(({ icon, label }) => (
                             <span
@@ -173,8 +256,80 @@ const LandingPage = () => {
                 </div>
             </section>
 
+            {/* ── Pricing ── */}
+            <section className="py-24 px-4 sm:px-6 lg:px-8 bg-white">
+                <div className="max-w-6xl mx-auto">
+                    <div className="text-center mb-14">
+                        <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight mb-4">
+                            Simple, Transparent Pricing
+                        </h2>
+                        <p className="text-lg text-gray-500 max-w-xl mx-auto">
+                            Start free. Upgrade as you grow. No hidden charges.
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {PLANS.map((plan) => (
+                            <div
+                                key={plan.name}
+                                className={`relative rounded-2xl border-2 overflow-hidden shadow-sm transition-all hover:shadow-xl hover:-translate-y-1 ${plan.style.card}`}
+                            >
+                                {plan.popular && (
+                                    <div className="absolute top-0 left-0 right-0 flex justify-center">
+                                        <span className="bg-indigo-600 text-white text-xs font-bold px-4 py-1 rounded-b-xl tracking-widest uppercase">
+                                            Most Popular
+                                        </span>
+                                    </div>
+                                )}
+
+                                {/* Header */}
+                                <div className={`px-6 pt-${plan.popular ? '8' : '6'} pb-6 ${plan.popular ? 'bg-indigo-600' : plan.name === 'Enterprise' ? 'bg-amber-500' : 'bg-gray-800'}`}>
+                                    <div className={`font-bold text-xl ${plan.popular || plan.name === 'Enterprise' ? 'text-white' : 'text-white'}`}>
+                                        {plan.name}
+                                    </div>
+                                    <div className={`text-sm mt-1 ${plan.popular || plan.name === 'Enterprise' ? 'text-white/70' : 'text-white/60'}`}>
+                                        {plan.description}
+                                    </div>
+                                    <div className="mt-4 flex items-end gap-1">
+                                        <span className="text-3xl font-bold text-white">{plan.price}</span>
+                                        <span className="text-white/60 text-sm mb-0.5">{plan.period}</span>
+                                    </div>
+                                    <div className={`text-xs mt-1 font-medium ${plan.popular || plan.name === 'Enterprise' ? 'text-white/60' : 'text-white/50'}`}>
+                                        {plan.limit}
+                                    </div>
+                                </div>
+
+                                {/* Features */}
+                                <div className="px-6 py-6 flex flex-col flex-1">
+                                    <ul className="space-y-3 mb-6">
+                                        {plan.features.map(f => (
+                                            <li key={f} className="flex items-start gap-2 text-sm text-gray-600">
+                                                <CHECK />
+                                                {f}
+                                            </li>
+                                        ))}
+                                    </ul>
+
+                                    <Link
+                                        to="/signup"
+                                        className={`block w-full text-center py-3 rounded-xl text-sm font-semibold transition-all shadow-sm hover:shadow-md ${plan.style.btn}`}
+                                    >
+                                        {plan.cta}
+                                    </Link>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    <p className="text-center text-sm text-gray-400 mt-8">
+                        All plans include a 14-day free trial. No credit card required.
+                        Questions? <a href="mailto:sales@moneygence.com" className="text-indigo-600 hover:underline">Contact us</a>
+                    </p>
+                </div>
+            </section>
+
             {/* ── Testimonial / Trust ── */}
-            <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
+            <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50/80">
                 <div className="max-w-3xl mx-auto text-center">
                     <div className="inline-flex items-center justify-center w-16 h-16 bg-indigo-50 rounded-2xl text-3xl mb-6">
                         💬
@@ -233,6 +388,7 @@ const LandingPage = () => {
                     <div className="flex items-center gap-5 text-sm text-gray-500">
                         <Link to="/login" className="hover:text-gray-700 transition-colors">Login</Link>
                         <Link to="/signup" className="hover:text-gray-700 transition-colors">Sign Up</Link>
+                        <a href="mailto:sales@moneygence.com" className="hover:text-gray-700 transition-colors">Contact</a>
                     </div>
                 </div>
             </footer>
