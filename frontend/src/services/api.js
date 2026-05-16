@@ -5,7 +5,7 @@
 
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://moneygence.com';
 
 // Create axios instance
 const api = axios.create({
@@ -40,11 +40,12 @@ api.interceptors.response.use(
   (error) => {
     // Handle session expiry (401)
     if (error.response?.status === 401) {
-      // Clear token
       localStorage.removeItem('auth_token');
 
-      // Redirect to login if not already there
-      if (!window.location.pathname.includes('/login')) {
+      // Only redirect to login from protected pages — never from public auth pages
+      const publicPaths = ['/login', '/signup', '/forgot-password', '/reset-password', '/vendor-signup'];
+      const isPublicPage = publicPaths.some(p => window.location.pathname.startsWith(p));
+      if (!isPublicPage) {
         window.location.href = '/login?session_expired=true';
       }
     }
