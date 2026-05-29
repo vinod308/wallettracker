@@ -451,6 +451,11 @@ const OnboardingModal = ({ isOpen, onComplete, onSkip }) => {
                                 ← Back
                             </button>
                         )}
+                        {onSkip && (
+                            <button onClick={onSkip} className="px-4 py-2 text-sm text-gray-400 hover:text-gray-600 transition-colors">
+                                Skip for now
+                            </button>
+                        )}
                     </div>
 
                     <div className="flex items-center gap-3">

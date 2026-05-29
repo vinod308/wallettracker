@@ -31,7 +31,10 @@ const DashboardPage = () => {
     const [companySettings, setCompanySettings] = useState(() =>
         JSON.parse(localStorage.getItem('gw_settings') || 'null')
     );
-    const needsOnboarding = !companySettings || companySettings.isDraft === true;
+    // Show onboarding only for brand-new users who haven't entered any company info yet.
+    // If they already have a company name saved (even as draft), or have dismissed before, skip it.
+    const needsOnboarding = !companySettings?.companyName &&
+                            !localStorage.getItem('gw_onboarding_dismissed');
     const [showOnboarding, setShowOnboarding] = useState(needsOnboarding);
 
     const handleOnboardingComplete = (data) => {
@@ -40,6 +43,7 @@ const DashboardPage = () => {
     };
 
     const handleOnboardingSkip = () => {
+        localStorage.setItem('gw_onboarding_dismissed', 'true');
         setShowOnboarding(false);
     };
 
