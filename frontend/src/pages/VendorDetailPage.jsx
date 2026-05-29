@@ -94,6 +94,7 @@ const VendorDetailPage = () => {
     const [invoices,        setInvoices]        = useState([]);
     const [loadingInvoices, setLoadingInvoices] = useState(false);
     const [updatingId,      setUpdatingId]      = useState(null);
+    const [dbVendorId,      setDbVendorId]      = useState(null);
 
     const loadPOs = useCallback(() => {
         try {
@@ -131,6 +132,16 @@ const VendorDetailPage = () => {
                     loadPOs();
                     loadVendorPIs();
                     setLoadingVendor(false);
+                    if (local.email) {
+                        try {
+                            const allDb = await vendorService.getAllVendors();
+                            const dbMatch = allDb?.find(v => v.email === local.email);
+                            if (dbMatch) {
+                                setDbVendorId(dbMatch.id);
+                                loadInvoices(dbMatch.id);
+                            }
+                        } catch {}
+                    }
                     return;
                 }
             } catch {}
@@ -185,7 +196,7 @@ const VendorDetailPage = () => {
         setUpdatingId(invoiceId);
         try {
             await vendorService.updateInvoiceStatus(invoiceId, newStatus);
-            await loadInvoices(vendor.id);
+            await loadInvoices(dbVendorId || vendor.id);
         } catch {}
         finally { setUpdatingId(null); }
     };
@@ -651,8 +662,8 @@ const VendorDetailPage = () => {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                             </svg>
                             <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wider">PI History</h3>
-                            {vendorPIs.length > 0 && (
-                                <span className="px-2 py-0.5 bg-primary-blue text-white text-xs font-bold rounded-full">{vendorPIs.length}</span>
+                            {(invoices.length + vendorPIs.length) > 0 && (
+                                <span className="px-2 py-0.5 bg-primary-blue text-white text-xs font-bold rounded-full">{invoices.length + vendorPIs.length}</span>
                             )}
                         </div>
                         <button onClick={() => setShowPI(true)}
@@ -664,7 +675,11 @@ const VendorDetailPage = () => {
                         </button>
                     </div>
 
-                    {vendorPIs.length === 0 ? (
+                    {loadingInvoices ? (
+                        <div className="flex items-center justify-center py-12">
+                            <div className="w-6 h-6 border-2 border-primary-blue border-t-transparent rounded-full animate-spin" />
+                        </div>
+                    ) : invoices.length === 0 && vendorPIs.length === 0 ? (
                         <div className="text-center py-12">
                             <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
                                 <svg className="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -675,56 +690,122 @@ const VendorDetailPage = () => {
                             <p className="text-xs text-gray-300 mt-1">Click "Raise PI" to generate the first one</p>
                         </div>
                     ) : (
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-sm">
-                                <thead className="bg-gray-50/80">
-                                    <tr>
-                                        <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">PI No.</th>
-                                        <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden sm:table-cell">Date</th>
-                                        <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden md:table-cell">Due Date</th>
-                                        <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden lg:table-cell">Description</th>
-                                        <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Amount</th>
-                                        <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                                        <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">PDF</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-100">
-                                    {vendorPIs.map((pi, i) => (
-                                        <tr key={i} className="hover:bg-gray-50/50 transition-colors">
-                                            <td className="px-4 py-3">
-                                                <span className="font-bold text-primary-blue text-xs">{pi.invoice_number}</span>
-                                            </td>
-                                            <td className="px-4 py-3 text-gray-500 text-xs hidden sm:table-cell">{fmtDate(pi.invoice_date)}</td>
-                                            <td className="px-4 py-3 text-gray-500 text-xs hidden md:table-cell">{fmtDate(pi.due_date)}</td>
-                                            <td className="px-4 py-3 text-gray-600 text-xs max-w-xs truncate hidden lg:table-cell">{pi.description || '—'}</td>
-                                            <td className="px-4 py-3 text-right font-bold text-gray-900">{fmtAmt(pi.total_amount)}</td>
-                                            <td className="px-4 py-3 text-center">
-                                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${piStatusColor(pi.status || 'Pending')}`}>
-                                                    {pi.status || 'Pending'}
-                                                </span>
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                <div className="flex items-center justify-end gap-1.5">
-                                                    <button onClick={() => openPIPDFInTab(pi, vendor)} title="View PI PDF"
-                                                        className="p-1.5 text-gray-400 hover:text-primary-blue hover:bg-blue-50 rounded-lg transition-colors">
-                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                        </svg>
-                                                    </button>
-                                                    <button onClick={() => downloadPIPDF(pi, vendor)} title="Download PI PDF"
-                                                        className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors">
-                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                                        </svg>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                        <>
+                            {invoices.length > 0 && (
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-sm">
+                                        <thead className="bg-gray-50/80">
+                                            <tr>
+                                                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">PI No.</th>
+                                                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden sm:table-cell">Date</th>
+                                                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden md:table-cell">Due Date</th>
+                                                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden lg:table-cell">Description</th>
+                                                <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Amount</th>
+                                                <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                                                <th className="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Update</th>
+                                                <th className="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">PDF</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-gray-100">
+                                            {invoices.map(inv => (
+                                                <tr key={inv.id} className="hover:bg-gray-50/50 transition-colors">
+                                                    <td className="px-4 py-3">
+                                                        <span className="font-bold text-primary-blue text-xs">{inv.invoice_number}</span>
+                                                    </td>
+                                                    <td className="px-4 py-3 text-gray-500 text-xs hidden sm:table-cell">{fmtDate(inv.invoice_date)}</td>
+                                                    <td className="px-4 py-3 text-gray-500 text-xs hidden md:table-cell">{fmtDate(inv.due_date)}</td>
+                                                    <td className="px-4 py-3 text-gray-600 text-xs max-w-xs truncate hidden lg:table-cell">{inv.description || '—'}</td>
+                                                    <td className="px-4 py-3 text-right font-bold text-gray-900">{fmtAmt(inv.total_amount)}</td>
+                                                    <td className="px-4 py-3 text-center">
+                                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${piStatusColor(inv.status)}`}>
+                                                            {inv.status}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-4 py-3 text-center">
+                                                        <select
+                                                            value={inv.status}
+                                                            disabled={updatingId === inv.id}
+                                                            onChange={e => handlePIStatusChange(inv.id, e.target.value)}
+                                                            className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-1 focus:ring-primary-blue cursor-pointer disabled:opacity-50"
+                                                        >
+                                                            <option value="Pending">Pending</option>
+                                                            <option value="Approved">Approved</option>
+                                                            <option value="Paid">Paid</option>
+                                                            <option value="Rejected">Rejected</option>
+                                                        </select>
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        <div className="flex items-center justify-end gap-1.5">
+                                                            <button onClick={() => openPIPDFInTab(inv, vendor)} title="View PI PDF"
+                                                                className="p-1.5 text-gray-400 hover:text-primary-blue hover:bg-blue-50 rounded-lg transition-colors">
+                                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                                </svg>
+                                                            </button>
+                                                            <button onClick={() => downloadPIPDF(inv, vendor)} title="Download PI PDF"
+                                                                className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors">
+                                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                                                </svg>
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+                            {vendorPIs.length > 0 && (
+                                <div className={invoices.length > 0 ? 'border-t border-gray-100' : ''}>
+                                    {invoices.length > 0 && (
+                                        <p className="px-5 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider bg-gray-50/60">
+                                            Admin Generated ({vendorPIs.length})
+                                        </p>
+                                    )}
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-sm">
+                                            <tbody className="divide-y divide-gray-100">
+                                                {vendorPIs.map((pi, i) => (
+                                                    <tr key={i} className="hover:bg-gray-50/50 transition-colors">
+                                                        <td className="px-4 py-3">
+                                                            <span className="font-bold text-primary-blue text-xs">{pi.invoice_number}</span>
+                                                        </td>
+                                                        <td className="px-4 py-3 text-gray-500 text-xs hidden sm:table-cell">{fmtDate(pi.invoice_date)}</td>
+                                                        <td className="px-4 py-3 text-gray-500 text-xs hidden md:table-cell">{fmtDate(pi.due_date)}</td>
+                                                        <td className="px-4 py-3 text-gray-600 text-xs max-w-xs truncate hidden lg:table-cell">{pi.description || '—'}</td>
+                                                        <td className="px-4 py-3 text-right font-bold text-gray-900">{fmtAmt(pi.total_amount)}</td>
+                                                        <td className="px-4 py-3 text-center">
+                                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${piStatusColor(pi.status || 'Pending')}`}>
+                                                                {pi.status || 'Pending'}
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-4 py-3">
+                                                            <div className="flex items-center justify-end gap-1.5">
+                                                                <button onClick={() => openPIPDFInTab(pi, vendor)} title="View PI PDF"
+                                                                    className="p-1.5 text-gray-400 hover:text-primary-blue hover:bg-blue-50 rounded-lg transition-colors">
+                                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                                    </svg>
+                                                                </button>
+                                                                <button onClick={() => downloadPIPDF(pi, vendor)} title="Download PI PDF"
+                                                                    className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors">
+                                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                                                    </svg>
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            )}
+                        </>
                     )}
                 </div>
             )}

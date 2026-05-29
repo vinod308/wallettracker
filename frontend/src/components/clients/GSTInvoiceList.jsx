@@ -5,8 +5,9 @@
  */
 import React, { useEffect, useState, useCallback } from 'react';
 import invoiceService from '../../services/invoiceService';
-import GSTSyncModal         from './GSTSyncModal';
-import ManualGSTInvoiceModal from './ManualGSTInvoiceModal';
+import GSTSyncModal              from './GSTSyncModal';
+import ManualGSTInvoiceModal     from './ManualGSTInvoiceModal';
+import GenerateGSTInvoiceModal   from './GenerateGSTInvoiceModal';
 
 const fmt = (n) =>
     `₹${Number(n || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
@@ -24,20 +25,26 @@ const StatusBadge = ({ status }) => {
     );
 };
 
-const SourceBadge = ({ source }) => (
-    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-        source === 'GST Portal' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-600'
-    }`}>
-        {source}
-    </span>
-);
+const SourceBadge = ({ source }) => {
+    const map = {
+        'GST Portal':    'bg-purple-100 text-purple-800',
+        'Masters India': 'bg-emerald-100 text-emerald-800',
+        'Cancelled':     'bg-red-100 text-red-700',
+    };
+    return (
+        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${map[source] || 'bg-gray-100 text-gray-600'}`}>
+            {source}
+        </span>
+    );
+};
 
 const GSTInvoiceList = ({ client }) => {
     const [invoices,     setInvoices]     = useState([]);
     const [loading,      setLoading]      = useState(true);
     const [error,        setError]        = useState('');
-    const [showSync,     setShowSync]     = useState(false);
-    const [showManual,   setShowManual]   = useState(false);
+    const [showSync,      setShowSync]      = useState(false);
+    const [showManual,    setShowManual]    = useState(false);
+    const [showGenerate,  setShowGenerate]  = useState(false);
     const [updatingId,   setUpdatingId]   = useState(null);
     const [deletingId,   setDeletingId]   = useState(null);
 
@@ -84,6 +91,7 @@ const GSTInvoiceList = ({ client }) => {
     const onSaved = () => {
         setShowSync(false);
         setShowManual(false);
+        setShowGenerate(false);
         load();
     };
 
@@ -108,6 +116,13 @@ const GSTInvoiceList = ({ client }) => {
                     )}
                 </h3>
                 <div className="flex gap-2">
+                    <button
+                        onClick={() => setShowGenerate(true)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600 text-white text-xs
+                                   font-medium rounded-lg hover:bg-green-700 transition-colors"
+                    >
+                        ⚡ Generate IRN
+                    </button>
                     <button
                         onClick={() => setShowSync(true)}
                         className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-600 text-white text-xs
@@ -158,7 +173,7 @@ const GSTInvoiceList = ({ client }) => {
                     <table className="w-full text-xs">
                         <thead>
                             <tr className="bg-gray-50 border-b border-gray-200">
-                                {['Invoice No', 'Date', 'Buyer', 'Taxable', 'CGST', 'SGST', 'Total', 'Status', 'Source', ''].map(h => (
+                                {['Invoice No', 'Date', 'Buyer', 'Taxable', 'CGST', 'SGST', 'Total', 'Status', 'Source', 'IRN', ''].map(h => (
                                     <th key={h} className="px-3 py-2 text-left text-gray-500 font-medium whitespace-nowrap">
                                         {h}
                                     </th>
@@ -205,6 +220,20 @@ const GSTInvoiceList = ({ client }) => {
                                         <SourceBadge source={inv.source} />
                                     </td>
                                     <td className="px-3 py-2">
+                                        {inv.irn ? (
+                                            <span
+                                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"
+                                                title={inv.irn}
+                                            >
+                                                ✓ IRN
+                                            </span>
+                                        ) : (
+                                            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+                                                ⚠ No IRN
+                                            </span>
+                                        )}
+                                    </td>
+                                    <td className="px-3 py-2">
                                         <button
                                             onClick={() => handleDelete(inv.id)}
                                             disabled={deletingId === inv.id}
@@ -222,6 +251,12 @@ const GSTInvoiceList = ({ client }) => {
             )}
 
             {/* Modals */}
+            <GenerateGSTInvoiceModal
+                isOpen={showGenerate}
+                onClose={() => setShowGenerate(false)}
+                client={client}
+                onInvoiceSaved={onSaved}
+            />
             <GSTSyncModal
                 isOpen={showSync}
                 onClose={() => setShowSync(false)}

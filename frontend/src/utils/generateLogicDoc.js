@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Generate Functional Logic Documentation as a downloadable Word (.docx) file
  * Uses the `docx` library to produce a professionally formatted document
  */
@@ -90,9 +90,9 @@ const pageBreak = () => new Paragraph({ children: [new PageBreak()] });
 // ── Main export function ─────────────────────────────────────
 export const generateLogicDocument = async () => {
     const doc = new Document({
-        creator: 'Garage WalletTracker',
+        creator: 'MoneyGence',
         title: 'Functional Logic Documentation',
-        description: 'Complete business logic, formulas, and decision rules for the Wallet Tracker system',
+        description: 'Complete business logic, formulas, and decision rules for the MoneyGence system',
         sections: [{
             properties: {
                 page: {
@@ -105,7 +105,7 @@ export const generateLogicDocument = async () => {
                 new Paragraph({
                     alignment: AlignmentType.CENTER,
                     spacing: { after: 200 },
-                    children: [new TextRun({ text: 'GARAGE WALLETTRACKER', size: 52, bold: true, font: 'Calibri', color: BLUE })],
+                    children: [new TextRun({ text: 'MoneyGence', size: 52, bold: true, font: 'Calibri', color: BLUE })],
                 }),
                 new Paragraph({
                     alignment: AlignmentType.CENTER,
@@ -695,12 +695,12 @@ export const generateLogicDocument = async () => {
                 new Paragraph({
                     alignment: AlignmentType.CENTER,
                     spacing: { after: 100 },
-                    children: [new TextRun({ text: 'Garage WalletTracker | Confidential', size: 18, font: 'Calibri', color: GRAY })],
+                    children: [new TextRun({ text: 'MoneyGence | Confidential', size: 18, font: 'Calibri', color: GRAY })],
                 }),
             ],
         }],
     });
 
     const blob = await Packer.toBlob(doc);
-    saveAs(blob, `WalletTracker_Functional_Logic_Documentation_${new Date().toISOString().split('T')[0]}.docx`);
+    saveAs(blob, `MoneyGence_Functional_Logic_Documentation_${new Date().toISOString().split('T')[0]}.docx`);
 };

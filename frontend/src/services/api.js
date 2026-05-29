@@ -42,10 +42,13 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem('auth_token');
 
+      // Don't treat subscription check failures as session expiry — it degrades gracefully
+      const isSubscriptionCheck = error.config?.url?.includes('/subscription/current');
+
       // Only redirect to login from protected pages — never from public auth pages
       const publicPaths = ['/login', '/signup', '/forgot-password', '/reset-password', '/vendor-signup'];
       const isPublicPage = publicPaths.some(p => window.location.pathname.startsWith(p));
-      if (!isPublicPage) {
+      if (!isPublicPage && !isSubscriptionCheck) {
         window.location.href = '/login?session_expired=true';
       }
     }

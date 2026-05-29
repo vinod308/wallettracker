@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Modal from '../common/Modal';
+import { INDIA_STATES } from '../../utils/indiaStates';
 
 const STEPS = ['Basic Info', 'Bank Details', 'Contact Info', 'Review & Submit'];
 
@@ -229,7 +230,7 @@ const ClientOnboardingModal = ({ isOpen, onClose, onClientAdded, editClient }) =
                         <Field label="Client / Company Name" required error={errors.clientName}>
                             <input
                                 value={form.clientName} onChange={set('clientName')}
-                                placeholder="e.g. Utkarsh Small Finance Bank Ltd"
+                                placeholder="e.g. Nova Retail Solutions Pvt Ltd"
                                 className={inp(errors.clientName ? 'border-red-400 bg-red-50' : 'border-gray-200')}
                             />
                         </Field>
@@ -241,10 +242,10 @@ const ClientOnboardingModal = ({ isOpen, onClose, onClientAdded, editClient }) =
                             </select>
                         </Field>
                     </div>
-                    <Field label="GST Number" required error={errors.gstNumber} hint="15-character GST — e.g. 09AABCU9355J1ZS">
+                    <Field label="GST Number" required error={errors.gstNumber} hint="15-character GST — e.g. 29AABCD1234E1ZS">
                         <input
                             value={form.gstNumber} onChange={set('gstNumber')}
-                            placeholder="e.g. 09AABCU9355J1ZS"
+                            placeholder="e.g. 29AABCD1234E1ZS"
                             className={inp(errors.gstNumber ? 'border-red-400 bg-red-50' : 'border-gray-200')}
                             style={{ textTransform: 'uppercase' }}
                         />
@@ -258,11 +259,13 @@ const ClientOnboardingModal = ({ isOpen, onClose, onClientAdded, editClient }) =
                     </Field>
                     <div className="grid grid-cols-2 gap-4">
                         <Field label="State" required error={errors.state}>
-                            <input
+                            <select
                                 value={form.state} onChange={set('state')}
-                                placeholder="e.g. Uttar Pradesh"
-                                className={inp(errors.state ? 'border-red-400 bg-red-50' : 'border-gray-200')}
-                            />
+                                className={inp(errors.state ? 'border-red-400 bg-red-50' : 'border-gray-200') + ' bg-white'}
+                            >
+                                <option value="">Select state</option>
+                                {INDIA_STATES.map(s => <option key={s.name} value={s.name}>{s.name}</option>)}
+                            </select>
                         </Field>
                         <Field label="State Code" required error={errors.stateCode} hint="6-digit state code">
                             <input

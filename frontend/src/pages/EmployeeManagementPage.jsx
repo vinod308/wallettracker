@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import MainLayout from '../components/layout/MainLayout';
 import EmployeeOnboardingModal from '../components/employees/EmployeeOnboardingModal';
 import { computeSalaryBreakdown } from '../utils/generateSalarySlipPDF';
+import UpgradeModal from '../components/subscription/UpgradeModal';
+
+const EMPLOYEE_LIMIT = 5;
 
 const STATUS_STYLES = {
     'Active':    'bg-green-50 text-green-700 border-green-200',
@@ -23,9 +26,15 @@ const EmployeeManagementPage = () => {
     const navigate = useNavigate();
     const [employees,   setEmployees]   = useState([]);
     const [showModal,   setShowModal]   = useState(false);
+    const [showUpgrade, setShowUpgrade] = useState(false);
     const [search,      setSearch]      = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [typeFilter,  setTypeFilter]  = useState('all');
+
+    const handleAddEmployee = () => {
+        if (employees.length >= EMPLOYEE_LIMIT) setShowUpgrade(true);
+        else setShowModal(true);
+    };
 
     const loadEmployees = () => {
         try { setEmployees(JSON.parse(localStorage.getItem('gw_employees') || '[]')); }
@@ -60,7 +69,7 @@ const EmployeeManagementPage = () => {
                         <p className="mt-1 text-sm text-gray-600">Manage employees, salaries, and payroll records</p>
                     </div>
                     <button
-                        onClick={() => setShowModal(true)}
+                        onClick={handleAddEmployee}
                         className="flex-shrink-0 flex items-center gap-2 px-4 py-2.5 bg-primary-blue text-white rounded-xl text-sm font-semibold hover:bg-[#4338ca] transition-all shadow-sm"
                     >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -205,6 +214,11 @@ const EmployeeManagementPage = () => {
                 isOpen={showModal}
                 onClose={() => setShowModal(false)}
                 onEmployeeAdded={() => { loadEmployees(); setShowModal(false); }}
+            />
+            <UpgradeModal
+                isOpen={showUpgrade}
+                onClose={() => setShowUpgrade(false)}
+                reason="You've reached the 5-employee limit on your current plan. Upgrade to add more employees."
             />
         </MainLayout>
     );

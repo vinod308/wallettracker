@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Modal from '../common/Modal';
+import vendorService from '../../services/vendorService';
+import { INDIA_STATES } from '../../utils/indiaStates';
 
 const STEPS = ['Basic Info', 'Contact', 'Banking', 'Documents', 'Review'];
 
@@ -38,14 +40,15 @@ const VendorOnboardingModal = ({ isOpen, onClose, onVendorAdded, editVendor }) =
     const [step, setStep]       = useState(0);
     const [form, setForm]       = useState({ ...EMPTY });
     const [errors, setErrors]   = useState({});
-    const [loading, setLoading] = useState(false);
-    const [done, setDone]       = useState(false);
-    const [drafts, setDrafts]   = useState({});
+    const [loading, setLoading]             = useState(false);
+    const [done, setDone]                   = useState(false);
+    const [invitationSent, setInvitationSent] = useState(false);
+    const [drafts, setDrafts]               = useState({});
 
     useEffect(() => {
         if (isOpen) {
             setForm(editVendor ? { ...EMPTY, ...editVendor } : { ...EMPTY });
-            setStep(0); setErrors({}); setDone(false);
+            setStep(0); setErrors({}); setDone(false); setInvitationSent(false);
         }
     }, [isOpen, editVendor]);
 
@@ -132,11 +135,46 @@ const VendorOnboardingModal = ({ isOpen, onClose, onVendorAdded, editVendor }) =
                 updatedAt:   new Date().toISOString(),
             };
 
+            // Save to localStorage (drives PO management)
             const existing = JSON.parse(localStorage.getItem('gw_vendors') || '[]');
             const updated  = editVendor
                 ? existing.map(v => v.id === editVendor.id ? vendor : v)
                 : [...existing, vendor];
             localStorage.setItem('gw_vendors', JSON.stringify(updated));
+
+            // Call backend to create vendor user account + send invitation email
+            let sent = false;
+            try {
+                const payload = {
+                    vendorName:    vendor.vendorName,
+                    vendorType:    vendor.vendorType,
+                    gstNumber:     vendor.gstNumber,
+                    panNumber:     vendor.panNumber,
+                    address:       vendor.address,
+                    city:          vendor.city,
+                    state:         vendor.state,
+                    pincode:       vendor.pincode,
+                    country:       vendor.country,
+                    contactPerson: vendor.contactPerson,
+                    email:         vendor.email,
+                    mobile:        vendor.mobile,
+                    altMobile:     vendor.altMobile,
+                    website:       vendor.website,
+                    accountHolder: vendor.accountHolder,
+                    bankName:      vendor.bankName,
+                    accountNumber: vendor.accountNumber,
+                    ifscCode:      vendor.ifscCode,
+                    upiId:         vendor.upiId,
+                    swiftCode:     vendor.swiftCode,
+                };
+                await vendorService.createVendor(payload);
+                sent = !!vendor.email;
+            } catch (apiErr) {
+                // Backend call failed but localStorage already saved — continue
+                console.error('Vendor API call failed:', apiErr);
+            }
+
+            setInvitationSent(sent);
             onVendorAdded?.();
             setDone(true);
         } catch {
@@ -147,7 +185,7 @@ const VendorOnboardingModal = ({ isOpen, onClose, onVendorAdded, editVendor }) =
     };
 
     const handleClose = () => {
-        setStep(0); setForm({ ...EMPTY }); setErrors({}); setDone(false);
+        setStep(0); setForm({ ...EMPTY }); setErrors({}); setDone(false); setInvitationSent(false);
         onClose();
     };
 
@@ -217,16 +255,24 @@ const VendorOnboardingModal = ({ isOpen, onClose, onVendorAdded, editVendor }) =
                     <h3 className="text-lg font-bold text-gray-900 mb-1">
                         {editVendor ? `${form.vendorName} updated!` : `${form.vendorName} onboarded!`}
                     </h3>
-                    <p className="text-sm text-gray-500 mb-6">
+                    <p className="text-sm text-gray-500 mb-2">
                         {editVendor
                             ? 'Vendor details have been updated successfully.'
                             : 'Vendor has been onboarded successfully. You can now generate POs for this vendor.'}
                     </p>
+                    {!editVendor && invitationSent && (
+                        <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-100 rounded-xl px-4 py-2 mb-4">
+                            <svg className="w-4 h-4 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                            <span className="text-sm text-blue-700">Invitation sent to <strong>{form.email}</strong></span>
+                        </div>
+                    )}
                     <div className="flex gap-3 justify-center">
                         <button onClick={handleClose} className="px-5 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
                             Close
                         </button>
-                        <button onClick={() => { setStep(0); setForm({ ...EMPTY }); setErrors({}); setDone(false); }}
+                        <button onClick={() => { setStep(0); setForm({ ...EMPTY }); setErrors({}); setDone(false); setInvitationSent(false); }}
                             className="px-5 py-2.5 bg-primary-blue text-white rounded-xl text-sm font-semibold hover:bg-[#4338ca] transition-colors">
                             + Add Another Vendor
                         </button>
@@ -246,7 +292,7 @@ const VendorOnboardingModal = ({ isOpen, onClose, onVendorAdded, editVendor }) =
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <Field label="Vendor Name" required error={errors.vendorName}>
                             <input value={form.vendorName} onChange={set('vendorName')}
-                                placeholder="e.g. Ravi Media Productions"
+                                placeholder="e.g. Horizon Creative Studio"
                                 className={inp(errors.vendorName ? 'border-red-400 bg-red-50' : 'border-gray-200')} />
                         </Field>
                         <Field label="Vendor Type" required>
@@ -258,7 +304,7 @@ const VendorOnboardingModal = ({ isOpen, onClose, onVendorAdded, editVendor }) =
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <Field label="GST Number" error={errors.gstNumber} hint="Optional — 15-character GST">
                             <input value={form.gstNumber} onChange={set('gstNumber')}
-                                placeholder="e.g. 09AABCU9355J1ZS"
+                                placeholder="e.g. 29AABCD1234E1ZS"
                                 className={inp(errors.gstNumber ? 'border-red-400 bg-red-50' : 'border-gray-200')}
                                 style={{ textTransform: 'uppercase' }} />
                         </Field>
@@ -280,8 +326,11 @@ const VendorOnboardingModal = ({ isOpen, onClose, onVendorAdded, editVendor }) =
                                 className={inp(errors.city ? 'border-red-400 bg-red-50' : 'border-gray-200')} />
                         </Field>
                         <Field label="State" required error={errors.state}>
-                            <input value={form.state} onChange={set('state')} placeholder="State"
-                                className={inp(errors.state ? 'border-red-400 bg-red-50' : 'border-gray-200')} />
+                            <select value={form.state} onChange={set('state')}
+                                className={inp(errors.state ? 'border-red-400 bg-red-50' : 'border-gray-200') + ' bg-white'}>
+                                <option value="">Select state</option>
+                                {INDIA_STATES.map(s => <option key={s.name} value={s.name}>{s.name}</option>)}
+                            </select>
                         </Field>
                         <Field label="Pincode" required error={errors.pincode}>
                             <input value={form.pincode} onChange={set('pincode')} placeholder="6 digits" maxLength={6}

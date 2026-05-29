@@ -3,7 +3,7 @@
  * User profile, security, notifications, and admin settings — premium UI
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import MainLayout from '../components/layout/MainLayout';
 import settingsService from '../services/settingsService';
@@ -166,6 +166,23 @@ const SettingsPage = () => {
     const { user } = useAuth();
 
     const [activeTab, setActiveTab] = useState('profile');
+
+    // Profile photo (localStorage)
+    const [photo,    setPhoto]    = useState(() => localStorage.getItem('gw_profile_photo') || '');
+    const fileRef = useRef(null);
+
+    const handlePhotoUpload = (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            const dataUrl = ev.target.result;
+            localStorage.setItem('gw_profile_photo', dataUrl);
+            setPhoto(dataUrl);
+            window.dispatchEvent(new CustomEvent('gw_profile_photo_updated'));
+        };
+        reader.readAsDataURL(file);
+    };
 
     // Profile
     const [profile, setProfile] = useState({
@@ -349,16 +366,36 @@ const SettingsPage = () => {
                         <div className="w-full lg:w-64 flex-shrink-0 space-y-4">
                             {/* Profile Card */}
                             <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-100/80 shadow-sm p-5 text-center">
-                                {/* Avatar */}
-                                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-blue to-indigo-600
-                                    flex items-center justify-center mx-auto shadow-sm">
-                                    <span className="text-2xl font-bold text-white">
-                                        {getInitials(user?.full_name || profile.full_name)}
-                                    </span>
+                                {/* Avatar with upload */}
+                                <div className="relative w-16 h-16 mx-auto group">
+                                    {photo ? (
+                                        <img src={photo} alt="Profile" className="w-16 h-16 rounded-2xl object-cover shadow-sm" />
+                                    ) : (
+                                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-blue to-indigo-600
+                                            flex items-center justify-center shadow-sm">
+                                            <span className="text-2xl font-bold text-white">
+                                                {getInitials(profile.full_name || user?.full_name)}
+                                            </span>
+                                        </div>
+                                    )}
+                                    <button
+                                        onClick={() => fileRef.current?.click()}
+                                        className="absolute inset-0 rounded-2xl bg-black/50 flex items-center justify-center
+                                            opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                                        title="Upload photo"
+                                    >
+                                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                                d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        </svg>
+                                    </button>
+                                    <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
                                 </div>
-                                <div className="mt-3">
+                                <p className="text-[10px] text-gray-400 mt-1.5">Hover to change photo</p>
+                                <div className="mt-1">
                                     <p className="font-semibold text-gray-900 text-sm leading-tight">
-                                        {user?.full_name || profile.full_name || 'Your Name'}
+                                        {profile.full_name || user?.full_name || 'Your Name'}
                                     </p>
                                     <p className="text-xs text-gray-400 mt-0.5 truncate">{user?.email}</p>
                                     <span className="inline-block mt-2 px-2.5 py-0.5 rounded-full text-xs font-medium

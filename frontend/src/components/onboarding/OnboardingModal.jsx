@@ -1,14 +1,12 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
-import MainLayout from '../components/layout/MainLayout';
-import { INDIA_STATES } from '../utils/indiaStates';
+import React, { useState, useRef, useEffect } from 'react';
+import { INDIA_STATES } from '../../utils/indiaStates';
 
-// ── Regexes ────────────────────────────────────────────────────────────────
-const GST_RE   = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
-const PAN_RE   = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
-const IFSC_RE  = /^[A-Z]{4}0[A-Z0-9]{6}$/;
+const GST_RE  = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
+const PAN_RE  = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
+const IFSC_RE = /^[A-Z]{4}0[A-Z0-9]{6}$/;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const PIN_RE   = /^\d{6}$/;
-const ACC_RE   = /^\d{9,18}$/;
+const PIN_RE  = /^\d{6}$/;
+const ACC_RE  = /^\d{9,18}$/;
 
 const STEPS = ['Company Info', 'Banking', 'Branding', 'Billing & Invoice', 'Documents'];
 
@@ -27,7 +25,6 @@ const EMPTY = {
     incorporationCertDataUrl: '', incorporationCertFileName: '',
 };
 
-// ── File → base64 ─────────────────────────────────────────────────────────
 const readFile = (file) =>
     new Promise((resolve) => {
         const reader = new FileReader();
@@ -35,7 +32,23 @@ const readFile = (file) =>
         reader.readAsDataURL(file);
     });
 
-// ── FileUploadField ────────────────────────────────────────────────────────
+// ── Sub-components ─────────────────────────────────────────────────────────
+
+const inp = (err) =>
+    `w-full px-3 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-blue focus:border-transparent transition-colors ${err ? 'border-red-400 bg-red-50' : 'border-gray-200'}`;
+
+const Field = ({ label, required, error, hint, children }) => (
+    <div>
+        <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">
+            {label} {required && <span className="text-red-500">*</span>}
+            {!required && <span className="text-gray-400 font-normal normal-case ml-1">(Optional)</span>}
+        </label>
+        {children}
+        {hint && !error && <p className="text-xs text-gray-400 mt-1">{hint}</p>}
+        {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+    </div>
+);
+
 const FileUploadField = ({ label, required, accept, dataUrl, fileName, onChange, onClear, previewType = 'image', error }) => {
     const [dragging, setDragging] = useState(false);
     const inputRef = useRef();
@@ -45,11 +58,6 @@ const FileUploadField = ({ label, required, accept, dataUrl, fileName, onChange,
         if (file.size > 2 * 1024 * 1024) { alert('File must be under 2MB'); return; }
         const result = await readFile(file);
         onChange(result.dataUrl, result.fileName);
-    };
-
-    const onDrop = (e) => {
-        e.preventDefault(); setDragging(false);
-        handle(e.dataTransfer.files[0]);
     };
 
     return (
@@ -83,7 +91,7 @@ const FileUploadField = ({ label, required, accept, dataUrl, fileName, onChange,
                 <div
                     onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
                     onDragLeave={() => setDragging(false)}
-                    onDrop={onDrop}
+                    onDrop={(e) => { e.preventDefault(); setDragging(false); handle(e.dataTransfer.files[0]); }}
                     onClick={() => inputRef.current?.click()}
                     className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-all duration-200 ${
                         dragging ? 'border-primary-blue bg-blue-50' : error ? 'border-red-300 bg-red-50' : 'border-gray-200 hover:border-primary-blue hover:bg-blue-50/30'
@@ -102,79 +110,44 @@ const FileUploadField = ({ label, required, accept, dataUrl, fileName, onChange,
     );
 };
 
-// ── TextInput ──────────────────────────────────────────────────────────────
-const inp = (err) =>
-    `w-full px-3 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-blue focus:border-transparent transition-colors ${err ? 'border-red-400 bg-red-50' : 'border-gray-200'}`;
-
-const Field = ({ label, required, error, hint, children }) => (
-    <div>
-        <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">
-            {label} {required && <span className="text-red-500">*</span>}
-            {!required && <span className="text-gray-400 font-normal normal-case ml-1">(Optional)</span>}
-        </label>
-        {children}
-        {hint && !error && <p className="text-xs text-gray-400 mt-1">{hint}</p>}
-        {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
-    </div>
-);
-
-// ── Step Bar ───────────────────────────────────────────────────────────────
 const StepBar = ({ step }) => (
-    <div className="flex items-center mb-8">
+    <div className="flex items-center">
         {STEPS.map((label, i) => (
             <React.Fragment key={i}>
                 <div className="flex flex-col items-center">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-200 ${
+                    <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-200 ${
                         i < step ? 'bg-green-500 text-white' :
                         i === step ? 'bg-primary-blue text-white ring-4 ring-blue-100' :
                         'bg-gray-100 text-gray-400'
                     }`}>
-                        {i < step ? <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg> : i + 1}
+                        {i < step
+                            ? <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                            : i + 1
+                        }
                     </div>
-                    <span className={`text-[10px] mt-1 font-medium whitespace-nowrap hidden sm:block ${i === step ? 'text-primary-blue' : i < step ? 'text-green-600' : 'text-gray-400'}`}>{label}</span>
+                    <span className={`text-[9px] mt-1 font-medium whitespace-nowrap hidden sm:block ${i === step ? 'text-primary-blue' : i < step ? 'text-green-600' : 'text-gray-400'}`}>
+                        {label}
+                    </span>
                 </div>
                 {i < STEPS.length - 1 && (
-                    <div className={`flex-1 h-0.5 mx-2 mb-4 transition-colors ${i < step ? 'bg-green-400' : 'bg-gray-200'}`} />
+                    <div className={`flex-1 h-0.5 mx-2 mb-4 sm:mb-5 transition-colors ${i < step ? 'bg-green-400' : 'bg-gray-200'}`} />
                 )}
             </React.Fragment>
         ))}
     </div>
 );
 
-// ── Info display for view mode ─────────────────────────────────────────────
-const InfoItem = ({ label, value }) => (
-    <div>
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-0.5">{label}</p>
-        <p className="text-sm font-semibold text-gray-900" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{value || '—'}</p>
-    </div>
-);
+// ── Main Modal ─────────────────────────────────────────────────────────────
 
-const ViewCard = ({ title, icon, children, gridClass = 'grid-cols-2 sm:grid-cols-3' }) => (
-    <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-card border border-gray-100/50 p-5 mb-4">
-        <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-100">
-            <span className="text-primary-blue">{icon}</span>
-            <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wider">{title}</h3>
-        </div>
-        <div className={`grid ${gridClass} gap-4`}>{children}</div>
-    </div>
-);
+const OnboardingModal = ({ isOpen, onComplete, onSkip }) => {
+    const [step, setStep]     = useState(0);
+    const [form, setForm]     = useState({ ...EMPTY });
+    const [errors, setErrors] = useState({});
+    const [saving, setSaving] = useState(false);
 
-// ═══════════════════════════════════════════════════════════════════════════
-// Main Page
-// ═══════════════════════════════════════════════════════════════════════════
-const CompanyDetailsPage = () => {
-    const [saved,     setSaved]     = useState(() => JSON.parse(localStorage.getItem('gw_settings') || 'null'));
-    const [editing,   setEditing]   = useState(false);
-    const [step,      setStep]      = useState(0);
-    const [form,      setForm]      = useState({ ...EMPTY });
-    const [errors,    setErrors]    = useState({});
-    const [saving,    setSaving]    = useState(false);
-
-    // Pre-fill form when editing
     useEffect(() => {
-        if (editing && saved) setForm({ ...EMPTY, ...saved });
-        if (!editing) { setStep(0); setErrors({}); }
-    }, [editing, saved]);
+        if (isOpen) { setStep(0); setForm({ ...EMPTY }); setErrors({}); }
+    }, [isOpen]);
 
     const set = (field) => (e) => {
         const val = e.target ? e.target.value : e;
@@ -190,7 +163,6 @@ const CompanyDetailsPage = () => {
     const clearFile = (field, nameField) => () =>
         setForm(f => ({ ...f, [field]: '', [nameField]: '' }));
 
-    // ── Validation per step ─────────────────────────────────────────────
     const validate = (s) => {
         const e = {};
         if (s === 0) {
@@ -230,12 +202,6 @@ const CompanyDetailsPage = () => {
     const next = () => { if (validate(step)) setStep(s => s + 1); };
     const back = () => { setErrors({}); setStep(s => s - 1); };
 
-    const saveDraft = () => {
-        const draft = { ...form, isDraft: true, updatedAt: new Date().toISOString() };
-        localStorage.setItem('gw_settings', JSON.stringify(draft));
-        alert('Draft saved!');
-    };
-
     const handleSubmit = () => {
         setSaving(true);
         const data = {
@@ -243,155 +209,42 @@ const CompanyDetailsPage = () => {
             gstin:  form.gstin.trim().toUpperCase(),
             pan:    form.pan.trim().toUpperCase(),
             ifsc:   form.ifsc.trim().toUpperCase(),
-            // aliases used by generateInvoicePDF
-            name:      form.companyName,
-            email:     form.companyEmail,
-            accountNo: form.accountNo,
-            signatory: form.signatoryName || form.accountHolderName,
-            city:      `${form.state} — ${form.pinCode}`,
+            name:       form.companyName,
+            email:      form.companyEmail,
+            accountNo:  form.accountNo,
+            signatory:  form.signatoryName || form.accountHolderName,
+            city:       `${form.state} — ${form.pinCode}`,
             submittedAt: new Date().toISOString(),
             isDraft: false,
         };
         localStorage.setItem('gw_settings', JSON.stringify(data));
-        setSaved(data);
-        setEditing(false);
         setSaving(false);
+        onComplete(data);
     };
 
-    // ═══════════════════════════════════════════════════════════════════
-    // VIEW MODE
-    // ═══════════════════════════════════════════════════════════════════
-    if (saved && !saved.isDraft && !editing) {
-        const s = saved;
-        return (
-            <MainLayout>
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[92vh] flex flex-col">
+
                 {/* Header */}
-                <div className="flex items-start justify-between gap-3 flex-wrap mb-6">
-                    <div className="flex items-center gap-3 min-w-0 flex-1">
-                        {/* Logo — fixed 48×48 container, never grows */}
-                        <div className="flex-shrink-0 w-12 h-12 rounded-xl border border-gray-100 shadow-sm bg-white p-1.5 overflow-hidden">
-                            {s.logoDataUrl ? (
-                                <img src={s.logoDataUrl} alt="Logo" className="w-full h-full object-contain" />
-                            ) : (
-                                <div className="w-full h-full rounded-lg bg-primary-blue/10 flex items-center justify-center">
-                                    <span className="text-primary-blue font-bold text-xl">{(s.companyName || 'G').charAt(0)}</span>
-                                </div>
-                            )}
-                        </div>
-                        <div className="min-w-0">
-                            <h1 className="text-base sm:text-2xl font-bold text-gray-900 leading-snug" style={{ wordBreak: 'break-word' }}>
-                                {s.companyName}
-                            </h1>
-                            <p className="text-xs sm:text-sm text-gray-500 mt-0.5" style={{ wordBreak: 'break-word' }}>
-                                GSTIN: {s.gstin} · PAN: {s.pan}
+                <div className="px-6 pt-6 pb-4 border-b border-gray-100 flex-shrink-0">
+                    <div className="flex items-start justify-between mb-5">
+                        <div>
+                            <h2 className="text-xl font-bold text-gray-900">Set up your company</h2>
+                            <p className="text-sm text-gray-500 mt-0.5">
+                                Complete your company profile to unlock invoicing, reports, and more.
                             </p>
                         </div>
                     </div>
-                    <button
-                        onClick={() => setEditing(true)}
-                        className="flex-shrink-0 flex items-center gap-2 px-4 py-2.5 bg-primary-blue text-white rounded-xl text-sm font-semibold hover:bg-[#4338ca] transition-all duration-200 shadow-sm"
-                    >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                        Edit Details
-                    </button>
-                </div>
-
-                <ViewCard title="Company Information" gridClass="grid-cols-2 sm:grid-cols-3" icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-2 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>}>
-                    <InfoItem label="Company Name"       value={s.companyName} />
-                    <InfoItem label="GSTIN"              value={s.gstin} />
-                    <InfoItem label="PAN"                value={s.pan} />
-                    <InfoItem label="Email"              value={s.companyEmail} />
-                    <InfoItem label="State / Code"       value={`${s.state} (${s.stateCode})`} />
-                    <InfoItem label="PIN Code"           value={s.pinCode} />
-                    <div className="col-span-2 sm:col-span-3"><InfoItem label="Address" value={s.address} /></div>
-                    {s.cin && <InfoItem label="CIN" value={s.cin} />}
-                    {s.signatoryName && <InfoItem label="Authorised Signatory" value={s.signatoryName} />}
-                </ViewCard>
-
-                <ViewCard title="Banking Details" gridClass="grid-cols-2 sm:grid-cols-3" icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>}>
-                    <InfoItem label="Account Holder" value={s.accountHolderName} />
-                    <InfoItem label="Bank Name"      value={s.bankName} />
-                    <InfoItem label="Account No."    value={s.accountNo} />
-                    <InfoItem label="IFSC Code"      value={s.ifsc} />
-                    <InfoItem label="Branch"         value={s.branch} />
-                    {s.swiftCode && <InfoItem label="SWIFT Code" value={s.swiftCode} />}
-                </ViewCard>
-
-                <ViewCard title="Branding" gridClass="grid-cols-2 sm:grid-cols-4" icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" /></svg>}>
-                    {[
-                        ['Company Logo',  s.logoDataUrl,      'Logo'],
-                        ['Signature',     s.signatureDataUrl, 'Signature'],
-                        ['Stamp',         s.stampDataUrl,     'Stamp'],
-                    ].map(([label, url, altText]) => (
-                        <div key={label}>
-                            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">{label}</p>
-                            {url ? (
-                                <div className="w-24 h-14 border border-gray-100 rounded-lg bg-gray-50 overflow-hidden flex items-center justify-center p-1.5">
-                                    <img src={url} alt={altText} className="max-w-full max-h-full object-contain" />
-                                </div>
-                            ) : <p className="text-sm text-gray-400">—</p>}
-                        </div>
-                    ))}
-                    <div>
-                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Theme Color</p>
-                        <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-lg border border-gray-200 flex-shrink-0" style={{ backgroundColor: s.themeColor || '#4F46E5' }} />
-                            <span className="text-sm font-semibold text-gray-700">{s.themeColor || '#4F46E5'}</span>
-                        </div>
-                    </div>
-                </ViewCard>
-
-                <ViewCard title="Billing & Invoice" gridClass="grid-cols-2 sm:grid-cols-4" icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>}>
-                    <InfoItem label="Invoice Prefix"  value={s.invoicePrefix} />
-                    <InfoItem label="Currency"        value={s.currency} />
-                    <InfoItem label="GST Percentage"  value={s.gstPercentage ? `${s.gstPercentage}%` : '18%'} />
-                    <InfoItem label="Payment Terms"   value={s.paymentTerms} />
-                </ViewCard>
-
-                <ViewCard title="Compliance Documents" gridClass="grid-cols-2 sm:grid-cols-4" icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>}>
-                    {[
-                        ['GST Certificate',      s.gstCertDataUrl,          s.gstCertFileName],
-                        ['PAN Card',             s.panCardDataUrl,           s.panCardFileName],
-                        ['Cancelled Cheque',     s.cancelledChequeDataUrl,   s.cancelledChequeFileName],
-                        ['Incorporation Cert.',  s.incorporationCertDataUrl, s.incorporationCertFileName],
-                    ].map(([name, url, fname]) => (
-                        <div key={name}>
-                            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">{name}</p>
-                            {url ? (
-                                <a href={url} download={fname}
-                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-50 text-green-700 border border-green-100 rounded-lg text-xs font-medium hover:bg-green-100 transition-colors">
-                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                                    {fname || 'Download'}
-                                </a>
-                            ) : <p className="text-sm text-gray-300">Not uploaded</p>}
-                        </div>
-                    ))}
-                </ViewCard>
-            </MainLayout>
-        );
-    }
-
-    // ═══════════════════════════════════════════════════════════════════
-    // FORM MODE (first-time setup OR editing)
-    // ═══════════════════════════════════════════════════════════════════
-    const isEdit = !!editing;
-
-    return (
-        <MainLayout>
-            <div className="max-w-3xl mx-auto">
-                <div className="mb-6">
-                    <h1 className="text-2xl font-bold text-gray-900">{isEdit ? 'Edit Company Details' : 'Company Setup'}</h1>
-                    <p className="text-sm text-gray-500 mt-1">
-                        {isEdit ? 'Update your company information used across invoices and documents.' : 'Set up your company profile to enable invoice generation and document management.'}
-                    </p>
-                </div>
-
-                <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-card border border-gray-100/50 p-6 sm:p-8">
                     <StepBar step={step} />
+                </div>
 
-                    {/* ── STEP 0: Company Info ────────────────────────────── */}
+                {/* Scrollable form body */}
+                <div className="flex-1 overflow-y-auto px-6 py-5">
+
+                    {/* Step 0: Company Info */}
                     {step === 0 && (
                         <div className="space-y-4">
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -407,7 +260,7 @@ const CompanyDetailsPage = () => {
                                     <input value={form.pan} onChange={set('pan')} placeholder="AAGCG1126N" className={inp(errors.pan)} style={{ textTransform: 'uppercase' }} />
                                 </Field>
                                 <Field label="Company Email" required error={errors.companyEmail}>
-                                    <input type="email" value={form.companyEmail} onChange={set('companyEmail')} placeholder="finance@garageproductions.in" className={inp(errors.companyEmail)} />
+                                    <input type="email" value={form.companyEmail} onChange={set('companyEmail')} placeholder="finance@yourcompany.com" className={inp(errors.companyEmail)} />
                                 </Field>
                                 <Field label="CIN" error={errors.cin}>
                                     <input value={form.cin} onChange={set('cin')} placeholder="U74999UP2020PTC..." className={inp(errors.cin)} />
@@ -437,18 +290,18 @@ const CompanyDetailsPage = () => {
                                 <Field label="PIN Code" required error={errors.pinCode}>
                                     <input value={form.pinCode} onChange={set('pinCode')} placeholder="226001" maxLength={6} inputMode="numeric" className={inp(errors.pinCode)} />
                                 </Field>
-                                <Field label="Authorised Signatory Name" error={errors.signatoryName} hint="Name printed on invoices">
+                                <Field label="Authorised Signatory" error={errors.signatoryName} hint="Name printed on invoices">
                                     <input value={form.signatoryName} onChange={set('signatoryName')} placeholder="Authorized Signatory" className={inp(errors.signatoryName)} />
                                 </Field>
                             </div>
                         </div>
                     )}
 
-                    {/* ── STEP 1: Banking ─────────────────────────────────── */}
+                    {/* Step 1: Banking */}
                     {step === 1 && (
                         <div className="space-y-4">
                             <div className="bg-blue-50/60 border border-blue-100 rounded-xl p-3 mb-2">
-                                <p className="text-xs text-blue-700 font-medium">These are <strong>Garage's bank details</strong> printed on invoices for clients to pay into.</p>
+                                <p className="text-xs text-blue-700 font-medium">These bank details will be printed on invoices for clients to pay into.</p>
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div className="sm:col-span-2">
@@ -475,7 +328,7 @@ const CompanyDetailsPage = () => {
                         </div>
                     )}
 
-                    {/* ── STEP 2: Branding ────────────────────────────────── */}
+                    {/* Step 2: Branding */}
                     {step === 2 && (
                         <div className="space-y-5">
                             <FileUploadField
@@ -513,7 +366,7 @@ const CompanyDetailsPage = () => {
                         </div>
                     )}
 
-                    {/* ── STEP 3: Billing ─────────────────────────────────── */}
+                    {/* Step 3: Billing */}
                     {step === 3 && (
                         <div className="space-y-4">
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -548,10 +401,10 @@ const CompanyDetailsPage = () => {
                         </div>
                     )}
 
-                    {/* ── STEP 4: Documents ───────────────────────────────── */}
+                    {/* Step 4: Documents */}
                     {step === 4 && (
                         <div className="space-y-5">
-                            <p className="text-xs text-gray-500 -mt-2 mb-2">All fields in this step are optional. Files are stored securely in your browser.</p>
+                            <p className="text-xs text-gray-500">All fields in this step are optional. Files are stored securely in your browser.</p>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                                 <FileUploadField
                                     label="GST Certificate"
@@ -588,42 +441,38 @@ const CompanyDetailsPage = () => {
                             </div>
                         </div>
                     )}
+                </div>
 
-                    {/* ── Nav Row ──────────────────────────────────────────── */}
-                    <div className="flex items-center justify-between pt-6 mt-6 border-t border-gray-100">
-                        <div className="flex items-center gap-2">
-                            {step > 0 && (
-                                <button onClick={back} className="px-4 py-2 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
-                                    ← Back
-                                </button>
-                            )}
-                            {isEdit && (
-                                <button onClick={() => setEditing(false)} className="px-4 py-2 text-sm text-gray-500 hover:text-gray-700 transition-colors">
-                                    Cancel
-                                </button>
-                            )}
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <span className="text-xs text-gray-400">Step {step + 1} of {STEPS.length}</span>
-                            <button onClick={saveDraft} className="px-3 py-2 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
-                                Save Draft
+                {/* Footer */}
+                <div className="px-6 py-4 border-t border-gray-100 flex-shrink-0 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        {step > 0 && (
+                            <button onClick={back} className="px-4 py-2 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
+                                ← Back
                             </button>
-                            {step < STEPS.length - 1 ? (
-                                <button onClick={next} className="px-5 py-2 bg-primary-blue text-white rounded-xl text-sm font-semibold hover:bg-[#4338ca] transition-colors">
-                                    Next →
-                                </button>
-                            ) : (
-                                <button onClick={handleSubmit} disabled={saving}
-                                    className="flex items-center gap-2 px-5 py-2 bg-green-600 text-white rounded-xl text-sm font-semibold hover:bg-green-700 disabled:opacity-50 transition-colors">
-                                    {saving ? 'Saving…' : '✓ Save Company Details'}
-                                </button>
-                            )}
-                        </div>
+                        )}
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                        <span className="text-xs text-gray-400">Step {step + 1} of {STEPS.length}</span>
+                        {step < STEPS.length - 1 ? (
+                            <button onClick={next} className="px-5 py-2 bg-primary-blue text-white rounded-xl text-sm font-semibold hover:bg-[#4338ca] transition-colors">
+                                Next →
+                            </button>
+                        ) : (
+                            <button
+                                onClick={handleSubmit}
+                                disabled={saving}
+                                className="flex items-center gap-2 px-5 py-2 bg-green-600 text-white rounded-xl text-sm font-semibold hover:bg-green-700 disabled:opacity-50 transition-colors"
+                            >
+                                {saving ? 'Saving…' : '✓ Complete Setup'}
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
-        </MainLayout>
+        </div>
     );
 };
 
-export default CompanyDetailsPage;
+export default OnboardingModal;

@@ -1,8 +1,7 @@
-﻿import React from 'react';
+import React from 'react';
 import { NavLink } from 'react-router-dom';
 import logo from '../../assets/logo-3.jpeg';
 import { useAuth } from '../../hooks/useAuth';
-import PlanBadge from '../subscription/PlanBadge';
 
 const navItems = [
     {
@@ -108,7 +107,7 @@ const navItems = [
     },
 ];
 
-const Sidebar = ({ isOpen, onClose }) => {
+const Sidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }) => {
     const { user } = useAuth();
     const role = user?.role || 'admin';
     const isVendorManager = role === 'vendor_manager';
@@ -121,41 +120,71 @@ const Sidebar = ({ isOpen, onClose }) => {
         <aside
             className={`
                 fixed lg:sticky top-16 z-30 lg:z-auto
-                w-64 flex-shrink-0
+                flex-shrink-0
                 bg-white border-r border-gray-100
                 h-[calc(100vh-4rem)] flex flex-col
-                transition-transform duration-300 ease-in-out
+                transition-all duration-300 ease-in-out
+                ${isCollapsed ? 'w-16' : 'w-64'}
                 ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
             `}
         >
-            {/* Logo — shown inside sidebar on mobile when it slides open */}
+            {/* Logo — mobile only (slides open) */}
             <div className="flex items-center px-5 py-4 border-b border-gray-100 lg:hidden shrink-0">
                 <img src={logo} alt="MoneyGence" className="h-14 max-w-[180px] object-contain" />
             </div>
 
-            <nav className="p-3 space-y-0.5 flex-1 overflow-y-auto">
+            {/* Nav items */}
+            <nav className="p-2 space-y-0.5 flex-1 overflow-y-auto overflow-x-hidden">
                 {visibleItems.map((item) => (
                     <NavLink
                         key={item.path}
                         to={item.path}
                         onClick={onClose}
+                        title={isCollapsed ? item.name : undefined}
                         className={({ isActive }) =>
-                            `flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-200 ${
-                                isActive
-                                    ? 'bg-indigo-50 text-primary-blue'
-                                    : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800'
+                            `flex items-center rounded-xl text-[13px] font-medium transition-all duration-200 overflow-hidden
+                            ${isCollapsed ? 'justify-center px-0 py-2.5' : 'gap-3 px-3 py-2.5'}
+                            ${isActive
+                                ? 'bg-indigo-50 text-primary-blue'
+                                : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800'
                             }`
                         }
                     >
                         {item.icon}
-                        <span>{item.name}</span>
+                        {!isCollapsed && (
+                            <span className="truncate transition-all duration-200">{item.name}</span>
+                        )}
                     </NavLink>
                 ))}
             </nav>
 
-            <div className="shrink-0 border-t border-gray-100 bg-gray-900">
-                <PlanBadge />
-                <p className="text-xs text-gray-500 text-center pb-3">© 2026 MoneyGence</p>
+            {/* Footer: toggle + copyright */}
+            <div className="shrink-0 border-t border-gray-100 pt-1 pb-2">
+                {/* Toggle button — right-aligned */}
+                <div className="flex justify-end px-2">
+                    <button
+                        onClick={onToggleCollapse}
+                        title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                        className="flex items-center gap-2 px-3 py-2 text-gray-400 hover:text-gray-700 hover:bg-gray-50 transition-colors rounded-lg"
+                    >
+                        {isCollapsed ? (
+                            <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                            </svg>
+                        ) : (
+                            <>
+                                <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7M19 19l-7-7 7-7" />
+                                </svg>
+                                <span className="text-xs font-medium">Collapse</span>
+                            </>
+                        )}
+                    </button>
+                </div>
+
+                {!isCollapsed && (
+                    <p className="text-xs text-gray-400 text-center mt-1">© 2026 MoneyGence</p>
+                )}
             </div>
         </aside>
     );

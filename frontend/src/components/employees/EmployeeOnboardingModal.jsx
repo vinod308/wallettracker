@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { computeSalaryBreakdown } from '../../utils/generateSalarySlipPDF';
+import { INDIA_STATES } from '../../utils/indiaStates';
 
 const STEPS = ['Personal Info', 'Contact & Identity', 'Banking', 'Review'];
 const DEPT_OPTIONS = ['Marketing', 'Operations', 'Finance', 'Tech', 'Design', 'HR', 'Sales', 'Content', 'Media', 'Management'];
@@ -208,7 +209,10 @@ const EmployeeOnboardingModal = ({ isOpen, onClose, onEmployeeAdded }) => {
                                 <Input placeholder="e.g. Lucknow" value={form.city} onChange={e => set('city', e.target.value)} />
                             </Field>
                             <Field label="State">
-                                <Input placeholder="e.g. Uttar Pradesh" value={form.state} onChange={e => set('state', e.target.value)} />
+                                <select value={form.state} onChange={e => set('state', e.target.value)} className="input bg-white">
+                                    <option value="">Select state</option>
+                                    {INDIA_STATES.map(s => <option key={s.name} value={s.name}>{s.name}</option>)}
+                                </select>
                             </Field>
                             <Field label="Pincode">
                                 <Input type="text" maxLength={6} placeholder="6-digit PIN" value={form.pincode} onChange={e => set('pincode', e.target.value)} />

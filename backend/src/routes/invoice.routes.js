@@ -1,10 +1,11 @@
 const express = require('express');
 const router  = express.Router();
-const { authenticate } = require('../middleware/auth');
-const emailService      = require('../services/emailService');
-const gstService        = require('../services/gstService');
-const pool              = require('../config/database');
-const logger            = require('../utils/logger');
+const { authenticate }   = require('../middleware/auth');
+const emailService       = require('../services/emailService');
+const gstService         = require('../services/gstService');
+const mastersIndiaService = require('../services/mastersIndiaService');
+const pool               = require('../config/database');
+const logger             = require('../utils/logger');
 
 // All routes require login
 router.use(authenticate);
@@ -87,24 +88,29 @@ router.post('/gst/save', async (req, res) => {
             clientId,
             invoice_number,
             invoice_date,
-            invoice_type    = 'TAX INVOICE',
-            irn             = null,
-            ack_no          = null,
-            ack_date        = null,
-            buyer_name      = null,
-            buyer_gstin     = null,
-            buyer_address   = null,
-            description     = null,
-            taxable_amount  = 0,
-            cgst_rate       = 0,
-            cgst_amount     = 0,
-            sgst_rate       = 0,
-            sgst_amount     = 0,
-            igst_rate       = 0,
-            igst_amount     = 0,
-            total_amount    = 0,
-            payment_status  = 'Unpaid',
-            source          = 'Manual',
+            invoice_type       = 'TAX INVOICE',
+            irn                = null,
+            ack_no             = null,
+            ack_date           = null,
+            buyer_name         = null,
+            buyer_gstin        = null,
+            buyer_address      = null,
+            description        = null,
+            taxable_amount     = 0,
+            cgst_rate          = 0,
+            cgst_amount        = 0,
+            sgst_rate          = 0,
+            sgst_amount        = 0,
+            igst_rate          = 0,
+            igst_amount        = 0,
+            total_amount       = 0,
+            payment_status     = 'Unpaid',
+            source             = 'Manual',
+            hsn_code           = null,
+            signed_qr          = null,
+            supply_type        = 'B2B',
+            buyer_state_code   = null,
+            buyer_pin          = null,
         } = req.body;
 
         if (!clientId)       return res.status(400).json({ success: false, message: 'clientId is required' });
@@ -118,14 +124,16 @@ router.post('/gst/save', async (req, res) => {
                 buyer_name, buyer_gstin, buyer_address, description,
                 taxable_amount, cgst_rate, cgst_amount, sgst_rate, sgst_amount,
                 igst_rate, igst_amount, total_amount,
-                payment_status, source, created_by
+                payment_status, source, created_by,
+                hsn_code, signed_qr, supply_type, buyer_state_code, buyer_pin
             ) VALUES (
                 $1, $2, $3, $4,
                 $5, $6, $7,
                 $8, $9, $10, $11,
                 $12, $13, $14, $15, $16,
                 $17, $18, $19,
-                $20, $21, $22
+                $20, $21, $22,
+                $23, $24, $25, $26, $27
             )
             ON CONFLICT (irn) DO UPDATE SET
                 payment_status = EXCLUDED.payment_status,
@@ -140,6 +148,7 @@ router.post('/gst/save', async (req, res) => {
             taxable_amount, cgst_rate, cgst_amount, sgst_rate, sgst_amount,
             igst_rate, igst_amount, total_amount,
             payment_status, source, req.user.id,
+            hsn_code, signed_qr, supply_type, buyer_state_code, buyer_pin,
         ];
 
         const { rows } = await pool.query(query, values);
@@ -204,6 +213,172 @@ router.delete('/gst/:id', async (req, res) => {
         res.json({ success: true, message: 'Invoice deleted' });
     } catch (error) {
         logger.error(`Delete GST invoice failed: ${error.message}`);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// ─── Masters India GSP — IRN Generation routes ────────────────────────────────
+
+/**
+ * GET /api/invoices/gst/mi/status
+ * Test Masters India API connection with sandbox credentials
+ */
+router.get('/gst/mi/status', async (req, res) => {
+    try {
+        const status = await mastersIndiaService.verifyConnection();
+        res.json({ success: true, data: status });
+    } catch (error) {
+        logger.error(`Masters India status check failed: ${error.message}`);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+/**
+ * POST /api/invoices/gst/mi/generate
+ * Generate IRN via Masters India API and save to DB
+ * Body: { clientId, invoiceNumber, invoiceDate, invoiceType, supplyType,
+ *         sellerGstin, sellerName, sellerAddr1, sellerCity, sellerStateCode, sellerPin,
+ *         buyerGstin, buyerName, buyerAddr1, buyerCity, buyerStateCode, buyerPin,
+ *         description, hsnCode, taxableAmount, gstRate }
+ */
+router.post('/gst/mi/generate', async (req, res) => {
+    try {
+        const {
+            clientId,
+            invoiceNumber,
+            invoiceDate,
+            invoiceType      = 'INV',
+            supplyType       = 'B2B',
+            sellerGstin,
+            sellerName,
+            sellerAddr1,
+            sellerCity,
+            sellerStateCode,
+            sellerPin,
+            buyerGstin,
+            buyerName,
+            buyerAddr1,
+            buyerCity,
+            buyerStateCode,
+            buyerPin,
+            description      = 'Digital Marketing Services',
+            hsnCode          = '998361',
+            taxableAmount,
+            gstRate          = 18,
+        } = req.body;
+
+        if (!clientId)        return res.status(400).json({ success: false, message: 'clientId is required' });
+        if (!invoiceNumber)   return res.status(400).json({ success: false, message: 'invoiceNumber is required' });
+        if (!invoiceDate)     return res.status(400).json({ success: false, message: 'invoiceDate is required' });
+        if (!taxableAmount)   return res.status(400).json({ success: false, message: 'taxableAmount is required' });
+        if (!buyerGstin)      return res.status(400).json({ success: false, message: 'buyerGstin is required' });
+
+        // Generate IRN via Masters India
+        const irnResult = await mastersIndiaService.generateIRN({
+            invoiceNumber, invoiceDate, invoiceType, supplyType,
+            sellerGstin, sellerName, sellerAddr1, sellerCity, sellerStateCode, sellerPin,
+            buyerGstin, buyerName, buyerAddr1, buyerCity, buyerStateCode, buyerPin,
+            description, hsnCode, taxableAmount, gstRate,
+        });
+
+        // Compute tax amounts for DB storage
+        const sameState = sellerStateCode === buyerStateCode;
+        const taxable   = parseFloat(taxableAmount);
+        const halfRate  = gstRate / 2;
+        const cgstAmt   = sameState ? parseFloat(((taxable * halfRate) / 100).toFixed(2)) : 0;
+        const sgstAmt   = sameState ? parseFloat(((taxable * halfRate) / 100).toFixed(2)) : 0;
+        const igstAmt   = sameState ? 0 : parseFloat(((taxable * gstRate) / 100).toFixed(2));
+        const totalAmt  = parseFloat((taxable + cgstAmt + sgstAmt + igstAmt).toFixed(2));
+
+        // Save to DB
+        const { rows } = await pool.query(`
+            INSERT INTO gst_invoices (
+                client_id, invoice_number, invoice_date, invoice_type,
+                irn, ack_no, ack_date,
+                buyer_name, buyer_gstin, buyer_address, description,
+                taxable_amount, cgst_rate, cgst_amount, sgst_rate, sgst_amount,
+                igst_rate, igst_amount, total_amount,
+                payment_status, source, created_by,
+                hsn_code, signed_qr, supply_type, buyer_state_code, buyer_pin
+            ) VALUES (
+                $1, $2, $3, $4,
+                $5, $6, $7,
+                $8, $9, $10, $11,
+                $12, $13, $14, $15, $16,
+                $17, $18, $19,
+                $20, $21, $22,
+                $23, $24, $25, $26, $27
+            )
+            ON CONFLICT (invoice_number) DO UPDATE SET
+                irn              = EXCLUDED.irn,
+                ack_no           = EXCLUDED.ack_no,
+                ack_date         = EXCLUDED.ack_date,
+                signed_qr        = EXCLUDED.signed_qr,
+                source           = EXCLUDED.source,
+                updated_at       = NOW()
+            RETURNING *
+        `, [
+            clientId, invoiceNumber, invoiceDate, invoiceType === 'INV' ? 'TAX INVOICE' : invoiceType,
+            irnResult.irn, irnResult.ack_no, irnResult.ack_date,
+            buyerName, buyerGstin, buyerAddr1, description,
+            taxable, sameState ? halfRate : 0, cgstAmt,
+            sameState ? halfRate : 0, sgstAmt,
+            sameState ? 0 : gstRate, igstAmt, totalAmt,
+            'Unpaid', 'Masters India', req.user.id,
+            hsnCode, irnResult.signed_qr, supplyType, buyerStateCode, buyerPin,
+        ]);
+
+        logger.info(`IRN generated and saved: ${irnResult.irn} for invoice ${invoiceNumber}`);
+        res.json({
+            success: true,
+            message: 'IRN generated successfully',
+            data: {
+                ...rows[0],
+                pdf_url: irnResult.pdf_url,
+                qr_url:  irnResult.qr_url,
+            },
+        });
+    } catch (error) {
+        logger.error(`Masters India generate IRN failed: ${error.message}`);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+/**
+ * POST /api/invoices/gst/mi/cancel
+ * Cancel an IRN within 24 hours
+ * Body: { irn, cancelReason, cancelRemarks }
+ */
+router.post('/gst/mi/cancel', async (req, res) => {
+    try {
+        const { irn, cancelReason = '4', cancelRemarks = 'Cancelled by user' } = req.body;
+        if (!irn) return res.status(400).json({ success: false, message: 'irn is required' });
+
+        const result = await mastersIndiaService.cancelIRN(irn, cancelReason, cancelRemarks);
+
+        await pool.query(
+            `UPDATE gst_invoices SET source = 'Cancelled', updated_at = NOW() WHERE irn = $1`,
+            [irn]
+        );
+
+        res.json({ success: true, message: 'IRN cancelled successfully', data: result });
+    } catch (error) {
+        logger.error(`Masters India cancel IRN failed: ${error.message}`);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+/**
+ * GET /api/invoices/gst/mi/gstin/:gstin
+ * Validate and lookup a GSTIN via Masters India API
+ */
+router.get('/gst/mi/gstin/:gstin', async (req, res) => {
+    try {
+        const { gstin } = req.params;
+        const data = await mastersIndiaService.getGSTINDetails(gstin);
+        res.json({ success: true, data });
+    } catch (error) {
+        logger.error(`Masters India GSTIN lookup failed: ${error.message}`);
         res.status(500).json({ success: false, message: error.message });
     }
 });

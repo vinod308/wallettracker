@@ -19,6 +19,16 @@ const invoiceService = {
 
     // Delete a GST invoice record
     deleteGSTInvoice: (id) => api.delete(`/invoices/gst/${id}`),
+
+    // Generate IRN via Masters India API and save to DB
+    generateIRN: (payload) => api.post('/invoices/gst/mi/generate', payload),
+
+    // Cancel an IRN within 24 hours
+    cancelIRN: (irn, cancelReason, cancelRemarks) =>
+        api.post('/invoices/gst/mi/cancel', { irn, cancelReason, cancelRemarks }),
+
+    // Validate a GSTIN via Masters India
+    validateGSTIN: (gstin) => api.get(`/invoices/gst/mi/gstin/${gstin}`),
 };
 
 export default invoiceService;

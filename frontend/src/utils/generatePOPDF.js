@@ -4,28 +4,26 @@ import autoTable from 'jspdf-autotable';
 const getBuyerInfo = () => {
     try {
         const s = JSON.parse(localStorage.getItem('gw_settings') || '{}');
-        const companyName = s.companyName || 'Garage Productions Pvt. Ltd';
+        const companyName = s.companyName || '';
         const rawSignatory = (s.signatory || '').trim();
         const isCorporate = /\b(pvt|ltd|limited|llp|inc|corp|productions|media|services|solutions|industries|enterprises|company)\b/i.test(rawSignatory);
-        const signatory = (rawSignatory && !isCorporate) ? rawSignatory : 'Saurabh Gupta';
+        const signatory = (rawSignatory && !isCorporate) ? rawSignatory : 'Authorized Signatory';
         return {
             name:          companyName,
-            gstin:         s.gstin             || '09AAGCG1126N1ZG',
-            pan:           s.pan               || 'AAGCG1126N',
-            address:       s.address           || 'Near Royal Hotel, 3rd Floor, Hazratganj',
-            city:          s.city              || 'Lucknow, Uttar Pradesh - 226001',
-            state:         s.state             || 'Uttar Pradesh',
-            stateCode:     s.stateCode         || '09',
-            email:         s.email             || 'finance@garageproductions.in',
+            gstin:         s.gstin             || '',
+            pan:           s.pan               || '',
+            address:       s.address           || '',
+            city:          s.city              || '',
+            state:         s.state             || '',
+            stateCode:     s.stateCode         || '',
+            email:         s.email             || 'invoices@moneygence.com',
             signatory,
             signatureDataUrl: s.signatureDataUrl || '',
         };
     } catch {
         return {
-            name: 'Garage Productions Pvt. Ltd', gstin: '09AAGCG1126N1ZG',
-            pan: 'AAGCG1126N', address: 'Near Royal Hotel, 3rd Floor, Hazratganj',
-            city: 'Lucknow, Uttar Pradesh - 226001', state: 'Uttar Pradesh', stateCode: '09',
-            email: 'finance@garageproductions.in', signatory: 'Saurabh Gupta', signatureDataUrl: '',
+            name: '', gstin: '', pan: '', address: '', city: '', state: '', stateCode: '',
+            email: 'invoices@moneygence.com', signatory: 'Authorized Signatory', signatureDataUrl: '',
         };
     }
 };

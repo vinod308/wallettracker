@@ -1,4 +1,4 @@
-/**
+﻿/**
  * useCSVData Hook
  * Core data engine — fetches all Google Sheets data via backend proxy,
  * provides filtering, KPIs, charts. Single source of truth for the app.
@@ -18,13 +18,13 @@ let manualRecords = [];
 
 // Load persisted manual records from localStorage
 try {
-    const stored = localStorage.getItem('wallettracker_manual_records');
+    const stored = localStorage.getItem('MoneyGence_manual_records');
     if (stored) manualRecords = JSON.parse(stored);
 } catch (e) { /* ignore parse errors */ }
 
 const persistManualRecords = () => {
     try {
-        localStorage.setItem('wallettracker_manual_records', JSON.stringify(manualRecords));
+        localStorage.setItem('MoneyGence_manual_records', JSON.stringify(manualRecords));
     } catch (e) { /* ignore storage errors */ }
 };
 

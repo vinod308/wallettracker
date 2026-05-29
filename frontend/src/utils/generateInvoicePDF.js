@@ -5,21 +5,20 @@ import autoTable from 'jspdf-autotable';
 const getSellerInfo = () => {
     try {
         const s = JSON.parse(localStorage.getItem('gw_settings') || '{}');
-        const companyName = s.companyName || 'Garage Productions Pvt. Ltd';
-        // Signatory must be a personal name — detect corporate names and fall back
+        const companyName = s.companyName || '';
         const rawSignatory = (s.signatory || '').trim();
         const isCorporate = /\b(pvt|ltd|limited|llp|inc|corp|productions|media|services|solutions|industries|enterprises|company)\b/i.test(rawSignatory);
-        const signatory = (rawSignatory && !isCorporate) ? rawSignatory : 'Saurabh Gupta';
+        const signatory = (rawSignatory && !isCorporate) ? rawSignatory : 'Authorized Signatory';
         return {
             name:          companyName,
-            gstin:         s.gstin              || '09AAGCG1126N1ZG',
-            pan:           s.pan                || 'AAGCG1126N',
+            gstin:         s.gstin              || '',
+            pan:           s.pan                || '',
             cin:           s.cin                || '',
-            address:       s.address            || 'Near Royal Hotel, 3rd Floor, Hazratganj',
-            city:          s.city               || 'Lucknow, Uttar Pradesh - 226001',
-            state:         s.state              || 'Uttar Pradesh',
-            stateCode:     s.stateCode          || '09',
-            email:         s.email              || 'finance@garageproductions.in',
+            address:       s.address            || '',
+            city:          s.city               || '',
+            state:         s.state              || '',
+            stateCode:     s.stateCode          || '',
+            email:         s.email              || 'invoices@moneygence.com',
             signatory,
             bankHolder:    s.accountHolderName  || companyName,
             bankName:      s.bankName           || 'HDFC Bank Limited',
@@ -32,12 +31,9 @@ const getSellerInfo = () => {
         };
     } catch {
         return {
-            name: 'Garage Productions Pvt. Ltd', gstin: '09AAGCG1126N1ZG',
-            pan: 'AAGCG1126N', cin: '', address: 'Near Royal Hotel, 3rd Floor, Hazratganj',
-            city: 'Lucknow, Uttar Pradesh - 226001', state: 'Uttar Pradesh', stateCode: '09',
-            email: 'finance@garageproductions.in', signatory: 'Saurabh Gupta',
-            bankHolder: 'Garage Productions Pvt.Ltd', bankName: 'HDFC Bank Limited',
-            accountNo: '', ifsc: '', branch: '', swiftCode: '',
+            name: '', gstin: '', pan: '', cin: '', address: '', city: '', state: '', stateCode: '',
+            email: 'invoices@moneygence.com', signatory: 'Authorized Signatory',
+            bankHolder: '', bankName: '', accountNo: '', ifsc: '', branch: '', swiftCode: '',
             logoDataUrl: '', signatureDataUrl: '',
         };
     }

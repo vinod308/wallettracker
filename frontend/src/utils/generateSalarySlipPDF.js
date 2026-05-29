@@ -5,21 +5,19 @@ const getCompanyInfo = () => {
     try {
         const s = JSON.parse(localStorage.getItem('gw_settings') || '{}');
         return {
-            name:      s.companyName  || 'Garage Productions Pvt. Ltd',
-            gstin:     s.gstin        || '09AAGCG1126N1ZG',
-            pan:       s.pan          || 'AAGCG1126N',
-            address:   s.address      || 'Near Royal Hotel, 3rd Floor, Hazratganj',
-            city:      s.city         || 'Lucknow, Uttar Pradesh - 226001',
-            email:     s.email        || 'finance@garageproductions.in',
-            signatory: s.signatory    || 'Saurabh Gupta',
+            name:      s.companyName  || '',
+            gstin:     s.gstin        || '',
+            pan:       s.pan          || '',
+            address:   s.address      || '',
+            city:      s.city         || '',
+            email:     s.email        || 'invoices@moneygence.com',
+            signatory: s.signatory    || 'Authorized Signatory',
             signatureDataUrl: s.signatureDataUrl || '',
         };
     } catch {
         return {
-            name: 'Garage Productions Pvt. Ltd', gstin: '09AAGCG1126N1ZG',
-            pan: 'AAGCG1126N', address: 'Near Royal Hotel, 3rd Floor, Hazratganj',
-            city: 'Lucknow, Uttar Pradesh - 226001',
-            email: 'finance@garageproductions.in', signatory: 'Saurabh Gupta',
+            name: '', gstin: '', pan: '', address: '', city: '',
+            email: 'invoices@moneygence.com', signatory: 'Authorized Signatory',
             signatureDataUrl: '',
         };
     }

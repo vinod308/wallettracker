@@ -1,20 +1,110 @@
-﻿import React from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import LoginForm from '../components/auth/LoginForm';
 import logo from '../assets/logo-3.jpeg';
 
-const LEFT_STATS = [
-    { value: '10+', label: 'Active Clients' },
-    { value: '₹29L+', label: 'MRR Tracked' },
-    { value: '9', label: 'Services Tracked' },
-    { value: '100%', label: 'GST Compliant' },
-];
+const AppMockup = () => (
+    <div className="rounded-2xl overflow-hidden border border-gray-200/80 shadow-2xl bg-white">
+        {/* Browser chrome */}
+        <div className="bg-gray-800 px-3 py-2 flex items-center gap-2">
+            <div className="flex gap-1.5">
+                <div className="w-2.5 h-2.5 rounded-full bg-red-400/70" />
+                <div className="w-2.5 h-2.5 rounded-full bg-yellow-400/70" />
+                <div className="w-2.5 h-2.5 rounded-full bg-green-400/70" />
+            </div>
+            <div className="flex-1 flex justify-center">
+                <div className="bg-gray-700 rounded-md px-6 py-0.5 text-[9px] text-gray-400">
+                    app.moneygence.com/dashboard
+                </div>
+            </div>
+        </div>
+
+        {/* App UI */}
+        <div className="flex h-[220px]">
+            {/* Sidebar */}
+            <div className="w-14 bg-white border-r border-gray-100 flex flex-col gap-2 pt-3 px-2 flex-shrink-0">
+                <div className="h-1.5 w-8 bg-indigo-500 rounded-full mb-1" />
+                {[80, 65, 75, 55, 70, 60].map((w, i) => (
+                    <div
+                        key={i}
+                        className={`h-1.5 rounded-full transition-colors ${i === 0 ? 'bg-indigo-100' : 'bg-gray-100'}`}
+                        style={{ width: `${w}%` }}
+                    />
+                ))}
+            </div>
+
+            {/* Main Content */}
+            <div className="flex-1 bg-gray-50 p-2.5 overflow-hidden">
+                {/* Top bar */}
+                <div className="flex justify-between items-center mb-2">
+                    <div className="h-2 w-20 bg-gray-800 rounded" />
+                    <div className="h-5 w-16 bg-indigo-50 border border-indigo-100 rounded-lg" />
+                </div>
+
+                {/* KPI cards */}
+                <div className="grid grid-cols-3 gap-1.5 mb-2">
+                    {[
+                        { val: '₹29.4L', sub: 'Total MRR', color: 'text-indigo-700' },
+                        { val: '10', sub: 'Clients', color: 'text-green-700' },
+                        { val: '94%', sub: 'Retention', color: 'text-violet-700' },
+                    ].map(({ val, sub, color }) => (
+                        <div key={sub} className="bg-white rounded-lg p-1.5 border border-gray-100 shadow-sm">
+                            <div className={`text-[10px] font-bold ${color}`}>{val}</div>
+                            <div className="text-[7px] text-gray-400 mt-0.5">{sub}</div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Bar chart */}
+                <div className="bg-white rounded-lg p-2 border border-gray-100 mb-1.5">
+                    <div className="flex justify-between items-center mb-1.5">
+                        <div className="h-1.5 w-20 bg-gray-200 rounded" />
+                        <div className="flex gap-1">
+                            <div className="h-1.5 w-5 bg-indigo-100 rounded" />
+                            <div className="h-1.5 w-5 bg-gray-100 rounded" />
+                        </div>
+                    </div>
+                    <div className="flex items-end gap-1 h-12">
+                        {[50, 75, 45, 90, 60, 80, 55, 85, 65, 70].map((h, i) => (
+                            <div
+                                key={i}
+                                className="flex-1 rounded-t"
+                                style={{
+                                    height: `${h}%`,
+                                    background: `hsl(${238 - i * 6}, 65%, ${52 + (i % 3) * 6}%)`,
+                                }}
+                            />
+                        ))}
+                    </div>
+                </div>
+
+                {/* Client table */}
+                <div className="bg-white rounded-lg border border-gray-100 overflow-hidden">
+                    {[
+                        { name: 'Acme Corp', mrr: '3.1L', status: 'Active', risk: false },
+                        { name: 'TechFlow Inc', mrr: '1.8L', status: 'Risk', risk: true },
+                        { name: 'BrandX Media', mrr: '2.4L', status: 'Active', risk: false },
+                    ].map(({ name, mrr, status, risk }, i) => (
+                        <div key={name} className={`flex items-center gap-1.5 px-2 py-1 ${i < 2 ? 'border-b border-gray-50' : ''}`}>
+                            <div className="w-3 h-3 rounded-full bg-indigo-100 flex-shrink-0" />
+                            <div className="text-[8px] text-gray-700 flex-1 font-medium truncate">{name}</div>
+                            <div className="text-[8px] font-bold text-gray-600">₹{mrr}</div>
+                            <div className={`text-[6px] px-1 py-0.5 rounded font-semibold ${risk ? 'bg-amber-50 text-amber-700' : 'bg-green-50 text-green-700'}`}>
+                                {status}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+    </div>
+);
 
 const LoginPage = () => {
     return (
         <div className="min-h-screen bg-white flex">
 
-            {/* ── Left Panel (brand + stats) ── */}
+            {/* ── Left Panel ── */}
             <div className="hidden lg:flex lg:w-[45%] bg-white border-r border-gray-100 flex-col justify-between p-12 relative overflow-hidden">
                 <div className="absolute inset-0 overflow-hidden pointer-events-none">
                     <div className="absolute -top-24 -right-24 w-80 h-80 bg-indigo-50 rounded-full blur-3xl" />
@@ -29,7 +119,7 @@ const LoginPage = () => {
                 </div>
 
                 {/* Middle content */}
-                <div className="relative z-10 flex flex-col gap-8">
+                <div className="relative z-10 flex flex-col gap-6">
                     <div>
                         <h2 className="text-3xl font-bold text-gray-900 leading-tight mb-3">
                             Revenue intelligence<br />for agencies & service businesses.
@@ -39,24 +129,7 @@ const LoginPage = () => {
                         </p>
                     </div>
 
-                    {/* Stats grid */}
-                    <div className="grid grid-cols-2 gap-3">
-                        {LEFT_STATS.map(({ value, label }) => (
-                            <div key={label} className="bg-gray-50 rounded-2xl p-4 border border-gray-100 hover:bg-indigo-50 hover:border-indigo-100 transition-colors">
-                                <div className="text-2xl font-bold text-indigo-700">{value}</div>
-                                <div className="text-xs text-gray-500 mt-0.5 font-medium">{label}</div>
-                            </div>
-                        ))}
-                    </div>
-
-                    {/* Feature pills */}
-                    <div className="flex flex-wrap gap-2">
-                        {['GST Ready', 'AI Powered', 'Enterprise Secure', 'Multi-Team'].map(f => (
-                            <span key={f} className="px-3 py-1 bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-medium rounded-full">
-                                {f}
-                            </span>
-                        ))}
-                    </div>
+                    <AppMockup />
                 </div>
 
                 {/* Footer */}

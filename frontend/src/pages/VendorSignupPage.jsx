@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import vendorService from '../services/vendorService';
+import { INDIA_STATES } from '../utils/indiaStates';
 import { useAuth } from '../hooks/useAuth';
 
 const STEPS = ['Account', 'Basic Info', 'Contact', 'Banking', 'Review'];
@@ -198,7 +199,7 @@ export default function VendorSignupPage() {
                         <div className="space-y-4">
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <Field label="Vendor / Business Name" required error={errors.vendorName}>
-                                    <input value={form.vendorName} onChange={set('vendorName')} placeholder="e.g. Ravi Media Productions" className={inp(!!errors.vendorName)} />
+                                    <input value={form.vendorName} onChange={set('vendorName')} placeholder="e.g. Horizon Creative Studio" className={inp(!!errors.vendorName)} />
                                 </Field>
                                 <Field label="Vendor Type" required>
                                     <select value={form.vendorType} onChange={set('vendorType')} className={inp()}>
@@ -208,7 +209,7 @@ export default function VendorSignupPage() {
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <Field label="GST Number" error={errors.gstNumber} hint="Optional — 15 characters">
-                                    <input value={form.gstNumber} onChange={set('gstNumber')} placeholder="e.g. 09AABCU9355J1ZS" className={inp(!!errors.gstNumber)} style={{ textTransform: 'uppercase' }} />
+                                    <input value={form.gstNumber} onChange={set('gstNumber')} placeholder="e.g. 29AABCD1234E1ZS" className={inp(!!errors.gstNumber)} style={{ textTransform: 'uppercase' }} />
                                 </Field>
                                 <Field label="PAN Number" required error={errors.panNumber} hint="10 characters">
                                     <input value={form.panNumber} onChange={set('panNumber')} placeholder="e.g. ABCDE1234F" className={inp(!!errors.panNumber)} style={{ textTransform: 'uppercase' }} />
@@ -222,7 +223,10 @@ export default function VendorSignupPage() {
                                     <input value={form.city} onChange={set('city')} placeholder="City" className={inp(!!errors.city)} />
                                 </Field>
                                 <Field label="State" required error={errors.state}>
-                                    <input value={form.state} onChange={set('state')} placeholder="State" className={inp(!!errors.state)} />
+                                    <select value={form.state} onChange={set('state')} className={inp(!!errors.state) + ' bg-white'}>
+                                        <option value="">Select state</option>
+                                        {INDIA_STATES.map(s => <option key={s.name} value={s.name}>{s.name}</option>)}
+                                    </select>
                                 </Field>
                                 <Field label="Pincode" required error={errors.pincode}>
                                     <input value={form.pincode} onChange={set('pincode')} placeholder="6 digits" maxLength={6} inputMode="numeric" className={inp(!!errors.pincode)} />

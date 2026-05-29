@@ -5,7 +5,7 @@
  * Fires notifications into NotificationContext whenever data changes.
  */
 
-import React, { useMemo, useEffect, useRef } from 'react';
+import React, { useMemo, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import useClientData from '../hooks/useClientData';
@@ -21,11 +21,27 @@ import RevenueChart from '../components/dashboard/RevenueChart';
 import AOVChart from '../components/dashboard/AOVChart';
 import MonthlyTrendChart from '../components/dashboard/MonthlyTrendChart';
 import { formatCurrency } from '../utils/helpers';
+import OnboardingModal from '../components/onboarding/OnboardingModal';
 
 const DashboardPage = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
     const { addNotification } = useNotifications();
+
+    const [companySettings, setCompanySettings] = useState(() =>
+        JSON.parse(localStorage.getItem('gw_settings') || 'null')
+    );
+    const needsOnboarding = !companySettings || companySettings.isDraft === true;
+    const [showOnboarding, setShowOnboarding] = useState(needsOnboarding);
+
+    const handleOnboardingComplete = (data) => {
+        setCompanySettings(data);
+        setShowOnboarding(false);
+    };
+
+    const handleOnboardingSkip = () => {
+        setShowOnboarding(false);
+    };
 
     // Core data hook — reads localStorage, filters instantly
     const {
@@ -167,15 +183,28 @@ const DashboardPage = () => {
 
     return (
         <MainLayout>
+            {/* Onboarding modal */}
+            <OnboardingModal
+                isOpen={showOnboarding}
+                onComplete={handleOnboardingComplete}
+                onSkip={handleOnboardingSkip}
+            />
+
             {/* Page Header */}
             <div className="mb-6">
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                     <div>
                         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Dashboard</h1>
-                        <p className="mt-1 text-sm text-gray-600">
-                            Welcome back,{' '}
-                            <span className="font-medium text-primary-blue">{user?.full_name || 'User'}</span>
-                        </p>
+                        {companySettings?.companyName && !companySettings.isDraft ? (
+                            <p className="mt-1 text-sm text-gray-600">
+                                Welcome, <span className="font-semibold text-primary-blue">{companySettings.companyName}</span>
+                            </p>
+                        ) : (
+                            <p className="mt-1 text-sm text-gray-600">
+                                Welcome back,{' '}
+                                <span className="font-medium text-primary-blue">{user?.full_name || 'User'}</span>
+                            </p>
+                        )}
                     </div>
                     <button
                         onClick={() => navigate('/reports')}
