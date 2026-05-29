@@ -87,7 +87,9 @@ const GenerateInvoiceModal = ({ isOpen, onClose, client, onInvoiceSaved }) => {
             try {
                 const settings = JSON.parse(localStorage.getItem('gw_settings') || '{}');
                 const firstLine = lines.find(l => l.description.trim() && parseFloat(l.rate) > 0);
-                const buyerStateCode = (client.gstNumber || '').slice(0, 2);
+                // Derive state codes from the first 2 chars of GSTIN (reliable — user input may be wrong)
+                const sellerStateCode = (settings.gstin || '').slice(0, 2);
+                const buyerStateCode  = (client.gstNumber || '').slice(0, 2);
                 const gstRate = taxType === 'split5' || taxType === 'igst5' ? 5 : 18;
 
                 if (settings.gstin && client.gstNumber && inv.invoiceNumber.length <= 16) {
@@ -100,10 +102,10 @@ const GenerateInvoiceModal = ({ isOpen, onClose, client, onInvoiceSaved }) => {
                         sellerGstin:     settings.gstin,
                         sellerName:      settings.companyName || '',
                         sellerAddr1:     settings.address     || '',
-                        sellerCity:      settings.state       || '',
-                        sellerStateCode: settings.stateCode   || '',
+                        sellerCity:      settings.city        || settings.state || '',
+                        sellerStateCode,
                         sellerPin:       settings.pinCode     || '',
-                        sellerEmail:     settings.companyEmail || '',
+                        sellerEmail:     settings.companyEmail || settings.email || '',
                         buyerGstin:      client.gstNumber,
                         buyerName:       client.clientName,
                         buyerAddr1:      client.address || client.clientName,
