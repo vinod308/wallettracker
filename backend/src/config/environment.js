@@ -48,7 +48,10 @@ module.exports = {
     GST_GSTIN:         process.env.GST_GSTIN || '09AAGCG1126N1ZG',
 
     // Masters India GSP — E-Invoice / IRN generation
-    MI_USERNAME: process.env.MI_USERNAME,
-    MI_PASSWORD: process.env.MI_PASSWORD,
-    MI_ENV:      process.env.MI_ENV || 'sandbox',
+    MI_USERNAME:     process.env.MI_USERNAME,
+    MI_PASSWORD:     process.env.MI_PASSWORD,
+    MI_ENV:          process.env.MI_ENV || 'sandbox',
+    // NIC IRP portal credentials (einvoice1.gst.gov.in) — passed in the IRN payload
+    MI_IRP_USERNAME: process.env.MI_IRP_USERNAME,
+    MI_IRP_PASSWORD: process.env.MI_IRP_PASSWORD,
 };

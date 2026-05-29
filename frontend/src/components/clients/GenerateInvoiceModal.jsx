@@ -37,6 +37,7 @@ const GenerateInvoiceModal = ({ isOpen, onClose, client, onInvoiceSaved }) => {
     const [savedInvoice, setSavedInvoice] = useState(null);
     const [emailStatus,  setEmailStatus]  = useState(null); // null | 'sending' | 'sent' | 'failed'
     const [emailError,   setEmailError]   = useState('');
+    const [irnError,     setIrnError]     = useState(''); // non-empty = IRN attempt failed
 
     const updateLine = (i, field, value) =>
         setLines(prev => prev.map((l, idx) => idx === i ? { ...l, [field]: value } : l));
@@ -133,8 +134,9 @@ const GenerateInvoiceModal = ({ isOpen, onClose, client, onInvoiceSaved }) => {
                     }
                 }
             } catch (irnErr) {
-                // IRN failure is non-blocking — PDF still generates without it
-                console.warn('IRN generation skipped:', irnErr.response?.data?.message || irnErr.message);
+                const msg = irnErr.response?.data?.message || irnErr.message || 'Unknown error';
+                console.warn('IRN generation skipped:', msg);
+                setIrnError(msg);
             }
 
             saveToLocalStorage(inv);
@@ -183,6 +185,7 @@ const GenerateInvoiceModal = ({ isOpen, onClose, client, onInvoiceSaved }) => {
         setSavedInvoice(null);
         setEmailStatus(null);
         setEmailError('');
+        setIrnError('');
         setInvoiceDate(today());
         onClose();
     };
@@ -203,9 +206,20 @@ const GenerateInvoiceModal = ({ isOpen, onClose, client, onInvoiceSaved }) => {
                     <p className="text-sm text-gray-500 mb-1">
                         <span className="font-semibold text-gray-800">{savedInvoice.invoiceNumber}</span> — PDF downloaded automatically.
                     </p>
-                    <p className="text-xs text-gray-400 mb-4">
+                    <p className="text-xs text-gray-400 mb-2">
                         Total: <strong>{fmt(savedInvoice.total)}</strong>
                     </p>
+
+                    {/* IRN status */}
+                    {savedInvoice.irn ? (
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium mb-3 bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            ✓ IRN generated
+                        </div>
+                    ) : irnError ? (
+                        <div className="mx-auto max-w-xs mb-3 px-3 py-2 rounded-lg text-xs bg-amber-50 border border-amber-200 text-amber-800 text-left">
+                            <span className="font-semibold">IRN not generated:</span> {irnError}
+                        </div>
+                    ) : null}
 
                     {/* Email status badge */}
                     {(savedInvoice.contactEmail || client.contactEmail) && (

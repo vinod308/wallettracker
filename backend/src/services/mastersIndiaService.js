@@ -261,9 +261,16 @@ class MastersIndiaService {
         const igstAmt = sameState ? 0 : parseFloat(((taxable * gstRate) / 100).toFixed(2));
         const totalAmt = parseFloat((taxable + cgstAmt + sgstAmt + igstAmt).toFixed(2));
 
+        // IRP credentials — required by Masters India to submit to NIC on your behalf.
+        // Set MI_IRP_USERNAME / MI_IRP_PASSWORD in .env (same as your NIC e-invoice login).
+        const irpCreds = {};
+        if (config.MI_IRP_USERNAME) irpCreds.einvoice_username = config.MI_IRP_USERNAME;
+        if (config.MI_IRP_PASSWORD) irpCreds.einvoice_password = config.MI_IRP_PASSWORD;
+
         return {
             user_gstin:  d.sellerGstin || config.GST_GSTIN,
             data_source: 'erp',
+            ...irpCreds,
 
             transaction_details: {
                 supply_type:      d.supplyType      || 'B2B',
