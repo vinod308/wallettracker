@@ -243,6 +243,13 @@ class MastersIndiaService {
             return day ? `${day}/${mo}/${yr}` : iso;
         };
 
+        // Masters India requires a valid 6-digit pincode (100000–999999).
+        // If the caller doesn't supply one, fall back to 110001 (New Delhi).
+        const safePin = (raw) => {
+            const p = parseInt(raw);
+            return (p >= 100000 && p <= 999999) ? p : 110001;
+        };
+
         // Tax split: same state = CGST+SGST; different state = IGST
         const sameState = d.sellerStateCode === d.buyerStateCode;
         const gstRate   = parseFloat(d.gstRate || 18);
@@ -278,7 +285,7 @@ class MastersIndiaService {
                 address1:     d.sellerAddr1     || 'India',
                 address2:     d.sellerAddr2     || '',
                 location:     d.sellerCity      || 'India',
-                pincode:      parseInt(d.sellerPin) || 0,
+                pincode:      safePin(d.sellerPin),
                 state_code:   d.sellerStateCode,
                 phone_number: d.sellerPhone     || '',
                 email:        d.sellerEmail     || '',
@@ -292,7 +299,7 @@ class MastersIndiaService {
                 address1:        d.buyerAddr1    || d.buyerName,
                 address2:        d.buyerAddr2    || '',
                 location:        d.buyerCity     || 'India',
-                pincode:         parseInt(d.buyerPin) || 0,
+                pincode:         safePin(d.buyerPin),
                 state_code:      d.buyerStateCode,
                 phone_number:    d.buyerPhone    || '',
                 email:           d.buyerEmail    || '',
