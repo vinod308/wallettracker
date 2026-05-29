@@ -468,6 +468,41 @@ class EmailService {
         });
         logger.info(`Reminder email (${daysPast}d) sent to: ${toEmail}`);
     }
+
+    async sendOtpEmail(email, otp, fullName) {
+        const subject = 'Your MoneyGence Login Code';
+        const htmlContent = `<!DOCTYPE html>
+<html><head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:#f4f4f5;font-family:Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0">
+<tr><td align="center" style="padding:40px 20px;">
+<table width="480" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+<tr><td style="background:#4F46E5;padding:32px 40px;text-align:center;">
+  <h1 style="color:#ffffff;margin:0;font-size:24px;font-weight:700;">MoneyGence</h1>
+</td></tr>
+<tr><td style="padding:40px;">
+  <p style="color:#374151;font-size:16px;margin:0 0 8px;">Hi ${fullName || 'there'},</p>
+  <p style="color:#6b7280;font-size:14px;margin:0 0 32px;">Use the code below to complete your login. It expires in <strong>10 minutes</strong>.</p>
+  <div style="text-align:center;margin:0 0 32px;">
+    <div style="display:inline-block;background:#f3f4f6;border-radius:12px;padding:24px 48px;">
+      <span style="font-size:40px;font-weight:700;letter-spacing:12px;color:#1f2937;font-family:monospace;">${otp}</span>
+    </div>
+  </div>
+  <p style="color:#9ca3af;font-size:12px;text-align:center;margin:0;">If you didn't request this, you can safely ignore this email.</p>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body></html>`;
+
+        await this.transporter.sendMail({
+            from: config.EMAIL_FROM,
+            to: email,
+            subject,
+            html: htmlContent,
+        });
+        logger.info(`OTP email sent to: ${email}`);
+    }
 }
 
 module.exports = new EmailService();

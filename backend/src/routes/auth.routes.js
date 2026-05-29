@@ -56,6 +56,10 @@ router.post(
     authController.resetPassword
 );
 
+// POST /api/auth/verify-otp
+// Step 2 of login: verify the OTP sent to email, issue session token
+router.post('/verify-otp', authController.verifyOtp);
+
 // GET /api/auth/verify-session
 // Verify if current session is valid
 router.get('/verify-session', authController.verifySession);

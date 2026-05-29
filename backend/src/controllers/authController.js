@@ -4,8 +4,26 @@
  */
 
 const authService = require('../services/authService');
+const emailService = require('../services/emailService');
 const { asyncHandler } = require('../middleware/errorHandler');
 const logger = require('../utils/logger');
+
+// In-memory OTP store: email → { otp, token, user, expiresAt }
+// Cleared on verify or expiry. Single-server safe.
+const otpStore = new Map();
+
+const OTP_TTL_MS = 10 * 60 * 1000; // 10 minutes
+
+function generateOtp() {
+    return String(Math.floor(100000 + Math.random() * 900000));
+}
+
+function pruneExpiredOtps() {
+    const now = Date.now();
+    for (const [key, val] of otpStore) {
+        if (now > val.expiresAt) otpStore.delete(key);
+    }
+}
 
 /**
  * Signup - POST /api/auth/signup
@@ -41,7 +59,8 @@ const signup = asyncHandler(async (req, res) => {
 
 /**
  * Login - POST /api/auth/login
- * Section 2.1 of specification
+ * Validates credentials, generates OTP, sends to email.
+ * Cookie/token are NOT issued here — issued after OTP verification.
  */
 const login = asyncHandler(async (req, res) => {
     const { email, password } = req.body;
@@ -51,23 +70,72 @@ const login = asyncHandler(async (req, res) => {
         userAgent: req.headers['user-agent'],
     };
 
+    // Validate credentials and create session (token held temporarily)
     const result = await authService.login({ email, password }, metadata);
 
-    // Set HTTP-only cookie (exact from spec)
-    res.cookie('auth_token', result.token, {
+    // Generate and store OTP
+    pruneExpiredOtps();
+    const otp = generateOtp();
+    otpStore.set(email.toLowerCase(), {
+        otp,
+        token: result.token,
+        user:  result.user,
+        expiresAt: Date.now() + OTP_TTL_MS,
+    });
+
+    // Send OTP email
+    await emailService.sendOtpEmail(email, otp, result.user.fullName || result.user.full_name);
+
+    logger.info(`OTP sent to: ${email}`);
+    res.status(200).json({
+        success: true,
+        message: 'OTP sent to your email',
+        data: { otpRequired: true },
+    });
+});
+
+/**
+ * Verify OTP - POST /api/auth/verify-otp
+ * Completes login by verifying the OTP and issuing the session cookie + token.
+ */
+const verifyOtp = asyncHandler(async (req, res) => {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+        return res.status(400).json({ success: false, message: 'Email and OTP are required' });
+    }
+
+    pruneExpiredOtps();
+    const stored = otpStore.get(email.toLowerCase());
+
+    if (!stored) {
+        return res.status(400).json({ success: false, message: 'OTP expired or not found. Please log in again.' });
+    }
+    if (Date.now() > stored.expiresAt) {
+        otpStore.delete(email.toLowerCase());
+        return res.status(400).json({ success: false, message: 'OTP has expired. Please log in again.' });
+    }
+    if (stored.otp !== String(otp).trim()) {
+        return res.status(400).json({ success: false, message: 'Incorrect OTP. Please try again.' });
+    }
+
+    // OTP valid — issue session
+    otpStore.delete(email.toLowerCase());
+
+    const { token, user } = stored;
+
+    res.cookie('auth_token', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
-        maxAge: 30 * 60 * 1000, // 30 minutes
+        maxAge: 30 * 60 * 1000,
     });
 
-    // Success response (exact from spec: Section 2.1.8)
+    logger.info(`OTP verified, login complete: ${email}`);
     res.status(200).json({
         success: true,
         message: 'Welcome back!',
-        data: {
-            user: result.user,
-        },
+        data: { user, token },
     });
 });
 
@@ -187,6 +255,7 @@ const changePassword = asyncHandler(async (req, res) => {
 module.exports = {
     signup,
     login,
+    verifyOtp,
     logout,
     forgotPassword,
     resetPassword,
