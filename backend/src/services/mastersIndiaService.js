@@ -250,14 +250,19 @@ class MastersIndiaService {
             return (p >= 100000 && p <= 999999) ? p : 110001;
         };
 
-        // In sandbox mode substitute real GSTINs with Masters India test GSTINs.
-        // This lets you see real IRN + QR in your invoice PDF without production credentials.
-        // Remove these two lines once production credentials are configured (MI_ENV=production).
+        // In sandbox mode substitute real GSTINs/pincodes with Masters India test values.
+        // Remove this block once production credentials are configured (MI_ENV=production).
         const isSandbox = config.MI_ENV !== 'production';
         const sellerGstin     = isSandbox ? '05AAAPG7885R002' : (d.sellerGstin || config.GST_GSTIN);
         const buyerGstin      = isSandbox ? '09AAAPG7885R002' : d.buyerGstin;
         const sellerStateCode = isSandbox ? '05' : d.sellerStateCode;
         const buyerStateCode  = isSandbox ? '09' : d.buyerStateCode;
+        // State-05 (Uttarakhand) pincode; State-09 (UP) pincode
+        const sellerPin = isSandbox ? 248001 : safePin(d.sellerPin);
+        const buyerPin  = isSandbox ? 201301 : safePin(d.buyerPin);
+
+        // Service SAC codes must be 6 digits starting with 99 (e.g. 998361 = IT services).
+        const safeHsn = (raw) => /^99\d{4}$/.test(String(raw || '').trim()) ? String(raw).trim() : '998361';
 
         // Tax split: same state = CGST+SGST; different state = IGST
         const sameState = sellerStateCode === buyerStateCode;
@@ -301,7 +306,7 @@ class MastersIndiaService {
                 address1:     d.sellerAddr1     || 'India',
                 address2:     d.sellerAddr2     || '',
                 location:     d.sellerCity      || 'India',
-                pincode:      safePin(d.sellerPin),
+                pincode:      sellerPin,
                 state_code:   sellerStateCode,
                 phone_number: d.sellerPhone     || '',
                 email:        d.sellerEmail     || '',
@@ -315,7 +320,7 @@ class MastersIndiaService {
                 address1:        d.buyerAddr1    || d.buyerName,
                 address2:        d.buyerAddr2    || '',
                 location:        d.buyerCity     || 'India',
-                pincode:         safePin(d.buyerPin),
+                pincode:         buyerPin,
                 state_code:      buyerStateCode,
                 phone_number:    d.buyerPhone    || '',
                 email:           d.buyerEmail    || '',
@@ -339,7 +344,7 @@ class MastersIndiaService {
                 item_serial_number:    '1',
                 product_description:   d.description     || 'Digital Marketing Services',
                 is_service:            'Y',
-                hsn_code:              d.hsnCode         || '998361',
+                hsn_code:              safeHsn(d.hsnCode),
                 quantity:              1,
                 free_quantity:         0,
                 unit:                  'NOS',
