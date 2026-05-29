@@ -144,10 +144,14 @@ export function generateInvoicePDF(invoice, client) {
     // ════════════════════════════════════════════════════════════════
     const QR = 30;
     const qrX = PW - MR - QR;
-    drect(qrX, y, QR, QR);
-    sf('normal', 6, 130);
-    tx('QR Code', qrX + QR / 2, y + QR / 2 - 1, { align: 'center' });
-    tx('(e-Invoice)', qrX + QR / 2, y + QR / 2 + 4, { align: 'center' });
+    if (invoice.qrDataUrl) {
+        doc.addImage(invoice.qrDataUrl, 'PNG', qrX, y, QR, QR);
+    } else {
+        drect(qrX, y, QR, QR);
+        sf('normal', 6, 130);
+        tx('QR Code', qrX + QR / 2, y + QR / 2 - 1, { align: 'center' });
+        tx('(e-Invoice)', qrX + QR / 2, y + QR / 2 + 4, { align: 'center' });
+    }
 
     const irnAreaW = CW - QR - 5;
     sf('normal', 7.5, 60);

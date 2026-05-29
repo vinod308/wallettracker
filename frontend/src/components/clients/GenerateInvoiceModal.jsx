@@ -2,6 +2,8 @@ import React, { useState, useMemo } from 'react';
 import Modal from '../common/Modal';
 import { generateInvoicePDF, downloadInvoicePDF, openInvoicePDFInTab } from '../../utils/generateInvoicePDF';
 import api from '../../services/api';
+import invoiceService from '../../services/invoiceService';
+import QRCode from 'qrcode';
 
 const getFY = () => {
     const now  = new Date();
@@ -80,9 +82,62 @@ const GenerateInvoiceModal = ({ isOpen, onClose, client, onInvoiceSaved }) => {
         setGenerating(true);
         try {
             const inv = buildInvoiceObj();
+
+            // ── Try Masters India IRN generation ──────────────────────────
+            try {
+                const settings = JSON.parse(localStorage.getItem('gw_settings') || '{}');
+                const firstLine = lines.find(l => l.description.trim() && parseFloat(l.rate) > 0);
+                const buyerStateCode = (client.gstNumber || '').slice(0, 2);
+                const gstRate = taxType === 'split5' || taxType === 'igst5' ? 5 : 18;
+
+                if (settings.gstin && client.gstNumber && inv.invoiceNumber.length <= 16) {
+                    const irnRes = await invoiceService.generateIRN({
+                        clientId:        client.id,
+                        invoiceNumber:   inv.invoiceNumber,
+                        invoiceDate:     inv.invoiceDate,
+                        invoiceType:     'INV',
+                        supplyType:      'B2B',
+                        sellerGstin:     settings.gstin,
+                        sellerName:      settings.companyName || '',
+                        sellerAddr1:     settings.address     || '',
+                        sellerCity:      settings.state       || '',
+                        sellerStateCode: settings.stateCode   || '',
+                        sellerPin:       settings.pinCode     || '',
+                        sellerEmail:     settings.companyEmail || '',
+                        buyerGstin:      client.gstNumber,
+                        buyerName:       client.clientName,
+                        buyerAddr1:      client.address || client.clientName,
+                        buyerCity:       client.city    || '',
+                        buyerStateCode,
+                        buyerPin:        client.pinCode || '',
+                        description:     firstLine?.description || 'Professional Services',
+                        hsnCode:         firstLine?.hsn         || '998361',
+                        taxableAmount:   inv.subtotal,
+                        gstRate,
+                    });
+
+                    const irnData = irnRes.data?.data;
+                    if (irnData?.irn) {
+                        inv.irn    = irnData.irn;
+                        inv.ackNo  = irnData.ack_no  || '';
+                        inv.ackDate = irnData.ack_date || '';
+
+                        // Generate QR code image from signed_qr string
+                        if (irnData.signed_qr) {
+                            inv.qrDataUrl = await QRCode.toDataURL(irnData.signed_qr, {
+                                width: 120, margin: 1, errorCorrectionLevel: 'M',
+                            });
+                        }
+                    }
+                }
+            } catch (irnErr) {
+                // IRN failure is non-blocking — PDF still generates without it
+                console.warn('IRN generation skipped:', irnErr.response?.data?.message || irnErr.message);
+            }
+
             saveToLocalStorage(inv);
 
-            // Generate PDF once, download, then extract base64 for email
+            // Generate PDF with IRN/QR if available
             const doc = generateInvoicePDF(inv, client);
             doc.save(`${inv.invoiceNumber.replace(/\//g, '-')}.pdf`);
             const pdfBase64 = doc.output('datauristring').split(',')[1];
