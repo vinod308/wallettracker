@@ -152,6 +152,45 @@ class MastersIndiaService {
         };
     }
 
+    // ─── Generate E-Way Bill from IRN ─────────────────────────────────────────
+
+    /**
+     * Generate an E-Way Bill linked to an existing IRN.
+     * @param {string} irn  The IRN returned by generateIRN()
+     * @param {Object} ewbData  { distance, transMode, transporterId, vehNo, vehType, transDocNo, transDocDate }
+     * @returns {{ ewb_no, ewb_date, ewb_valid_upto }}
+     */
+    async generateEWBFromIRN(irn, ewbData = {}) {
+        this._validateConfig();
+        logger.info(`Generating E-Way Bill from IRN: ${irn}`);
+
+        const isSandbox = config.MI_ENV !== 'production';
+        const userGstin = isSandbox ? '05AAAPG7885R002' : config.GST_GSTIN;
+
+        const results = await this._request('POST', '/generate-eway-bill-from-irn/', {
+            user_gstin:      userGstin,
+            irn,
+            distance:        parseInt(ewbData.distance) || 0,
+            trans_mode:      ewbData.transMode      || '1',
+            transporter_id:  ewbData.transporterId  || '',
+            veh_no:          ewbData.vehNo           || '',
+            veh_type:        ewbData.vehType         || 'R',
+            trans_doc_no:    ewbData.transDocNo      || '',
+            trans_doc_date:  ewbData.transDocDate    || '',
+        });
+
+        const msg = results.message;
+        if (!msg || (!msg.EwbNo && !msg.ewb_no)) {
+            throw new Error(`EWB generation failed: ${results.errorMessage || JSON.stringify(msg)}`);
+        }
+
+        return {
+            ewb_no:         String(msg.EwbNo      || msg.ewb_no),
+            ewb_date:       msg.EwbDt             || msg.ewb_date       || null,
+            ewb_valid_upto: msg.EwbValidTill      || msg.ewb_valid_upto || null,
+        };
+    }
+
     // ─── Cancel IRN ───────────────────────────────────────────────────────────
 
     /**

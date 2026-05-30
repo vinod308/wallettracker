@@ -172,6 +172,18 @@ export function generateInvoicePDF(invoice, client) {
     sf('normal', 7.5, 0);
     tx(invDate, ML + 13, y + 19);
 
+    if (invoice.ewbNo) {
+        sf('normal', 7.5, 60);
+        tx('E-Way Bill No.', ML, y + 25);  tx(':', ML + 25, y + 25);
+        sf('normal', 7.5, 0);
+        tx(invoice.ewbNo, ML + 28, y + 25);
+        if (invoice.ewbValidUpto) {
+            sf('normal', 6.5, 100);
+            tx(`Valid till: ${invoice.ewbValidUpto}`, ML + 28, y + 29.5);
+        }
+        y += 10;
+    }
+
     y += QR + 4;
 
     // ════════════════════════════════════════════════════════════════

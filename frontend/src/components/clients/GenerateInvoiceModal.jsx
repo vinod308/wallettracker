@@ -38,6 +38,11 @@ const GenerateInvoiceModal = ({ isOpen, onClose, client, onInvoiceSaved }) => {
     const [emailStatus,  setEmailStatus]  = useState(null); // null | 'sending' | 'sent' | 'failed'
     const [emailError,   setEmailError]   = useState('');
     const [irnError,     setIrnError]     = useState(''); // non-empty = IRN attempt failed
+    const [ewbEnabled,   setEwbEnabled]   = useState(false);
+    const [ewbDistance,  setEwbDistance]  = useState('');
+    const [ewbTransMode, setEwbTransMode] = useState('1');
+    const [ewbVehNo,     setEwbVehNo]     = useState('');
+    const [ewbTransId,   setEwbTransId]   = useState('');
 
     const updateLine = (i, field, value) =>
         setLines(prev => prev.map((l, idx) => idx === i ? { ...l, [field]: value } : l));
@@ -117,6 +122,12 @@ const GenerateInvoiceModal = ({ isOpen, onClose, client, onInvoiceSaved }) => {
                         hsnCode:         firstLine?.hsn         || '998361',
                         taxableAmount:   inv.subtotal,
                         gstRate,
+                        // E-Way Bill
+                        generateEwb:     ewbEnabled,
+                        ewbDistance:     ewbDistance || 0,
+                        ewbTransMode,
+                        ewbVehNo,
+                        ewbTransporterId: ewbTransId,
                     });
 
                     const irnData = irnRes.data?.data;
@@ -130,6 +141,13 @@ const GenerateInvoiceModal = ({ isOpen, onClose, client, onInvoiceSaved }) => {
                             inv.qrDataUrl = await QRCode.toDataURL(irnData.signed_qr, {
                                 width: 120, margin: 1, errorCorrectionLevel: 'M',
                             });
+                        }
+
+                        // E-Way Bill
+                        if (irnData.ewb_no) {
+                            inv.ewbNo        = irnData.ewb_no;
+                            inv.ewbDate      = irnData.ewb_date      || '';
+                            inv.ewbValidUpto = irnData.ewb_valid_upto || '';
                         }
                     }
                 }
@@ -186,6 +204,11 @@ const GenerateInvoiceModal = ({ isOpen, onClose, client, onInvoiceSaved }) => {
         setEmailStatus(null);
         setEmailError('');
         setIrnError('');
+        setEwbEnabled(false);
+        setEwbDistance('');
+        setEwbTransMode('1');
+        setEwbVehNo('');
+        setEwbTransId('');
         setInvoiceDate(today());
         onClose();
     };
@@ -210,16 +233,23 @@ const GenerateInvoiceModal = ({ isOpen, onClose, client, onInvoiceSaved }) => {
                         Total: <strong>{fmt(savedInvoice.total)}</strong>
                     </p>
 
-                    {/* IRN status */}
-                    {savedInvoice.irn ? (
-                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium mb-3 bg-emerald-50 text-emerald-700 border border-emerald-200">
-                            ✓ IRN generated
-                        </div>
-                    ) : irnError ? (
-                        <div className="mx-auto max-w-xs mb-3 px-3 py-2 rounded-lg text-xs bg-amber-50 border border-amber-200 text-amber-800 text-left">
-                            <span className="font-semibold">IRN not generated:</span> {irnError}
-                        </div>
-                    ) : null}
+                    {/* IRN + EWB status */}
+                    <div className="flex flex-wrap justify-center gap-2 mb-3">
+                        {savedInvoice.irn ? (
+                            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                ✓ IRN generated
+                            </div>
+                        ) : irnError ? (
+                            <div className="w-full mx-auto max-w-xs px-3 py-2 rounded-lg text-xs bg-amber-50 border border-amber-200 text-amber-800 text-left">
+                                <span className="font-semibold">IRN not generated:</span> {irnError}
+                            </div>
+                        ) : null}
+                        {savedInvoice.ewbNo && (
+                            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                                ✓ EWB: {savedInvoice.ewbNo}
+                            </div>
+                        )}
+                    </div>
 
                     {/* Email status badge */}
                     {(savedInvoice.contactEmail || client.contactEmail) && (
@@ -405,6 +435,57 @@ const GenerateInvoiceModal = ({ isOpen, onClose, client, onInvoiceSaved }) => {
                         <span>Grand Total</span>
                         <span className="text-primary-blue">{fmt(total)}</span>
                     </div>
+                </div>
+
+                {/* E-Way Bill (optional) */}
+                <div className="border border-gray-200 rounded-xl overflow-hidden">
+                    <button
+                        type="button"
+                        onClick={() => setEwbEnabled(v => !v)}
+                        className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
+                    >
+                        <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide flex items-center gap-2">
+                            <svg className="w-4 h-4 text-primary-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                            </svg>
+                            E-Way Bill (Auto-generate)
+                        </span>
+                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${ewbEnabled ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-200 text-gray-500'}`}>
+                            {ewbEnabled ? 'ON' : 'OFF'}
+                        </span>
+                    </button>
+                    {ewbEnabled && (
+                        <div className="px-4 py-4 grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Transport Mode</label>
+                                <select value={ewbTransMode} onChange={e => setEwbTransMode(e.target.value)}
+                                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-blue bg-white">
+                                    <option value="1">Road</option>
+                                    <option value="2">Rail</option>
+                                    <option value="3">Air</option>
+                                    <option value="4">Ship</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Distance (km)</label>
+                                <input type="number" min="0" value={ewbDistance} onChange={e => setEwbDistance(e.target.value)}
+                                    placeholder="0"
+                                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-blue" />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Vehicle Number</label>
+                                <input value={ewbVehNo} onChange={e => setEwbVehNo(e.target.value.toUpperCase())}
+                                    placeholder="UP16XX1234"
+                                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-blue" />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Transporter GSTIN (optional)</label>
+                                <input value={ewbTransId} onChange={e => setEwbTransId(e.target.value.toUpperCase())}
+                                    placeholder="15-char GSTIN"
+                                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-blue" />
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Notes */}

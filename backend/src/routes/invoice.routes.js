@@ -265,6 +265,13 @@ router.post('/gst/mi/generate', async (req, res) => {
             hsnCode          = '998361',
             taxableAmount,
             gstRate          = 18,
+            // E-Way Bill fields (optional)
+            generateEwb      = false,
+            ewbDistance      = 0,
+            ewbTransMode     = '1',
+            ewbTransporterId = '',
+            ewbVehNo         = '',
+            ewbVehType       = 'R',
         } = req.body;
 
         if (!clientId)        return res.status(400).json({ success: false, message: 'clientId is required' });
@@ -280,6 +287,23 @@ router.post('/gst/mi/generate', async (req, res) => {
             buyerGstin, buyerName, buyerAddr1, buyerCity, buyerStateCode, buyerPin,
             description, hsnCode, taxableAmount, gstRate,
         });
+
+        // Optionally generate E-Way Bill from the IRN
+        let ewbResult = null;
+        if (generateEwb && irnResult.irn) {
+            try {
+                ewbResult = await mastersIndiaService.generateEWBFromIRN(irnResult.irn, {
+                    distance:       ewbDistance,
+                    transMode:      ewbTransMode,
+                    transporterId:  ewbTransporterId,
+                    vehNo:          ewbVehNo,
+                    vehType:        ewbVehType,
+                });
+                logger.info(`EWB generated: ${ewbResult.ewb_no} for IRN ${irnResult.irn}`);
+            } catch (ewbErr) {
+                logger.warn(`EWB generation failed (non-fatal): ${ewbErr.message}`);
+            }
+        }
 
         // Compute tax amounts for DB storage
         const sameState = sellerStateCode === buyerStateCode;
@@ -299,7 +323,8 @@ router.post('/gst/mi/generate', async (req, res) => {
                 taxable_amount, cgst_rate, cgst_amount, sgst_rate, sgst_amount,
                 igst_rate, igst_amount, total_amount,
                 payment_status, source, created_by,
-                hsn_code, signed_qr, supply_type, buyer_state_code, buyer_pin
+                hsn_code, signed_qr, supply_type, buyer_state_code, buyer_pin,
+                ewb_no, ewb_date, ewb_valid_upto
             ) VALUES (
                 $1, $2, $3, $4,
                 $5, $6, $7,
@@ -307,13 +332,17 @@ router.post('/gst/mi/generate', async (req, res) => {
                 $12, $13, $14, $15, $16,
                 $17, $18, $19,
                 $20, $21, $22,
-                $23, $24, $25, $26, $27
+                $23, $24, $25, $26, $27,
+                $28, $29, $30
             )
             ON CONFLICT (invoice_number) DO UPDATE SET
                 irn              = EXCLUDED.irn,
                 ack_no           = EXCLUDED.ack_no,
                 ack_date         = EXCLUDED.ack_date,
                 signed_qr        = EXCLUDED.signed_qr,
+                ewb_no           = EXCLUDED.ewb_no,
+                ewb_date         = EXCLUDED.ewb_date,
+                ewb_valid_upto   = EXCLUDED.ewb_valid_upto,
                 source           = EXCLUDED.source,
                 updated_at       = NOW()
             RETURNING *
@@ -326,16 +355,20 @@ router.post('/gst/mi/generate', async (req, res) => {
             sameState ? 0 : gstRate, igstAmt, totalAmt,
             'Unpaid', 'Masters India', req.user.id,
             hsnCode, irnResult.signed_qr, supplyType, buyerStateCode, buyerPin,
+            ewbResult?.ewb_no || null, ewbResult?.ewb_date || null, ewbResult?.ewb_valid_upto || null,
         ]);
 
         logger.info(`IRN generated and saved: ${irnResult.irn} for invoice ${invoiceNumber}`);
         res.json({
             success: true,
-            message: 'IRN generated successfully',
+            message: ewbResult ? 'IRN and E-Way Bill generated successfully' : 'IRN generated successfully',
             data: {
                 ...rows[0],
                 pdf_url: irnResult.pdf_url,
                 qr_url:  irnResult.qr_url,
+                ewb_no:         ewbResult?.ewb_no         || null,
+                ewb_date:       ewbResult?.ewb_date        || null,
+                ewb_valid_upto: ewbResult?.ewb_valid_upto  || null,
             },
         });
     } catch (error) {
