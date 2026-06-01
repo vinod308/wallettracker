@@ -369,6 +369,33 @@ class ClientService {
     }
 
     /**
+     * Lightweight onboard — creates a basic client record from the onboarding modal.
+     * Idempotent: returns the existing record if a client with the same name exists.
+     */
+    async onboardClient(clientData, userId) {
+        try {
+            const pool = require('../config/database');
+            const { rows: existing } = await pool.query(
+                `SELECT id, client_name, client_type, status FROM clients
+                 WHERE LOWER(client_name) = LOWER($1) AND deleted_at IS NULL LIMIT 1`,
+                [clientData.clientName]
+            );
+            if (existing.length > 0) return existing[0];
+
+            const { rows } = await pool.query(
+                `INSERT INTO clients (project_name, client_name, client_type, status, created_by)
+                 VALUES ($1, $2, $3, 'Active', $4) RETURNING id, client_name, client_type, status`,
+                [clientData.clientName, clientData.clientName, clientData.clientType, userId]
+            );
+            logger.info(`Client onboarded: ${clientData.clientName} by user ${userId}`);
+            return rows[0];
+        } catch (error) {
+            logger.error('Error in onboardClient:', error);
+            throw error;
+        }
+    }
+
+    /**
      * Update client status
      */
     async updateClientStatus(id, status, userId) {

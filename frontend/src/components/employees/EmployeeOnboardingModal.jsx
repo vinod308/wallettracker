@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { computeSalaryBreakdown } from '../../utils/generateSalarySlipPDF';
 import { INDIA_STATES } from '../../utils/indiaStates';
+import employeeService from '../../services/employeeService';
 
 const STEPS = ['Personal Info', 'Contact & Identity', 'Banking', 'Review'];
 const DEPT_OPTIONS = ['Marketing', 'Operations', 'Finance', 'Tech', 'Design', 'HR', 'Sales', 'Content', 'Media', 'Management'];
@@ -74,10 +75,9 @@ const EmployeeOnboardingModal = ({ isOpen, onClose, onEmployeeAdded }) => {
     const next = () => { if (validate()) setStep(s => s + 1); };
     const back = () => setStep(s => s - 1);
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         setSaving(true);
         try {
-            const all = JSON.parse(localStorage.getItem('gw_employees') || '[]');
             const emp = {
                 id: Date.now().toString(),
                 employeeId: getNextEmployeeId(),
@@ -85,8 +85,17 @@ const EmployeeOnboardingModal = ({ isOpen, onClose, onEmployeeAdded }) => {
                 salary: parseFloat(form.salary),
                 onboardedAt: new Date().toISOString(),
             };
+
+            // Save to localStorage first (immediate UI update)
+            const all = JSON.parse(localStorage.getItem('gw_employees') || '[]');
             all.push(emp);
             localStorage.setItem('gw_employees', JSON.stringify(all));
+
+            // Persist to DB (non-blocking for UX, page will re-fetch from DB on next load)
+            try {
+                await employeeService.create(emp);
+            } catch { /* DB save failed; localStorage already has the record */ }
+
             onEmployeeAdded(emp);
             setForm(INIT);
             setStep(0);

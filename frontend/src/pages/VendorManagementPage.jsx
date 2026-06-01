@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MainLayout from '../components/layout/MainLayout';
 import VendorOnboardingModal from '../components/vendors/VendorOnboardingModal';
@@ -6,6 +6,7 @@ import VendorAddChoiceModal from '../components/vendors/VendorAddChoiceModal';
 import VendorImportModal from '../components/vendors/VendorImportModal';
 import UpgradeModal from '../components/subscription/UpgradeModal';
 import { useSubscription } from '../context/SubscriptionContext';
+import vendorService from '../services/vendorService';
 
 const VENDOR_TYPE_COLORS = {
     'Freelancer':          'bg-purple-50 text-purple-700 border-purple-100',
@@ -36,14 +37,55 @@ const VendorManagementPage = () => {
         else setShowChoice(true);
     };
 
-    const loadVendors = () => {
+    const loadVendors = useCallback(async () => {
         try {
-            const raw = JSON.parse(localStorage.getItem('gw_vendors') || '[]') || [];
-            setVendors(raw);
-        } catch { setVendors([]); }
-    };
+            const dbVendors = await vendorService.getAllVendors();
+            const dbNames = new Set(dbVendors.map(v => (v.vendor_name || '').toLowerCase()));
 
-    useEffect(() => { loadVendors(); }, []);
+            // Auto-migrate localStorage vendors not yet in DB
+            const local = JSON.parse(localStorage.getItem('gw_vendors') || '[]') || [];
+            const localOnly = local.filter(v => !dbNames.has((v.vendorName || '').toLowerCase()));
+            if (localOnly.length > 0) {
+                localOnly.forEach(v => {
+                    vendorService.createVendor({
+                        vendorName: v.vendorName, vendorType: v.vendorType,
+                        gstNumber: v.gstNumber, panNumber: v.panNumber,
+                        address: v.address, city: v.city, state: v.state,
+                        pincode: v.pincode, country: v.country || 'India',
+                        contactPerson: v.contactPerson, email: v.email,
+                        mobile: v.mobile, altMobile: v.altMobile, website: v.website,
+                        accountHolder: v.accountHolder, bankName: v.bankName,
+                        accountNumber: v.accountNumber, ifscCode: v.ifscCode,
+                        upiId: v.upiId, swiftCode: v.swiftCode,
+                    }).catch(() => {});
+                });
+            }
+
+            // Normalize DB vendor shape to match what the template expects
+            const normalized = dbVendors.map(v => ({
+                id: v.id,
+                vendorName: v.vendor_name,
+                vendorType: v.vendor_type,
+                gstNumber: v.gst_number,
+                panNumber: v.pan_number,
+                city: v.city,
+                state: v.state,
+                contactPerson: v.contact_person,
+                mobile: v.mobile,
+                email: v.email,
+                onboardedAt: v.created_at,
+            }));
+
+            const allVendors = [...normalized, ...localOnly];
+            setVendors(allVendors);
+            localStorage.setItem('gw_vendors', JSON.stringify(allVendors));
+        } catch {
+            try { setVendors(JSON.parse(localStorage.getItem('gw_vendors') || '[]') || []); }
+            catch { setVendors([]); }
+        }
+    }, []);
+
+    useEffect(() => { loadVendors(); }, [loadVendors]);
 
     let pos = [];
     try { pos = JSON.parse(localStorage.getItem('gw_purchase_orders') || '[]') || []; } catch {}

@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MainLayout from '../components/layout/MainLayout';
 import EmployeeOnboardingModal from '../components/employees/EmployeeOnboardingModal';
 import { computeSalaryBreakdown } from '../utils/generateSalarySlipPDF';
 import UpgradeModal from '../components/subscription/UpgradeModal';
+import employeeService from '../services/employeeService';
 
 const EMPLOYEE_LIMIT = 5;
 
@@ -36,12 +37,29 @@ const EmployeeManagementPage = () => {
         else setShowModal(true);
     };
 
-    const loadEmployees = () => {
-        try { setEmployees(JSON.parse(localStorage.getItem('gw_employees') || '[]')); }
-        catch { setEmployees([]); }
-    };
+    const loadEmployees = useCallback(async () => {
+        try {
+            const serverEmployees = await employeeService.getAll();
+            if (serverEmployees.length > 0) {
+                setEmployees(serverEmployees);
+                localStorage.setItem('gw_employees', JSON.stringify(serverEmployees));
+            } else {
+                // Auto-migrate: push localStorage employees to DB if server is empty
+                const local = JSON.parse(localStorage.getItem('gw_employees') || '[]');
+                if (local.length > 0) {
+                    const saved = await employeeService.bulkCreate(local);
+                    const result = saved.length > 0 ? saved : local;
+                    setEmployees(result);
+                    if (saved.length > 0) localStorage.setItem('gw_employees', JSON.stringify(result));
+                }
+            }
+        } catch {
+            try { setEmployees(JSON.parse(localStorage.getItem('gw_employees') || '[]')); }
+            catch { setEmployees([]); }
+        }
+    }, []);
 
-    useEffect(() => { loadEmployees(); }, []);
+    useEffect(() => { loadEmployees(); }, [loadEmployees]);
 
     const active       = employees.filter(e => e.status === 'Active');
     const departments  = [...new Set(employees.map(e => e.department).filter(Boolean))];

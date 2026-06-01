@@ -25,6 +25,13 @@ router.get(
 );
 
 /**
+ * POST /api/clients/onboard
+ * Lightweight onboard from modal — no strict validation, idempotent.
+ * Must be before /:id route to avoid conflict.
+ */
+router.post('/onboard', clientController.onboardClient);
+
+/**
  * GET /api/clients/check-duplicate
  * Check if client name is duplicate
  * Must be before /:id route to avoid conflict

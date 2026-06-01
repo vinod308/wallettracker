@@ -171,12 +171,22 @@ const CompanyDetailsPage = () => {
     const [errors,    setErrors]    = useState({});
     const [saving,    setSaving]    = useState(false);
 
-    // Load from server on mount — ensures data is the same on all browsers/devices
+    // Load from server on mount; auto-migrate localStorage → server if server is empty
     useEffect(() => {
         settingsService.getCompanySettings().then(serverSettings => {
             if (serverSettings && serverSettings.companyName) {
                 localStorage.setItem('gw_settings', JSON.stringify(serverSettings));
                 setSaved(serverSettings);
+            } else {
+                const localSettings = JSON.parse(localStorage.getItem('gw_settings') || 'null');
+                if (localSettings && localSettings.companyName && !localSettings.isDraft) {
+                    settingsService.saveCompanySettings(localSettings, false)
+                        .then(saved => {
+                            localStorage.setItem('gw_settings', JSON.stringify(saved));
+                            setSaved(saved);
+                        })
+                        .catch(() => {});
+                }
             }
         }).catch(() => { /* use localStorage cache if server unreachable */ });
     }, []);

@@ -43,10 +43,18 @@ const ClientsPage = () => {
         try {
             const res = await api.get('/clients');
             const apiClients = (res.data?.data?.clients || []).map(mapApiClient);
-            // Merge local-only clients not yet in DB
-            const local = JSON.parse(localStorage.getItem('gw_onboarded_clients') || '[]');
             const apiNames = new Set(apiClients.map(c => c.clientName?.toLowerCase()));
+
+            // Auto-migrate: push any localStorage-only clients to DB
+            const local = JSON.parse(localStorage.getItem('gw_onboarded_clients') || '[]');
             const localOnly = local.filter(c => !apiNames.has((c.clientName || '').toLowerCase()));
+            if (localOnly.length > 0) {
+                localOnly.forEach(c => {
+                    api.post('/clients/onboard', { clientName: c.clientName, clientType: c.clientType || 'Retainer' })
+                        .catch(() => {});
+                });
+            }
+
             setClients([...apiClients, ...localOnly]);
         } catch {
             const raw = JSON.parse(localStorage.getItem('gw_onboarded_clients') || '[]');

@@ -250,6 +250,28 @@ class ClientController {
     }
 
     /**
+     * POST /api/clients/onboard
+     * Lightweight client onboard — saves basic client info from the onboarding modal.
+     * Skips strict validation; idempotent (returns existing record if name matches).
+     */
+    async onboardClient(req, res, next) {
+        try {
+            const { clientName, clientType = 'Retainer' } = req.body;
+            if (!clientName || clientName.trim().length < 2) {
+                return res.status(400).json(errorResponse('clientName is required'));
+            }
+            const client = await clientService.onboardClient(
+                { clientName: clientName.trim(), clientType },
+                req.user.id
+            );
+            return res.status(201).json(successResponse('Client onboarded', { client }));
+        } catch (error) {
+            logger.error('Error in onboardClient:', error);
+            next(error);
+        }
+    }
+
+    /**
      * PATCH /api/clients/:id/status
      * Update client status
      */

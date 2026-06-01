@@ -24,6 +24,7 @@ const invoiceRoutes       = require('./routes/invoice.routes');
 const vendorRoutes        = require('./routes/vendor.routes');
 const subscriptionRoutes  = require('./routes/subscription.routes');
 const paymentRoutes       = require('./routes/payment.routes');
+const employeeRoutes      = require('./routes/employee.routes');
 
 // Create Express app
 const app = express();
@@ -80,6 +81,7 @@ app.use('/api/invoices',      invoiceRoutes);
 app.use('/api/vendors',       vendorRoutes);
 app.use('/api/subscription',  subscriptionRoutes);
 app.use('/api/payment',       paymentRoutes);
+app.use('/api/employees',     employeeRoutes);
 
 // 404 handler (must be after all routes)
 app.use(notFoundHandler);
