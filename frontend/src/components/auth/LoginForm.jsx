@@ -49,8 +49,13 @@ const LoginForm = () => {
 
         setLoading(true);
         try {
-            await login({ email: email.toLowerCase().trim(), password });
-            setOtpStep(true);
+            const response = await login({ email: email.toLowerCase().trim(), password });
+            // Direct login fallback (OTP email service unavailable)
+            if (response.data?.otpRequired === false) {
+                setReadyToRedirect(true);
+            } else {
+                setOtpStep(true);
+            }
         } catch (err) {
             setApiError(parseError(err));
         } finally {

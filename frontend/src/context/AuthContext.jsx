@@ -34,8 +34,13 @@ export const AuthProvider = ({ children }) => {
   };
 
   const login = useCallback(async (credentials) => {
-    // Step 1: validates password, sends OTP. Returns { otpRequired: true }.
     const response = await authService.login(credentials);
+    // If SMTP is down the backend falls back to direct login (otpRequired: false)
+    if (response.data?.token && response.data?.otpRequired === false) {
+      localStorage.setItem('auth_token', response.data.token);
+      setUser(response.data.user);
+      setIsAuthenticated(true);
+    }
     return response;
   }, []);
 

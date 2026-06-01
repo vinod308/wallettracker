@@ -60,7 +60,7 @@ const signup = asyncHandler(async (req, res) => {
 /**
  * Login - POST /api/auth/login
  * Validates credentials, generates OTP, sends to email.
- * Cookie/token are NOT issued here — issued after OTP verification.
+ * Falls back to direct login if the email service is unavailable.
  */
 const login = asyncHandler(async (req, res) => {
     const { email, password } = req.body;
@@ -83,15 +83,32 @@ const login = asyncHandler(async (req, res) => {
         expiresAt: Date.now() + OTP_TTL_MS,
     });
 
-    // Send OTP email
-    await emailService.sendOtpEmail(email, otp, result.user.fullName || result.user.full_name);
+    // Try to send OTP email — fall back to direct login if SMTP is down
+    try {
+        await emailService.sendOtpEmail(email, otp, result.user.fullName || result.user.full_name);
+        logger.info(`OTP sent to: ${email}`);
+        return res.status(200).json({
+            success: true,
+            message: 'OTP sent to your email',
+            data: { otpRequired: true },
+        });
+    } catch (emailErr) {
+        logger.warn(`OTP email failed for ${email} (${emailErr.message}). Completing login directly.`);
+        otpStore.delete(email.toLowerCase());
 
-    logger.info(`OTP sent to: ${email}`);
-    res.status(200).json({
-        success: true,
-        message: 'OTP sent to your email',
-        data: { otpRequired: true },
-    });
+        res.cookie('auth_token', result.token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 30 * 60 * 1000,
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: 'Welcome back!',
+            data: { user: result.user, token: result.token, otpRequired: false },
+        });
+    }
 });
 
 /**
