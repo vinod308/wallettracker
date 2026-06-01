@@ -54,4 +54,16 @@ router.get('/users', requireRole(['Admin']), settingsController.getAllUsers);
  */
 router.put('/users/:id/role', requireRole(['Admin']), settingsController.updateUserRole);
 
+/**
+ * GET /api/settings/company
+ * Get company settings (all authenticated users)
+ */
+router.get('/company', settingsController.getCompanySettings);
+
+/**
+ * PUT /api/settings/company
+ * Save company settings (all authenticated users)
+ */
+router.put('/company', settingsController.saveCompanySettings);
+
 module.exports = router;

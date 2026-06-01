@@ -1,6 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import MainLayout from '../components/layout/MainLayout';
 import { INDIA_STATES } from '../utils/indiaStates';
+import settingsService from '../services/settingsService';
 
 // ── Regexes ────────────────────────────────────────────────────────────────
 const GST_RE   = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
@@ -170,6 +171,16 @@ const CompanyDetailsPage = () => {
     const [errors,    setErrors]    = useState({});
     const [saving,    setSaving]    = useState(false);
 
+    // Load from server on mount — ensures data is the same on all browsers/devices
+    useEffect(() => {
+        settingsService.getCompanySettings().then(serverSettings => {
+            if (serverSettings && serverSettings.companyName) {
+                localStorage.setItem('gw_settings', JSON.stringify(serverSettings));
+                setSaved(serverSettings);
+            }
+        }).catch(() => { /* use localStorage cache if server unreachable */ });
+    }, []);
+
     // Pre-fill form when editing
     useEffect(() => {
         if (editing && saved) setForm({ ...EMPTY, ...saved });
@@ -230,20 +241,20 @@ const CompanyDetailsPage = () => {
     const next = () => { if (validate(step)) setStep(s => s + 1); };
     const back = () => { setErrors({}); setStep(s => s - 1); };
 
-    const saveDraft = () => {
+    const saveDraft = async () => {
         const draft = { ...form, isDraft: true, updatedAt: new Date().toISOString() };
         localStorage.setItem('gw_settings', JSON.stringify(draft));
+        try { await settingsService.saveCompanySettings(draft, true); } catch { /* localStorage already saved */ }
         alert('Draft saved!');
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         setSaving(true);
         const data = {
             ...form,
             gstin:  form.gstin.trim().toUpperCase(),
             pan:    form.pan.trim().toUpperCase(),
             ifsc:   form.ifsc.trim().toUpperCase(),
-            // aliases used by generateInvoicePDF
             name:      form.companyName,
             email:     form.companyEmail,
             accountNo: form.accountNo,
@@ -253,6 +264,7 @@ const CompanyDetailsPage = () => {
             isDraft: false,
         };
         localStorage.setItem('gw_settings', JSON.stringify(data));
+        try { await settingsService.saveCompanySettings(data, false); } catch { /* localStorage already saved */ }
         setSaved(data);
         setEditing(false);
         setSaving(false);

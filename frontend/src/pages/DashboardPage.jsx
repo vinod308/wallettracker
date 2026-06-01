@@ -9,6 +9,7 @@ import React, { useMemo, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import useClientData from '../hooks/useClientData';
+import settingsService from '../services/settingsService';
 import { useNotifications } from '../context/NotificationContext';
 import MainLayout from '../components/layout/MainLayout';
 import KPISection from '../components/dashboard/KPISection';
@@ -31,11 +32,35 @@ const DashboardPage = () => {
     const [companySettings, setCompanySettings] = useState(() =>
         JSON.parse(localStorage.getItem('gw_settings') || 'null')
     );
-    // Show onboarding only for brand-new users who haven't entered any company info yet.
-    // If they already have a company name saved (even as draft), or have dismissed before, skip it.
-    const needsOnboarding = !companySettings?.companyName &&
-                            !localStorage.getItem('gw_onboarding_dismissed');
-    const [showOnboarding, setShowOnboarding] = useState(needsOnboarding);
+    const [showOnboarding, setShowOnboarding] = useState(false);
+
+    // On mount: load company settings from server to check onboarding state.
+    // This ensures the correct state is shown on any browser / device.
+    useEffect(() => {
+        settingsService.getCompanySettings().then(serverSettings => {
+            if (serverSettings && serverSettings.companyName) {
+                // Settings exist on server — sync to localStorage and skip onboarding
+                localStorage.setItem('gw_settings', JSON.stringify(serverSettings));
+                localStorage.setItem('gw_onboarding_dismissed', 'true');
+                setCompanySettings(serverSettings);
+                setShowOnboarding(false);
+            } else {
+                // No settings on server — show onboarding if not already dismissed locally
+                const dismissed = localStorage.getItem('gw_onboarding_dismissed');
+                const localSettings = JSON.parse(localStorage.getItem('gw_settings') || 'null');
+                if (!localSettings?.companyName && !dismissed) {
+                    setShowOnboarding(true);
+                }
+            }
+        }).catch(() => {
+            // Server unreachable — fall back to localStorage
+            const localSettings = JSON.parse(localStorage.getItem('gw_settings') || 'null');
+            const dismissed = localStorage.getItem('gw_onboarding_dismissed');
+            if (!localSettings?.companyName && !dismissed) {
+                setShowOnboarding(true);
+            }
+        });
+    }, []);
 
     const handleOnboardingComplete = (data) => {
         setCompanySettings(data);

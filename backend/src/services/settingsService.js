@@ -254,6 +254,43 @@ class SettingsService {
             throw error;
         }
     }
+    /**
+     * Get company settings for a user
+     */
+    async getCompanySettings(userId) {
+        try {
+            const { rows } = await pool.query(
+                `SELECT settings, is_draft, updated_at FROM company_settings WHERE user_id = $1`,
+                [userId]
+            );
+            if (rows.length === 0) return null;
+            return { ...rows[0].settings, isDraft: rows[0].is_draft, updatedAt: rows[0].updated_at };
+        } catch (error) {
+            logger.error(`Error getting company settings for user ${userId}:`, error);
+            throw error;
+        }
+    }
+
+    /**
+     * Save (upsert) company settings for a user
+     */
+    async saveCompanySettings(userId, settings, isDraft = false) {
+        try {
+            const { rows } = await pool.query(
+                `INSERT INTO company_settings (user_id, settings, is_draft, updated_at)
+                 VALUES ($1, $2, $3, NOW())
+                 ON CONFLICT (user_id) DO UPDATE
+                   SET settings = $2, is_draft = $3, updated_at = NOW()
+                 RETURNING settings, is_draft, updated_at`,
+                [userId, JSON.stringify(settings), isDraft]
+            );
+            logger.info(`Company settings saved for user ${userId} (draft=${isDraft})`);
+            return { ...rows[0].settings, isDraft: rows[0].is_draft, updatedAt: rows[0].updated_at };
+        } catch (error) {
+            logger.error(`Error saving company settings for user ${userId}:`, error);
+            throw error;
+        }
+    }
 }
 
 module.exports = new SettingsService();

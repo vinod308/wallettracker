@@ -64,6 +64,24 @@ const settingsService = {
         const response = await api.put(`/settings/users/${userId}/role`, { role });
         return response.data;
     },
+
+    /**
+     * Get company settings from the server (source of truth across all browsers/devices)
+     */
+    async getCompanySettings() {
+        const response = await api.get('/settings/company');
+        return response.data?.data?.settings || null;
+    },
+
+    /**
+     * Save company settings to the server and update localStorage cache
+     */
+    async saveCompanySettings(settings, isDraft = false) {
+        const response = await api.put('/settings/company', { settings, isDraft });
+        const saved = response.data?.data?.settings || settings;
+        localStorage.setItem('gw_settings', JSON.stringify(saved));
+        return saved;
+    },
 };
 
 export default settingsService;

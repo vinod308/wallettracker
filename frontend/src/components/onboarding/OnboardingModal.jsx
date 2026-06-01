@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { INDIA_STATES } from '../../utils/indiaStates';
+import settingsService from '../../services/settingsService';
 
 const GST_RE  = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
 const PAN_RE  = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
@@ -202,7 +203,7 @@ const OnboardingModal = ({ isOpen, onComplete, onSkip }) => {
     const next = () => { if (validate(step)) setStep(s => s + 1); };
     const back = () => { setErrors({}); setStep(s => s - 1); };
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         setSaving(true);
         const data = {
             ...form,
@@ -218,6 +219,8 @@ const OnboardingModal = ({ isOpen, onComplete, onSkip }) => {
             isDraft: false,
         };
         localStorage.setItem('gw_settings', JSON.stringify(data));
+        localStorage.setItem('gw_onboarding_dismissed', 'true');
+        try { await settingsService.saveCompanySettings(data, false); } catch { /* localStorage already saved */ }
         setSaving(false);
         onComplete(data);
     };

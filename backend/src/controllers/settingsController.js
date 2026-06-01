@@ -116,6 +116,38 @@ class SettingsController {
             next(error);
         }
     }
+
+    /**
+     * GET /api/settings/company
+     * Get company settings for the logged-in user
+     */
+    async getCompanySettings(req, res, next) {
+        try {
+            const settings = await settingsService.getCompanySettings(req.user.id);
+            return res.json(successResponse('Company settings fetched', { settings }));
+        } catch (error) {
+            logger.error('Error in getCompanySettings:', error);
+            next(error);
+        }
+    }
+
+    /**
+     * PUT /api/settings/company
+     * Save company settings for the logged-in user
+     */
+    async saveCompanySettings(req, res, next) {
+        try {
+            const { settings, isDraft = false } = req.body;
+            if (!settings || typeof settings !== 'object') {
+                return res.status(400).json({ error: 'settings object is required' });
+            }
+            const saved = await settingsService.saveCompanySettings(req.user.id, settings, isDraft);
+            return res.json(successResponse('Company settings saved', { settings: saved }));
+        } catch (error) {
+            logger.error('Error in saveCompanySettings:', error);
+            next(error);
+        }
+    }
 }
 
 module.exports = new SettingsController();
