@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MoneyGence — QC Test Report</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50:  '#f5f3ff',
+              100: '#ede9fe',
+              200: '#ddd6fe',
+              300: '#c4b5fd',
+              400: '#a78bfa',
+              500: '#8b5cf6',
+              600: '#7c3aed',
+              700: '#6d28d9',
+              800: '#5b21b6',
+              900: '#4c1d95',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+    * { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; }
+
+    .gradient-header {
+      background: linear-gradient(135deg, #4c1d95 0%, #6d28d9 40%, #7c3aed 70%, #8b5cf6 100%);
+    }
+    .gradient-section-bar {
+      background: linear-gradient(90deg, #6d28d9, #8b5cf6);
+    }
+    .section-card {
+      border-left: 4px solid #7c3aed;
+      transition: box-shadow 0.2s;
+    }
+    .section-card:hover {
+      box-shadow: 0 4px 24px rgba(124,58,237,0.10);
+    }
+
+    /* Radio buttons */
+    .radio-pass:checked { accent-color: #16a34a; }
+    .radio-fail:checked { accent-color: #dc2626; }
+
+    /* Checkbox */
+    input[type="checkbox"] { accent-color: #7c3aed; }
+
+    /* Sticky summary bar */
+    #summary-bar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(8px);
+      background: rgba(255,255,255,0.92);
+      border-bottom: 2px solid #ede9fe;
+    }
+
+    /* Print styles */
+    @media print {
+      #summary-bar { position: relative; }
+      .no-print { display: none !important; }
+      .section-card { break-inside: avoid; }
+      body { background: white !important; }
+    }
+
+    /* Animations */
+    .stat-pill {
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .stat-pill:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 36px;
+    }
+
+    .test-row:nth-child(even) {
+      background-color: #faf9ff;
+    }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+  <!-- ═══════════════════ HEADER ═══════════════════ -->
+  <header class="gradient-header text-white shadow-xl">
+    <div class="max-w-7xl mx-auto px-6 py-8">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+
+        <!-- Brand -->
+        <div class="flex items-center gap-4">
+          <div class="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center shadow-lg border border-white/30">
+            <svg class="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+          </div>
+          <div>
+            <div class="text-xs font-semibold uppercase tracking-widest text-violet-200 mb-0.5">MoneyGence</div>
+            <h1 class="text-3xl font-extrabold tracking-tight">QC Test Report</h1>
+            <p class="text-violet-200 text-sm mt-1">AI Finance OS — Quality Control Checklist</p>
+          </div>
+        </div>
+
+        <!-- Tester info -->
+        <div class="bg-white/10 backdrop-blur rounded-2xl p-5 border border-white/20 min-w-[280px]">
+          <div class="grid grid-cols-1 gap-3">
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-violet-200 mb-1">Tester Name</label>
+              <input id="testerName" type="text" placeholder="Enter your full name"
+                class="w-full bg-white/20 border border-white/30 text-white placeholder-white/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-white/60" />
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-violet-200 mb-1">Test Date</label>
+                <input id="testDate" type="date"
+                  class="w-full bg-white/20 border border-white/30 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-white/60" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-violet-200 mb-1">Environment</label>
+                <select id="testEnv"
+                  class="w-full bg-white/20 border border-white/30 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-white/60">
+                  <option value="production" class="text-gray-800">Production</option>
+                  <option value="staging" class="text-gray-800">Staging</option>
+                  <option value="local" class="text-gray-800">Local Dev</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- ═══════════════════ STICKY SUMMARY BAR ═══════════════════ -->
+  <div id="summary-bar" class="shadow-sm">
+    <div class="max-w-7xl mx-auto px-6 py-3 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <span class="text-sm font-semibold text-gray-600">Live Summary:</span>
+
+        <span id="stat-pass" class="stat-pill inline-flex items-center gap-1.5 bg-green-50 text-green-700 border border-green-200 rounded-full px-3 py-1 text-sm font-bold">
+          <span class="w-2 h-2 rounded-full bg-green-500"></span>
+          Pass: <span id="passCount">0</span>
+        </span>
+
+        <span id="stat-fail" class="stat-pill inline-flex items-center gap-1.5 bg-red-50 text-red-700 border border-red-200 rounded-full px-3 py-1 text-sm font-bold">
+          <span class="w-2 h-2 rounded-full bg-red-500"></span>
+          Fail: <span id="failCount">0</span>
+        </span>
+
+        <span id="stat-pending" class="stat-pill inline-flex items-center gap-1.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-full px-3 py-1 text-sm font-bold">
+          <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+          Pending: <span id="pendingCount">0</span>
+        </span>
+
+        <span class="stat-pill inline-flex items-center gap-1.5 bg-violet-50 text-violet-700 border border-violet-200 rounded-full px-3 py-1 text-sm font-bold">
+          Total: <span id="totalCount">0</span>
+        </span>
+      </div>
+
+      <!-- Progress bar -->
+      <div class="flex items-center gap-3 flex-1 max-w-xs">
+        <div class="flex-1 bg-gray-200 rounded-full h-2.5 overflow-hidden">
+          <div id="progressBar" class="h-2.5 rounded-full bg-gradient-to-r from-violet-500 to-green-500 transition-all duration-500" style="width: 0%"></div>
+        </div>
+        <span id="progressPct" class="text-sm font-bold text-gray-600 w-10 text-right">0%</span>
+      </div>
+
+      <!-- Action buttons -->
+      <div class="flex gap-2 no-print">
+        <button onclick="resetAll()"
+          class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold px-3 py-1.5 rounded-lg transition-colors">
+          Reset All
+        </button>
+        <button onclick="window.print()"
+          class="text-xs bg-violet-600 hover:bg-violet-700 text-white font-semibold px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+          Print
+        </button>
+        <button onclick="exportPDF()"
+          class="text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          Export PDF
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ MAIN CONTENT ═══════════════════ -->
+  <main class="max-w-7xl mx-auto px-6 py-8 space-y-8" id="checklistMain">
+
+    <!-- ─────────────────────────────────────────────────────────
+         SECTION 1: AUTH & ACCESS
+    ───────────────────────────────────────────────────────────── -->
+    <section class="section-card bg-white rounded-2xl shadow-sm overflow-hidden">
+      <div class="gradient-section-bar px-6 py-4 flex items-center gap-3">
+        <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+          <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+        </div>
+        <div>
+          <h2 class="text-white font-bold text-lg">Auth &amp; Access Control</h2>
+          <p class="text-violet-200 text-xs">Login, signup, session management, role-based access</p>
+        </div>
+        <div class="ml-auto" id="sectionSummary-auth"></div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="bg-violet-50 text-violet-800">
+              <th class="px-4 py-3 text-left font-semibold w-8">#</th>
+              <th class="px-4 py-3 text-left font-semibold">Test Case</th>
+              <th class="px-4 py-3 text-left font-semibold min-w-[200px]">Expected Result</th>
+              <th class="px-4 py-3 text-center font-semibold w-32">Result</th>
+              <th class="px-4 py-3 text-left font-semibold min-w-[180px]">Notes</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-auth">
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────────────────────────
+         SECTION 2: DASHBOARD
+    ───────────────────────────────────────────────────────────── -->
+    <section class="section-card bg-white rounded-2xl shadow-sm overflow-hidden">
+      <div class="gradient-section-bar px-6 py-4 flex items-center gap-3">
+        <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+          <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        </div>
+        <div>
+          <h2 class="text-white font-bold text-lg">Dashboard</h2>
+          <p class="text-violet-200 text-xs">KPI cards, charts, navigation, real-time data</p>
+        </div>
+        <div class="ml-auto" id="sectionSummary-dashboard"></div>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="bg-violet-50 text-violet-800">
+              <th class="px-4 py-3 text-left font-semibold w-8">#</th>
+              <th class="px-4 py-3 text-left font-semibold">Test Case</th>
+              <th class="px-4 py-3 text-left font-semibold min-w-[200px]">Expected Result</th>
+              <th class="px-4 py-3 text-center font-semibold w-32">Result</th>
+              <th class="px-4 py-3 text-left font-semibold min-w-[180px]">Notes</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-dashboard"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────────────────────────
+         SECTION 3: CLIENT MANAGEMENT
+    ───────────────────────────────────────────────────────────── -->
+    <section class="section-card bg-white rounded-2xl shadow-sm overflow-hidden">
+      <div class="gradient-section-bar px-6 py-4 flex items-center gap-3">
+        <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+          <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        </div>
+        <div>
+          <h2 class="text-white font-bold text-lg">Client Management</h2>
+          <p class="text-violet-200 text-xs">Client list, onboarding, detail view, invoicing</p>
+        </div>
+        <div class="ml-auto" id="sectionSummary-clients"></div>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead><tr class="bg-violet-50 text-violet-800"><th class="px-4 py-3 text-left font-semibold w-8">#</th><th class="px-4 py-3 text-left font-semibold">Test Case</th><th class="px-4 py-3 text-left font-semibold min-w-[200px]">Expected Result</th><th class="px-4 py-3 text-center font-semibold w-32">Result</th><th class="px-4 py-3 text-left font-semibold min-w-[180px]">Notes</th></tr></thead>
+          <tbody id="tbody-clients"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────────────────────────
+         SECTION 4: VENDOR MANAGEMENT
+    ───────────────────────────────────────────────────────────── -->
+    <section class="section-card bg-white rounded-2xl shadow-sm overflow-hidden">
+      <div class="gradient-section-bar px-6 py-4 flex items-center gap-3">
+        <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+          <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-2 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+        </div>
+        <div>
+          <h2 class="text-white font-bold text-lg">Vendor Management</h2>
+          <p class="text-violet-200 text-xs">Vendor directory, onboarding, invoices, status tracking</p>
+        </div>
+        <div class="ml-auto" id="sectionSummary-vendors"></div>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead><tr class="bg-violet-50 text-violet-800"><th class="px-4 py-3 text-left font-semibold w-8">#</th><th class="px-4 py-3 text-left font-semibold">Test Case</th><th class="px-4 py-3 text-left font-semibold min-w-[200px]">Expected Result</th><th class="px-4 py-3 text-center font-semibold w-32">Result</th><th class="px-4 py-3 text-left font-semibold min-w-[180px]">Notes</th></tr></thead>
+          <tbody id="tbody-vendors"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────────────────────────
+         SECTION 5: EMPLOYEE MANAGEMENT
+    ───────────────────────────────────────────────────────────── -->
+    <section class="section-card bg-white rounded-2xl shadow-sm overflow-hidden">
+      <div class="gradient-section-bar px-6 py-4 flex items-center gap-3">
+        <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+          <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+        </div>
+        <div>
+          <h2 class="text-white font-bold text-lg">Employee Management</h2>
+          <p class="text-violet-200 text-xs">Employee directory, payroll, salary slips, PI docs</p>
+        </div>
+        <div class="ml-auto" id="sectionSummary-employees"></div>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead><tr class="bg-violet-50 text-violet-800"><th class="px-4 py-3 text-left font-semibold w-8">#</th><th class="px-4 py-3 text-left font-semibold">Test Case</th><th class="px-4 py-3 text-left font-semibold min-w-[200px]">Expected Result</th><th class="px-4 py-3 text-center font-semibold w-32">Result</th><th class="px-4 py-3 text-left font-semibold min-w-[180px]">Notes</th></tr></thead>
+          <tbody id="tbody-employees"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────────────────────────
+         SECTION 6: BALANCE SHEET
+    ───────────────────────────────────────────────────────────── -->
+    <section class="section-card bg-white rounded-2xl shadow-sm overflow-hidden">
+      <div class="gradient-section-bar px-6 py-4 flex items-center gap-3">
+        <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+          <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        </div>
+        <div>
+          <h2 class="text-white font-bold text-lg">Finance — Balance Sheet</h2>
+          <p class="text-violet-200 text-xs">P&amp;L overview, FY selector, quarterly breakdown, export</p>
+        </div>
+        <div class="ml-auto" id="sectionSummary-balancesheet"></div>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead><tr class="bg-violet-50 text-violet-800"><th class="px-4 py-3 text-left font-semibold w-8">#</th><th class="px-4 py-3 text-left font-semibold">Test Case</th><th class="px-4 py-3 text-left font-semibold min-w-[200px]">Expected Result</th><th class="px-4 py-3 text-center font-semibold w-32">Result</th><th class="px-4 py-3 text-left font-semibold min-w-[180px]">Notes</th></tr></thead>
+          <tbody id="tbody-balancesheet"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────────────────────────
+         SECTION 7: BANK RECONCILIATION
+    ───────────────────────────────────────────────────────────── -->
+    <section class="section-card bg-white rounded-2xl shadow-sm overflow-hidden">
+      <div class="gradient-section-bar px-6 py-4 flex items-center gap-3">
+        <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+          <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+        </div>
+        <div>
+          <h2 class="text-white font-bold text-lg">Finance — Bank Reconciliation</h2>
+          <p class="text-violet-200 text-xs">CSV upload, AI matching, reconciliation wizard</p>
+        </div>
+        <div class="ml-auto" id="sectionSummary-bankrecon"></div>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead><tr class="bg-violet-50 text-violet-800"><th class="px-4 py-3 text-left font-semibold w-8">#</th><th class="px-4 py-3 text-left font-semibold">Test Case</th><th class="px-4 py-3 text-left font-semibold min-w-[200px]">Expected Result</th><th class="px-4 py-3 text-center font-semibold w-32">Result</th><th class="px-4 py-3 text-left font-semibold min-w-[180px]">Notes</th></tr></thead>
+          <tbody id="tbody-bankrecon"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────────────────────────
+         SECTION 8: REIMBURSEMENTS
+    ───────────────────────────────────────────────────────────── -->
+    <section class="section-card bg-white rounded-2xl shadow-sm overflow-hidden">
+      <div class="gradient-section-bar px-6 py-4 flex items-center gap-3">
+        <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+          <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+        </div>
+        <div>
+          <h2 class="text-white font-bold text-lg">Finance — Reimbursements</h2>
+          <p class="text-violet-200 text-xs">Expense claims, approval workflow, CSV import</p>
+        </div>
+        <div class="ml-auto" id="sectionSummary-reimbursements"></div>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead><tr class="bg-violet-50 text-violet-800"><th class="px-4 py-3 text-left font-semibold w-8">#</th><th class="px-4 py-3 text-left font-semibold">Test Case</th><th class="px-4 py-3 text-left font-semibold min-w-[200px]">Expected Result</th><th class="px-4 py-3 text-center font-semibold w-32">Result</th><th class="px-4 py-3 text-left font-semibold min-w-[180px]">Notes</th></tr></thead>
+          <tbody id="tbody-reimbursements"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────────────────────────
+         SECTION 9: REPORTS
+    ───────────────────────────────────────────────────────────── -->
+    <section class="section-card bg-white rounded-2xl shadow-sm overflow-hidden">
+      <div class="gradient-section-bar px-6 py-4 flex items-center gap-3">
+        <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+          <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        </div>
+        <div>
+          <h2 class="text-white font-bold text-lg">Reports</h2>
+          <p class="text-violet-200 text-xs">Revenue reports, date filters, export to PDF/CSV</p>
+        </div>
+        <div class="ml-auto" id="sectionSummary-reports"></div>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead><tr class="bg-violet-50 text-violet-800"><th class="px-4 py-3 text-left font-semibold w-8">#</th><th class="px-4 py-3 text-left font-semibold">Test Case</th><th class="px-4 py-3 text-left font-semibold min-w-[200px]">Expected Result</th><th class="px-4 py-3 text-center font-semibold w-32">Result</th><th class="px-4 py-3 text-left font-semibold min-w-[180px]">Notes</th></tr></thead>
+          <tbody id="tbody-reports"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────────────────────────
+         SECTION 10: SETTINGS
+    ───────────────────────────────────────────────────────────── -->
+    <section class="section-card bg-white rounded-2xl shadow-sm overflow-hidden">
+      <div class="gradient-section-bar px-6 py-4 flex items-center gap-3">
+        <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+          <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        </div>
+        <div>
+          <h2 class="text-white font-bold text-lg">Settings</h2>
+          <p class="text-violet-200 text-xs">Company details, profile, password change, notifications</p>
+        </div>
+        <div class="ml-auto" id="sectionSummary-settings"></div>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead><tr class="bg-violet-50 text-violet-800"><th class="px-4 py-3 text-left font-semibold w-8">#</th><th class="px-4 py-3 text-left font-semibold">Test Case</th><th class="px-4 py-3 text-left font-semibold min-w-[200px]">Expected Result</th><th class="px-4 py-3 text-center font-semibold w-32">Result</th><th class="px-4 py-3 text-left font-semibold min-w-[180px]">Notes</th></tr></thead>
+          <tbody id="tbody-settings"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────────────────────────
+         SECTION 11: LANDING PAGE
+    ───────────────────────────────────────────────────────────── -->
+    <section class="section-card bg-white rounded-2xl shadow-sm overflow-hidden">
+      <div class="gradient-section-bar px-6 py-4 flex items-center gap-3">
+        <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+          <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
+        </div>
+        <div>
+          <h2 class="text-white font-bold text-lg">Landing Page</h2>
+          <p class="text-violet-200 text-xs">Public marketing page, pricing, CTA, mobile responsiveness</p>
+        </div>
+        <div class="ml-auto" id="sectionSummary-landing"></div>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead><tr class="bg-violet-50 text-violet-800"><th class="px-4 py-3 text-left font-semibold w-8">#</th><th class="px-4 py-3 text-left font-semibold">Test Case</th><th class="px-4 py-3 text-left font-semibold min-w-[200px]">Expected Result</th><th class="px-4 py-3 text-center font-semibold w-32">Result</th><th class="px-4 py-3 text-left font-semibold min-w-[180px]">Notes</th></tr></thead>
+          <tbody id="tbody-landing"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ─────────────────────────────────────────────────────────
+         FINAL SUMMARY CARD
+    ───────────────────────────────────────────────────────────── -->
+    <section class="bg-white rounded-2xl shadow-sm overflow-hidden border border-violet-100">
+      <div class="px-6 py-5 border-b border-gray-100">
+        <h2 class="text-xl font-bold text-gray-800">Final Sign-off Summary</h2>
+        <p class="text-gray-500 text-sm mt-1">Auto-calculated from all test results above</p>
+      </div>
+      <div class="p-6">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <div class="bg-green-50 border border-green-200 rounded-xl p-4 text-center">
+            <div id="finalPass" class="text-4xl font-extrabold text-green-600">0</div>
+            <div class="text-green-700 font-semibold text-sm mt-1">Passed</div>
+          </div>
+          <div class="bg-red-50 border border-red-200 rounded-xl p-4 text-center">
+            <div id="finalFail" class="text-4xl font-extrabold text-red-600">0</div>
+            <div class="text-red-700 font-semibold text-sm mt-1">Failed</div>
+          </div>
+          <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 text-center">
+            <div id="finalPending" class="text-4xl font-extrabold text-amber-600">0</div>
+            <div class="text-amber-700 font-semibold text-sm mt-1">Pending</div>
+          </div>
+          <div class="bg-violet-50 border border-violet-200 rounded-xl p-4 text-center">
+            <div id="finalTotal" class="text-4xl font-extrabold text-violet-600">0</div>
+            <div class="text-violet-700 font-semibold text-sm mt-1">Total Tests</div>
+          </div>
+        </div>
+
+        <!-- Pass rate bar -->
+        <div class="mb-6">
+          <div class="flex justify-between text-sm font-semibold text-gray-600 mb-2">
+            <span>Overall Pass Rate</span>
+            <span id="passRatePct">0%</span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+            <div id="passRateBar" class="h-4 rounded-full transition-all duration-700 bg-gradient-to-r from-violet-500 to-green-500" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <!-- Overall verdict -->
+        <div id="verdictBox" class="rounded-xl p-4 bg-gray-50 border border-gray-200 text-center">
+          <div class="text-lg font-bold text-gray-400">Complete all tests to see verdict</div>
+        </div>
+
+        <!-- Tester sign-off -->
+        <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-semibold text-gray-600 mb-1">Overall Remarks</label>
+            <textarea id="overallRemarks" rows="3" placeholder="General observations, environment issues, blockers..."
+              class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-violet-300 focus:border-violet-400 outline-none"></textarea>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-600 mb-1">Sign-off</label>
+            <div class="flex flex-col gap-3">
+              <input type="text" id="signoffName" placeholder="Tester signature / name"
+                class="border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-violet-300 focus:border-violet-400 outline-none" />
+              <input type="date" id="signoffDate"
+                class="border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-violet-300 focus:border-violet-400 outline-none" />
+              <div class="flex items-center gap-2">
+                <input type="checkbox" id="approvedCheck" class="w-4 h-4" />
+                <label for="approvedCheck" class="text-sm font-semibold text-gray-700">I approve this build for release</label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Print / export row -->
+        <div class="mt-6 flex flex-wrap gap-3 no-print">
+          <button onclick="window.print()"
+            class="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white font-semibold px-5 py-2.5 rounded-xl transition-colors shadow-sm">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+            Print Report
+          </button>
+          <button onclick="exportPDF()"
+            class="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-5 py-2.5 rounded-xl transition-colors shadow-sm">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            Export as PDF
+          </button>
+          <button onclick="resetAll()"
+            class="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold px-5 py-2.5 rounded-xl transition-colors">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            Reset All
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="mt-12 py-6 text-center text-xs text-gray-400 no-print">
+    MoneyGence QC Test Report &mdash; Generated by MoneyGence Internal QA Tooling &mdash; Confidential
+  </footer>
+
+  <!-- ═══════════════════ JAVASCRIPT ═══════════════════ -->
+  <script>
+  'use strict';
+
+  // ─── Test data definitions ─────────────────────────────────────────────────
+  const SECTIONS = [
+    {
+      id: 'auth',
+      tests: [
+        { desc: 'Login page loads without errors', expected: 'Login form visible with email, password fields and Sign In button' },
+        { desc: 'Login with valid credentials', expected: 'Redirects to Dashboard, user name shown in header, session active' },
+        { desc: 'OTP email is sent on login', expected: 'OTP input screen appears; email received within 60 seconds' },
+        { desc: 'OTP verification completes login', expected: 'After correct OTP, user lands on Dashboard with full access' },
+        { desc: 'Login with incorrect password', expected: '401 error displayed: "Invalid email or password"' },
+        { desc: 'Login with unregistered email', expected: '401 error displayed; no account info leaked' },
+        { desc: 'Login rate limiter triggers after 5 failed attempts', expected: 'Account locked out with friendly message; unlocks after 15 minutes' },
+        { desc: 'Signup form loads and validates', expected: 'All validation rules enforced (uppercase, number, special char, name min 2 chars)' },
+        { desc: 'Signup with duplicate email', expected: '"Email already in use" error; no duplicate account created' },
+        { desc: 'Forgot Password — sends reset email', expected: 'Success message shown regardless of whether email exists (security)' },
+        { desc: 'Password reset with valid token', expected: 'New password accepted; user can log in with new credentials' },
+        { desc: 'Session persists on page refresh', expected: 'User remains logged in after browser refresh' },
+        { desc: 'Session expires after 30 minutes of inactivity', expected: 'Redirect to login with "Session expired" message' },
+        { desc: 'Logout clears session and cookie', expected: 'Redirected to login; back button does not show protected pages' },
+        { desc: 'Accessing protected route without auth', expected: 'Redirected to login page; 401 returned from API' },
+        { desc: 'Role-based access: non-Admin cannot delete clients', expected: '403 Forbidden returned; delete button hidden in UI for non-admins' },
+      ]
+    },
+    {
+      id: 'dashboard',
+      tests: [
+        { desc: 'Dashboard page loads within 3 seconds', expected: 'All sections render; no spinner stuck indefinitely' },
+        { desc: 'Total MRR KPI card displays correct value', expected: 'Shows ₹29,28,939 (or current total) with rupee formatting' },
+        { desc: 'Active Clients KPI card shows correct count', expected: 'Matches total active client records in DB' },
+        { desc: 'At-Risk Clients KPI card is highlighted', expected: 'Shows count of at-risk clients with orange/red indicator' },
+        { desc: 'Revenue trend chart renders', expected: 'Line/bar chart visible with monthly data points; tooltips work on hover' },
+        { desc: 'Client distribution chart renders', expected: 'Pie/donut chart shows industry breakdown with legend' },
+        { desc: 'Top clients list loads', expected: 'Top 5 clients shown with MRR values sorted descending' },
+        { desc: 'Sidebar navigation links work', expected: 'Each sidebar link navigates to correct page without full reload' },
+        { desc: 'Header shows logged-in user name and role', expected: 'Correct name and role displayed in header top-right' },
+        { desc: 'Mobile responsiveness — dashboard on 375px viewport', expected: 'KPI cards stack vertically; charts resize; sidebar collapses to hamburger' },
+      ]
+    },
+    {
+      id: 'clients',
+      tests: [
+        { desc: 'Client list page loads with all clients', expected: 'All 10 seed clients displayed in table/card view' },
+        { desc: 'Client search by name filters results', expected: 'Typing in search box live-filters the list; no page reload' },
+        { desc: 'Client filter by industry/status works', expected: 'Dropdown filters correctly narrow results' },
+        { desc: 'Pagination works on large client lists', expected: 'Next/Prev buttons work; correct page of results shown' },
+        { desc: 'Add Client modal opens and validates', expected: 'All required fields validated; empty submission shows inline errors' },
+        { desc: 'Add Client successfully saves to DB', expected: 'New client appears in list immediately; success toast shown' },
+        { desc: 'Duplicate client name check', expected: '"Client already exists" warning shown before submission' },
+        { desc: 'Client detail page loads with correct data', expected: 'Company name, MRR, services, contract status all displayed correctly' },
+        { desc: 'Generate Invoice from client detail', expected: 'Invoice PDF generated with correct client name, date, and amounts' },
+        { desc: 'Download Invoice PDF', expected: 'PDF downloads to browser; filename includes client name and month' },
+        { desc: 'Generate Purchase Order (PO) PDF', expected: 'PO PDF generated correctly with all service line items' },
+        { desc: 'Client monthly analytics chart renders', expected: 'Per-service breakdown chart shows for selected month' },
+        { desc: 'Update client status (Active → At Risk)', expected: 'Status badge updates in list and detail view; change persists' },
+        { desc: 'Delete client (Admin only)', expected: 'Client soft-deleted; no longer appears in active list' },
+        { desc: 'CSV import for clients', expected: 'Valid CSV accepted; rows imported; errors shown for invalid rows' },
+      ]
+    },
+    {
+      id: 'vendors',
+      tests: [
+        { desc: 'Vendor list page loads (Registered DB tab)', expected: 'All vendors from database shown in table; tabs work' },
+        { desc: 'Vendor search by name filters list', expected: 'Live search narrows vendor list correctly' },
+        { desc: 'Add Vendor modal opens with valid form', expected: 'Form fields present: name, email, GST, category, bank details' },
+        { desc: 'Add Vendor saves successfully', expected: 'Vendor appears in list; toast confirmation shown' },
+        { desc: 'Vendor detail page loads', expected: 'Contact info, GST, bank details, invoice history displayed' },
+        { desc: 'Vendor self-registration (public signup)', expected: 'Vendor can register via /vendor-signup without auth; receives confirmation' },
+        { desc: 'Vendor raises invoice (vendor role)', expected: 'Invoice created with correct amount; status shows Pending' },
+        { desc: 'Admin approves vendor invoice', expected: 'Invoice status changes to Approved; vendor notified' },
+        { desc: 'Admin rejects vendor invoice with reason', expected: 'Status changes to Rejected; reason stored and visible' },
+        { desc: 'Update vendor status (Active/Inactive)', expected: 'Status badge updates; inactive vendor flagged in list' },
+        { desc: 'Vendor import via CSV', expected: 'CSV parsed; valid rows imported; invalid rows rejected with row-level errors' },
+      ]
+    },
+    {
+      id: 'employees',
+      tests: [
+        { desc: 'Employee list page loads with all employees', expected: 'All employee records displayed with name, role, department, salary' },
+        { desc: 'Employee search and filter', expected: 'Search by name and filter by department work correctly' },
+        { desc: 'Add Employee modal opens with all fields', expected: 'Form includes: name, role, department, salary, bank details, joining date' },
+        { desc: 'Add Employee saves to DB successfully', expected: 'New employee visible in list; success notification shown' },
+        { desc: 'Employee detail page shows full profile', expected: 'All personal and payroll details displayed correctly' },
+        { desc: 'Generate Salary Slip PDF', expected: 'PDF generated with correct employee name, month, gross/net salary, deductions' },
+        { desc: 'Generate PI (Personal Information) document', expected: 'PI PDF generated with all employee personal details filled' },
+        { desc: 'Edit employee details saves correctly', expected: 'Updated fields persist after save; list reflects changes' },
+        { desc: 'Employee count shown correctly on dashboard', expected: 'Dashboard employee KPI matches total active employees' },
+      ]
+    },
+    {
+      id: 'balancesheet',
+      tests: [
+        { desc: 'Balance Sheet page loads without errors', expected: 'Page renders with income, expenses, and net sections visible' },
+        { desc: 'Financial Year selector shows correct FY options', expected: 'Current FY pre-selected; switching FY updates data' },
+        { desc: 'Quarterly breakdown tab works', expected: 'Q1–Q4 breakdown displayed with correct month assignments' },
+        { desc: 'Monthly drill-down for a quarter', expected: 'Clicking a quarter shows 3-month breakdown' },
+        { desc: 'Total Revenue matches sum of client MRR', expected: 'Revenue figure consistent with client MRR totals for the period' },
+        { desc: 'Total Expenses shows vendor + employee + reimbursement costs', expected: 'All cost categories summed correctly' },
+        { desc: 'Net Profit/Loss calculated correctly', expected: 'Net = Revenue − Expenses; positive shown in green, negative in red' },
+        { desc: 'Export Balance Sheet as CSV', expected: 'CSV downloads with all rows and correct column headers' },
+        { desc: 'Chart visualization renders correctly', expected: 'Bar or line chart shows revenue vs expenses over time' },
+      ]
+    },
+    {
+      id: 'bankrecon',
+      tests: [
+        { desc: 'Bank Recon page loads with empty state', expected: 'Upload prompt shown when no statements uploaded' },
+        { desc: 'CSV bank statement upload succeeds', expected: 'File accepted; transactions parsed and displayed in table' },
+        { desc: 'Invalid CSV rejected with error message', expected: 'Non-CSV or malformed file shows clear error; no partial import' },
+        { desc: 'AI matching suggests correct matches', expected: 'Transactions matched to invoices/expenses with confidence score' },
+        { desc: 'Manual match — link transaction to invoice', expected: 'Dropdown shows relevant invoices; linking updates status to Matched' },
+        { desc: 'Reconciliation wizard completes end-to-end', expected: 'Walk through all unmatched items; summary shows reconciled/unreconciled count' },
+        { desc: 'Unmatched transactions flagged for review', expected: 'Unmatched items highlighted in amber/red; "Needs Review" badge shown' },
+        { desc: 'Download reconciliation report', expected: 'PDF or CSV report of matched/unmatched items downloads correctly' },
+        { desc: 'Statement list persists across sessions', expected: 'Uploaded statements still visible after logout and re-login' },
+      ]
+    },
+    {
+      id: 'reimbursements',
+      tests: [
+        { desc: 'Reimbursements list page loads', expected: 'All reimbursement claims shown with status badges (Pending/Approved/Rejected)' },
+        { desc: 'Add new reimbursement claim', expected: 'Form accepts: amount, category, date, receipt upload, description' },
+        { desc: 'Receipt file upload works (image/PDF)', expected: 'File accepted; preview or filename shown; stored correctly' },
+        { desc: 'Submit claim changes status to Pending', expected: 'New claim visible in list with Pending badge' },
+        { desc: 'Admin approves a reimbursement claim', expected: 'Status changes to Approved; claimant sees updated status' },
+        { desc: 'Admin rejects with reason', expected: 'Status changes to Rejected; rejection reason visible to claimant' },
+        { desc: 'Filter claims by status (Pending/Approved/Rejected)', expected: 'Filter chips narrow the list correctly' },
+        { desc: 'Filter claims by date range', expected: 'Date range picker works; results bounded by selected dates' },
+        { desc: 'Import reimbursements via CSV', expected: 'CSV accepted; valid rows imported; summary of imported vs skipped shown' },
+        { desc: 'Total reimbursements shown in balance sheet', expected: 'Approved reimbursement totals reflected in expense section of balance sheet' },
+      ]
+    },
+    {
+      id: 'reports',
+      tests: [
+        { desc: 'Reports page loads with default date range', expected: 'Current month data shown by default; no loading errors' },
+        { desc: 'Date range filter updates report data', expected: 'Selecting a custom range refreshes charts and tables correctly' },
+        { desc: 'Client revenue report by period', expected: 'Correct MRR/revenue per client for selected period' },
+        { desc: 'Vendor spend report', expected: 'Total vendor payments for the period displayed correctly' },
+        { desc: 'Employee cost report', expected: 'Salary totals per department and overall shown correctly' },
+        { desc: 'Export report as PDF', expected: 'PDF generated with header, date range, tables, and charts' },
+        { desc: 'Export report as CSV', expected: 'CSV downloaded with all data rows and column headers' },
+        { desc: 'Year-over-year comparison view', expected: 'Current vs previous year figures shown side-by-side' },
+      ]
+    },
+    {
+      id: 'settings',
+      tests: [
+        { desc: 'Settings page loads all tabs', expected: 'Profile, Company, Security, Notifications tabs all render' },
+        { desc: 'Update company name and save', expected: 'New name persists after page refresh; shown in header/reports' },
+        { desc: 'Update company address and GST number', expected: 'GST number validated (15-char format); saved correctly' },
+        { desc: 'Upload company logo', expected: 'Image accepted; preview shown; logo appears in invoices/PDFs' },
+        { desc: 'Update user profile name and email', expected: 'Changes saved; new email requires re-verification if changed' },
+        { desc: 'Change password — all validation rules enforced', expected: 'Old password required; new must meet strength policy; mismatch shows error' },
+        { desc: 'Notification preferences toggles save', expected: 'Toggle states persist after page refresh' },
+        { desc: 'Subscription plan displayed correctly', expected: 'Current plan name, billing cycle, next renewal date shown' },
+        { desc: 'Upgrade plan CTA works', expected: 'Upgrade modal opens with plan options; pricing cards displayed' },
+      ]
+    },
+    {
+      id: 'landing',
+      tests: [
+        { desc: 'Landing page loads within 3 seconds', expected: 'Hero section fully visible; no broken images or layout shifts' },
+        { desc: 'Hero section headline and CTA visible', expected: '"AI Finance OS" or brand headline present; "Get Started" / "Try Free" CTA prominent' },
+        { desc: 'Features section renders all feature cards', expected: 'All product feature cards displayed with icons and descriptions' },
+        { desc: 'How It Works section visible', expected: 'Step-by-step flow shown with numbered steps and illustrations' },
+        { desc: 'Pricing section shows all plans', expected: 'All pricing tiers visible with price, features list, and CTA button' },
+        { desc: 'Pricing CTA links to signup page', expected: 'Clicking "Get Started" on a plan card goes to /signup' },
+        { desc: 'Navigation bar — all links work', expected: 'Features, Pricing, Contact links scroll to correct sections or pages' },
+        { desc: 'Login link in nav goes to /login', expected: 'Redirects to login page correctly' },
+        { desc: 'Mobile responsive at 375px (iPhone SE)', expected: 'Hamburger menu appears; text readable; no horizontal overflow' },
+        { desc: 'Mobile responsive at 768px (tablet)', expected: 'Layout adjusts to 2-column where applicable; no broken grids' },
+        { desc: 'Footer links present and functional', expected: 'Privacy Policy, Terms of Service, Contact links exist' },
+        { desc: 'Page meta title and description present', expected: 'Browser tab shows "MoneyGence" or branded title; og:image set' },
+      ]
+    },
+  ];
+
+  // ─── Build table rows ──────────────────────────────────────────────────────
+  let globalTestIndex = 0;
+
+  function buildRows() {
+    SECTIONS.forEach(section => {
+      const tbody = document.getElementById(`tbody-${section.id}`);
+      section.tests.forEach((test, localIdx) => {
+        globalTestIndex++;
+        const idx = globalTestIndex;
+        const rowId = `row-${section.id}-${localIdx}`;
+
+        const tr = document.createElement('tr');
+        tr.id = rowId;
+        tr.className = 'test-row border-b border-gray-100 last:border-0';
+
+        tr.innerHTML = `
+          <td class="px-4 py-3 text-gray-400 font-mono text-xs align-top pt-4">${idx}</td>
+          <td class="px-4 py-3 align-top">
+            <div class="flex items-start gap-2">
+              <input type="checkbox"
+                class="mt-0.5 w-4 h-4 flex-shrink-0 cursor-pointer"
+                id="chk-${section.id}-${localIdx}"
+                data-section="${section.id}"
+                data-local="${localIdx}"
+                onchange="onCheckChange(this)"
+              />
+              <label for="chk-${section.id}-${localIdx}" class="cursor-pointer text-gray-800 font-medium leading-snug">
+                ${test.desc}
+              </label>
+            </div>
+          </td>
+          <td class="px-4 py-3 align-top text-gray-500 text-xs leading-relaxed">${test.expected}</td>
+          <td class="px-4 py-3 align-top text-center">
+            <div class="flex flex-col items-center gap-1.5">
+              <label class="flex items-center gap-1.5 cursor-pointer text-green-700 text-xs font-semibold">
+                <input type="radio" class="radio-pass w-3.5 h-3.5"
+                  name="result-${section.id}-${localIdx}"
+                  value="pass"
+                  data-section="${section.id}"
+                  onchange="onResultChange(this)"
+                /> Pass
+              </label>
+              <label class="flex items-center gap-1.5 cursor-pointer text-red-700 text-xs font-semibold">
+                <input type="radio" class="radio-fail w-3.5 h-3.5"
+                  name="result-${section.id}-${localIdx}"
+                  value="fail"
+                  data-section="${section.id}"
+                  onchange="onResultChange(this)"
+                /> Fail
+              </label>
+            </div>
+          </td>
+          <td class="px-4 py-3 align-top">
+            <textarea
+              class="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:ring-1 focus:ring-violet-300 focus:border-violet-400 outline-none text-gray-600 placeholder-gray-300"
+              placeholder="Optional notes…"
+              rows="2"
+              data-section="${section.id}"
+            ></textarea>
+          </td>
+        `;
+
+        tbody.appendChild(tr);
+      });
+    });
+  }
+
+  // ─── Event handlers ────────────────────────────────────────────────────────
+
+  function onCheckChange(checkbox) {
+    updateStats();
+  }
+
+  function onResultChange(radio) {
+    // Auto-check the test case when a result is selected
+    const sectionId = radio.dataset.section;
+    const name = radio.name; // e.g. result-auth-0
+    const localIdx = name.split('-').pop();
+    const chk = document.getElementById(`chk-${sectionId}-${localIdx}`);
+    if (chk && !chk.checked) {
+      chk.checked = true;
+    }
+    updateStats();
+  }
+
+  // ─── Stats calculation ─────────────────────────────────────────────────────
+
+  function updateStats() {
+    let pass = 0, fail = 0, checked = 0, total = 0;
+
+    SECTIONS.forEach(section => {
+      let sPass = 0, sFail = 0, sPending = 0;
+
+      section.tests.forEach((_, localIdx) => {
+        total++;
+        const chk = document.getElementById(`chk-${section.id}-${localIdx}`);
+        if (!chk) return;
+
+        const radios = document.querySelectorAll(`input[name="result-${section.id}-${localIdx}"]`);
+        let selectedValue = null;
+        radios.forEach(r => { if (r.checked) selectedValue = r.value; });
+
+        if (chk.checked || selectedValue) {
+          checked++;
+          if (selectedValue === 'pass') { pass++; sPass++; }
+          else if (selectedValue === 'fail') { fail++; sFail++; }
+          else { sPending++; }
+        } else {
+          sPending++;
+        }
+      });
+
+      // Update section mini-summary
+      const summaryEl = document.getElementById(`sectionSummary-${section.id}`);
+      if (summaryEl) {
+        const sTotal = section.tests.length;
+        const sDone = sPass + sFail;
+        const pct = sTotal > 0 ? Math.round((sDone / sTotal) * 100) : 0;
+        summaryEl.innerHTML = `
+          <div class="flex gap-2 text-xs font-semibold">
+            <span class="bg-white/20 text-white rounded-full px-2 py-0.5">${sDone}/${sTotal} done</span>
+            ${sPass > 0 ? `<span class="bg-green-400/30 text-white rounded-full px-2 py-0.5">${sPass} pass</span>` : ''}
+            ${sFail > 0 ? `<span class="bg-red-400/30 text-white rounded-full px-2 py-0.5">${sFail} fail</span>` : ''}
+          </div>
+        `;
+      }
+    });
+
+    const pending = total - pass - fail;
+
+    // Update sticky bar
+    document.getElementById('passCount').textContent    = pass;
+    document.getElementById('failCount').textContent    = fail;
+    document.getElementById('pendingCount').textContent = pending;
+    document.getElementById('totalCount').textContent   = total;
+
+    // Progress bar (checked/total)
+    const donePct = total > 0 ? Math.round(((pass + fail) / total) * 100) : 0;
+    document.getElementById('progressBar').style.width = donePct + '%';
+    document.getElementById('progressPct').textContent  = donePct + '%';
+
+    // Final summary card
+    document.getElementById('finalPass').textContent    = pass;
+    document.getElementById('finalFail').textContent    = fail;
+    document.getElementById('finalPending').textContent = pending;
+    document.getElementById('finalTotal').textContent   = total;
+
+    const passRate = (pass + fail) > 0 ? Math.round((pass / (pass + fail)) * 100) : 0;
+    document.getElementById('passRatePct').textContent    = passRate + '%';
+    document.getElementById('passRateBar').style.width    = passRate + '%';
+
+    // Verdict
+    const verdictBox = document.getElementById('verdictBox');
+    if (pass + fail === 0) {
+      verdictBox.className = 'rounded-xl p-4 bg-gray-50 border border-gray-200 text-center';
+      verdictBox.innerHTML = '<div class="text-lg font-bold text-gray-400">Complete all tests to see verdict</div>';
+    } else if (fail === 0 && pending <= Math.floor(total * 0.1)) {
+      verdictBox.className = 'rounded-xl p-4 bg-green-50 border border-green-200 text-center';
+      verdictBox.innerHTML = `<div class="text-2xl font-extrabold text-green-600">APPROVED</div><div class="text-green-700 text-sm mt-1">All tested cases pass. Ready for release.</div>`;
+    } else if (fail > 0 && passRate >= 80) {
+      verdictBox.className = 'rounded-xl p-4 bg-amber-50 border border-amber-200 text-center';
+      verdictBox.innerHTML = `<div class="text-2xl font-extrabold text-amber-600">CONDITIONAL</div><div class="text-amber-700 text-sm mt-1">${fail} test(s) failed. Review before release.</div>`;
+    } else if (fail > 0) {
+      verdictBox.className = 'rounded-xl p-4 bg-red-50 border border-red-200 text-center';
+      verdictBox.innerHTML = `<div class="text-2xl font-extrabold text-red-600">BLOCKED</div><div class="text-red-700 text-sm mt-1">${fail} critical failure(s). Do not release.</div>`;
+    } else {
+      verdictBox.className = 'rounded-xl p-4 bg-violet-50 border border-violet-200 text-center';
+      verdictBox.innerHTML = `<div class="text-2xl font-extrabold text-violet-600">IN PROGRESS</div><div class="text-violet-700 text-sm mt-1">${pending} tests still pending.</div>`;
+    }
+  }
+
+  // ─── Reset ─────────────────────────────────────────────────────────────────
+
+  function resetAll() {
+    if (!confirm('Reset all test results? This cannot be undone.')) return;
+
+    SECTIONS.forEach(section => {
+      section.tests.forEach((_, localIdx) => {
+        const chk = document.getElementById(`chk-${section.id}-${localIdx}`);
+        if (chk) chk.checked = false;
+
+        const radios = document.querySelectorAll(`input[name="result-${section.id}-${localIdx}"]`);
+        radios.forEach(r => r.checked = false);
+      });
+
+      const textareas = document.querySelectorAll(`#tbody-${section.id} textarea`);
+      textareas.forEach(t => t.value = '');
+    });
+
+    document.getElementById('overallRemarks').value = '';
+    document.getElementById('signoffName').value    = '';
+    document.getElementById('approvedCheck').checked = false;
+
+    updateStats();
+  }
+
+  // ─── Export PDF (uses browser print dialog → Save as PDF) ─────────────────
+
+  function exportPDF() {
+    // Inject a brief instruction banner before printing
+    const banner = document.createElement('div');
+    banner.id = 'pdfBanner';
+    banner.style.cssText = 'background:#ede9fe;color:#4c1d95;padding:12px 24px;font-size:13px;font-weight:600;text-align:center;';
+    banner.textContent = 'To save as PDF: In the print dialog, choose "Save as PDF" as the destination.';
+    document.body.insertBefore(banner, document.body.firstChild);
+
+    window.print();
+
+    // Remove banner after dialog closes
+    setTimeout(() => {
+      const b = document.getElementById('pdfBanner');
+      if (b) b.remove();
+    }, 3000);
+  }
+
+  // ─── Set today's date ─────────────────────────────────────────────────────
+
+  function setDefaultDate() {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('testDate').value   = today;
+    document.getElementById('signoffDate').value = today;
+  }
+
+  // ─── Init ─────────────────────────────────────────────────────────────────
+
+  document.addEventListener('DOMContentLoaded', () => {
+    buildRows();
+    setDefaultDate();
+    updateStats();
+  });
+  </script>
+</body>
+</html>

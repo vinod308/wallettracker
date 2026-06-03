@@ -1,0 +1,158 @@
+# ─── MoneyGence API — Artillery Load Test ────────────────────────────────────
+#
+# Target: https://moneygence.com
+#
+# Usage:
+#   TEST_EMAIL=admin@moneygence.com TEST_PASSWORD=YourPass123! artillery run load-testing/artillery.yml
+#
+# For HTML report:
+#   TEST_EMAIL=x TEST_PASSWORD=y artillery run --output load-testing/report.json load-testing/artillery.yml
+#   artillery report load-testing/report.json
+#
+# Required environment variables:
+#   TEST_EMAIL     — e.g. admin@moneygence.com
+#   TEST_PASSWORD  — the account password
+#
+# Optional environment variables:
+#   TEST_OTP       — set ONLY if the server is running with SMTP enabled
+#                    (in test/staging SMTP is typically off so OTP is skipped)
+
+config:
+  target: "https://moneygence.com"
+
+  # ── TLS ────────────────────────────────────────────────────────────────────
+  tls:
+    rejectUnauthorized: true
+
+  # ── HTTP defaults ──────────────────────────────────────────────────────────
+  http:
+    timeout: 30         # per-request timeout in seconds
+    pool: 10            # keep-alive connection pool size
+
+  # ── Load phases ────────────────────────────────────────────────────────────
+  phases:
+    # Phase 1: Warm-up — 10 virtual users arriving per second for 10 seconds
+    - name: "Warm-up"
+      duration: 10
+      arrivalRate: 10
+
+    # Phase 2: Ramp-up — linearly scale from 0 → 50 users/s over 60 seconds
+    - name: "Ramp-up"
+      duration: 60
+      arrivalRate: 0
+      rampTo: 50
+
+    # Phase 3: Sustained load — 50 users/s for 120 seconds
+    - name: "Sustained"
+      duration: 120
+      arrivalRate: 50
+
+  # ── Variables ──────────────────────────────────────────────────────────────
+  variables:
+    testEmail:    "{{ $processEnvironment.TEST_EMAIL }}"
+    testPassword: "{{ $processEnvironment.TEST_PASSWORD }}"
+
+  # ── Plugins ────────────────────────────────────────────────────────────────
+  plugins:
+    expect: {}           # enables `expect` assertions in scenarios
+
+  # ── Defaults for all requests ──────────────────────────────────────────────
+  defaults:
+    headers:
+      Content-Type: "application/json"
+      Accept: "application/json"
+
+# ── Scenarios ─────────────────────────────────────────────────────────────────
+scenarios:
+  - name: "Full API flow — login → dashboard → clients → invoices → vendors"
+    weight: 70           # 70% of virtual users run this scenario
+
+    flow:
+      # ── Step 1: Login ────────────────────────────────────────────────────────
+      - post:
+          url: "/api/auth/login"
+          json:
+            email:    "{{ testEmail }}"
+            password: "{{ testPassword }}"
+          capture:
+            # Capture the JWT token.
+            # The controller returns either:
+            #   data.token (direct login, SMTP off) — most common in staging
+            #   data.otpRequired=true (SMTP on)     — handle separately
+            - json: "$.data.token"
+              as: "authToken"
+          expect:
+            - statusCode: 200
+            - hasProperty: "success"
+
+      - think: 1
+
+      # ── Step 2: Dashboard ─────────────────────────────────────────────────────
+      - get:
+          url: "/api/dashboard"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+
+      - think: 1
+
+      # ── Step 3: Clients list ─────────────────────────────────────────────────
+      - get:
+          url: "/api/clients?page=1&limit=20"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+
+      - think: 1
+
+      # ── Step 4: Invoices list ─────────────────────────────────────────────────
+      - get:
+          url: "/api/invoices?page=1&limit=20"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+
+      - think: 1
+
+      # ── Step 5: Vendors list ─────────────────────────────────────────────────
+      - get:
+          url: "/api/vendors?page=1&limit=20"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+
+      - think: 1
+
+      # ── Step 6: Wallet analytics ──────────────────────────────────────────────
+      - get:
+          url: "/api/wallet"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+
+  # ── Health check scenario — lightweight, always running ───────────────────────
+  - name: "Health check ping"
+    weight: 30           # 30% of virtual users just hit health
+
+    flow:
+      - get:
+          url: "/api/health"
+          expect:
+            - statusCode: 200
+
+      - think: 2
+
+# ── Thresholds (optional — fail the run if breached) ──────────────────────────
+# Uncomment these to enforce SLA gates in CI:
+# ensure:
+#   thresholds:
+#     - http.response_time.p95: 2000   # p95 under 2 000 ms
+#     - http.request_rate: 40          # must sustain ≥ 40 RPS
+#   conditions:
+#     - expression: "(errors / requestsCompleted) < 0.01"
+#       strict: true                   # fail if error rate > 1 %
