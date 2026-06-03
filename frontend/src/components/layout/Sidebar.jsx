@@ -3,6 +3,39 @@ import { NavLink } from 'react-router-dom';
 import logo from '../../assets/logo-3.jpeg';
 import { useAuth } from '../../hooks/useAuth';
 
+const financeItems = [
+    {
+        name: 'Bank Reconciliation',
+        path: '/bank-reconciliation',
+        icon: (
+            <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+        ),
+    },
+    {
+        name: 'Reimbursements',
+        path: '/reimbursements',
+        icon: (
+            <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" />
+            </svg>
+        ),
+    },
+    {
+        name: 'Balance Sheet',
+        path: '/balance-sheet',
+        icon: (
+            <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+        ),
+    },
+];
+
 const navItems = [
     {
         name: 'Dashboard',
@@ -156,6 +189,39 @@ const Sidebar = ({ isOpen, onClose, isCollapsed, onToggleCollapse }) => {
                         )}
                     </NavLink>
                 ))}
+
+                {/* Finance section — hidden for vendor_manager */}
+                {!isVendorManager && (
+                    <>
+                        {!isCollapsed && (
+                            <div className="pt-3 pb-1 px-3">
+                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Finance</span>
+                            </div>
+                        )}
+                        {isCollapsed && <div className="my-2 mx-2 border-t border-gray-100" />}
+                        {financeItems.map((item) => (
+                            <NavLink
+                                key={item.path}
+                                to={item.path}
+                                onClick={onClose}
+                                title={isCollapsed ? item.name : undefined}
+                                className={({ isActive }) =>
+                                    `flex items-center rounded-xl text-[13px] font-medium transition-all duration-200 overflow-hidden
+                                    ${isCollapsed ? 'justify-center px-0 py-2.5' : 'gap-3 px-3 py-2.5'}
+                                    ${isActive
+                                        ? 'bg-indigo-50 text-primary-blue'
+                                        : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800'
+                                    }`
+                                }
+                            >
+                                {item.icon}
+                                {!isCollapsed && (
+                                    <span className="truncate transition-all duration-200">{item.name}</span>
+                                )}
+                            </NavLink>
+                        ))}
+                    </>
+                )}
             </nav>
 
             {/* Footer: toggle + copyright */}

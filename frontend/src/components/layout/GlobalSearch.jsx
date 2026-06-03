@@ -5,17 +5,23 @@ const CATEGORIES = [
     {
         key: 'clients',
         label: 'Clients',
-        storage: 'gw_onboarded_clients',
+        getItems: () => {
+            // gw_all_clients is populated by ClientsPage and includes both API and onboarded clients
+            const all = JSON.parse(localStorage.getItem('gw_all_clients') || '[]');
+            if (all.length) return all;
+            // fallback: onboarded-only clients
+            return JSON.parse(localStorage.getItem('gw_onboarded_clients') || '[]');
+        },
         color: 'text-blue-600 bg-blue-50',
         dot: 'bg-blue-500',
         getName: (c) => c.clientName || '',
         getSub:  (c) => c.contactPerson || c.clientType || '',
-        getRoute:(c) => `/clients/onboarded/${c.id}`,
+        getRoute:(c) => c._source === 'api' ? `/client/${c.id}` : `/clients/onboarded/${c.id}`,
     },
     {
         key: 'vendors',
         label: 'Vendors',
-        storage: 'gw_vendors',
+        getItems: () => JSON.parse(localStorage.getItem('gw_vendors') || '[]'),
         color: 'text-purple-600 bg-purple-50',
         dot: 'bg-purple-500',
         getName: (v) => v.vendorName || '',
@@ -25,7 +31,7 @@ const CATEGORIES = [
     {
         key: 'employees',
         label: 'Employees',
-        storage: 'gw_employees',
+        getItems: () => JSON.parse(localStorage.getItem('gw_employees') || '[]'),
         color: 'text-green-600 bg-green-50',
         dot: 'bg-green-500',
         getName: (e) => e.fullName || '',
@@ -51,7 +57,7 @@ const GlobalSearch = () => {
         const found = [];
         CATEGORIES.forEach(cat => {
             try {
-                const items = JSON.parse(localStorage.getItem(cat.storage) || '[]') || [];
+                const items = cat.getItems() || [];
                 const hits  = items
                     .filter(item => {
                         const name = cat.getName(item).toLowerCase();

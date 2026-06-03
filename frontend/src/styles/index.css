@@ -251,3 +251,117 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #9CA3AF;
 }
+
+/* ============================================================
+   PREMIUM PAGE ANIMATION SYSTEM
+   ============================================================ */
+
+/* ── Keyframes ───────────────────────────────────────────── */
+@keyframes pageEnter {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+@keyframes revealUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+@keyframes floatBob {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-4px); }
+}
+
+@keyframes pulseRing {
+  0%   { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.25); }
+  70%  { box-shadow: 0 0 0 8px rgba(99, 102, 241, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+}
+
+/* ── Page-level entry ────────────────────────────────────── */
+.page-anim {
+  animation: pageEnter 0.42s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+/* ── Scroll-reveal cards ─────────────────────────────────── */
+.sr-card {
+  opacity: 0;
+  transform: translateY(20px);
+  transition:
+    opacity  0.5s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: opacity, transform;
+}
+.sr-card.sr-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Hover lift for page cards ───────────────────────────── */
+#main-content .bg-white.rounded-2xl {
+  transition: box-shadow 0.22s ease, transform 0.22s ease;
+}
+#main-content .bg-white.rounded-2xl:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.07), 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+}
+
+/* ── Gradient KPI card backgrounds ──────────────────────── */
+.kpi-green  { background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-color: #bbf7d0 !important; }
+.kpi-red    { background: linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%); border-color: #fecdd3 !important; }
+.kpi-indigo { background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%); border-color: #c7d2fe !important; }
+.kpi-amber  { background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border-color: #fde68a !important; }
+.kpi-violet { background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%); border-color: #ddd6fe !important; }
+
+/* Top accent bar on KPI cards */
+.kpi-accent-top {
+  position: relative;
+  overflow: hidden;
+}
+.kpi-accent-top::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  border-radius: 16px 16px 0 0;
+}
+.kpi-green.kpi-accent-top::before  { background: linear-gradient(90deg, #10b981, #34d399); }
+.kpi-red.kpi-accent-top::before    { background: linear-gradient(90deg, #f43f5e, #fb7185); }
+.kpi-indigo.kpi-accent-top::before { background: linear-gradient(90deg, #6366f1, #818cf8); }
+.kpi-amber.kpi-accent-top::before  { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+.kpi-violet.kpi-accent-top::before { background: linear-gradient(90deg, #7c3aed, #a78bfa); }
+
+/* ── Tabular stat numbers ────────────────────────────────── */
+.stat-num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+  letter-spacing: -0.02em;
+}
+
+/* ── Section icon badge ──────────────────────────────────── */
+.icon-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+.icon-badge-green  { background: #dcfce7; color: #16a34a; }
+.icon-badge-red    { background: #ffe4e6; color: #e11d48; }
+.icon-badge-indigo { background: #e0e7ff; color: #4f46e5; }
+.icon-badge-amber  { background: #fef3c7; color: #d97706; }
+
+/* ── Float animation for hero/feature icons ─────────────── */
+.float-anim {
+  animation: floatBob 3s ease-in-out infinite;
+}
+
+/* ── Pulse ring for notification dots ───────────────────── */
+.pulse-ring {
+  animation: pulseRing 2s ease-out infinite;
+}
+
+/* ── Smooth gradient page backgrounds ───────────────────── */
+.page-bg-subtle {
+  background: linear-gradient(160deg, #f8f9ff 0%, #f0f4ff 40%, #fafbff 100%);
+}

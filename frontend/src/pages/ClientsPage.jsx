@@ -30,6 +30,9 @@ const mapApiClient = (c) => ({
     _source: 'api',
 });
 
+const clientDetailPath = (c) =>
+    c._source === 'api' ? `/client/${c.id}` : `/clients/onboarded/${c.id}`;
+
 const ClientsPage = () => {
     const navigate = useNavigate();
     const [clients,        setClients]        = useState([]);
@@ -42,11 +45,24 @@ const ClientsPage = () => {
         setLoading(true);
         try {
             const res = await api.get('/clients');
-            const apiClients = (res.data?.data?.clients || []).map(mapApiClient);
-            const apiNames = new Set(apiClients.map(c => c.clientName?.toLowerCase()));
-
-            // Auto-migrate: push any localStorage-only clients to DB
             const local = JSON.parse(localStorage.getItem('gw_onboarded_clients') || '[]');
+
+            // Build name → local client lookup for merging
+            const localByName = {};
+            local.forEach(c => { localByName[(c.clientName || '').toLowerCase()] = c; });
+
+            // For each API client, prefer the local ID+data if a name match exists
+            // (so the OnboardedClientPage can find it and show invoices)
+            const apiClients = (res.data?.data?.clients || []).map(c => {
+                const localMatch = localByName[(c.client_name || '').toLowerCase()];
+                if (localMatch) {
+                    return { ...mapApiClient(c), id: localMatch.id, _source: 'local' };
+                }
+                return mapApiClient(c);
+            });
+            const apiNames = new Set((res.data?.data?.clients || []).map(c => c.client_name?.toLowerCase()));
+
+            // Auto-migrate: push localStorage-only clients to DB
             const localOnly = local.filter(c => !apiNames.has((c.clientName || '').toLowerCase()));
             if (localOnly.length > 0) {
                 localOnly.forEach(c => {
@@ -55,7 +71,9 @@ const ClientsPage = () => {
                 });
             }
 
-            setClients([...apiClients, ...localOnly]);
+            const all = [...apiClients, ...localOnly];
+            setClients(all);
+            localStorage.setItem('gw_all_clients', JSON.stringify(all));
         } catch {
             const raw = JSON.parse(localStorage.getItem('gw_onboarded_clients') || '[]');
             const migrated = raw.map((c, i) => c.id ? c : { ...c, id: `oc_legacy_${i}_${Date.now()}` });
@@ -213,7 +231,7 @@ const ClientsPage = () => {
                                         <tr
                                             key={c.id}
                                             className="hover:bg-gray-50/50 transition-colors cursor-pointer"
-                                            onClick={() => navigate(`/clients/onboarded/${c.id}`)}
+                                            onClick={() => navigate(clientDetailPath(c))}
                                         >
                                             <td className="px-5 py-3">
                                                 <div className="flex items-center gap-3">
@@ -253,7 +271,7 @@ const ClientsPage = () => {
                                             </td>
                                             <td className="px-4 py-3 text-right">
                                                 <button
-                                                    onClick={e => { e.stopPropagation(); navigate(`/clients/onboarded/${c.id}`); }}
+                                                    onClick={e => { e.stopPropagation(); navigate(clientDetailPath(c)); }}
                                                     className="px-3 py-1.5 text-xs font-medium text-primary-blue border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors"
                                                 >
                                                     View
