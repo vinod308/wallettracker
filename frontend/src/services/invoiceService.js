@@ -23,6 +23,9 @@ const invoiceService = {
     // Generate IRN via Masters India API and save to DB
     generateIRN: (payload) => api.post('/invoices/gst/mi/generate', payload),
 
+    // Generate EWB separately for an invoice that already has an IRN
+    generateEWB: (payload) => api.post('/invoices/gst/mi/generate-ewb', payload),
+
     // Cancel an IRN within 24 hours
     cancelIRN: (irn, cancelReason, cancelRemarks) =>
         api.post('/invoices/gst/mi/cancel', { irn, cancelReason, cancelRemarks }),

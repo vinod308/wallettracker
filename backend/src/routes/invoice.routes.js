@@ -36,7 +36,8 @@ router.post('/send-email', async (req, res) => {
         res.json({ success: true, message: 'Invoice email sent successfully' });
     } catch (error) {
         logger.error(`Invoice email send failed: ${error.message || error}`);
-        res.status(500).json({ success: false, message: error.message || 'Failed to send email', code: error.code });
+        // Return a generic message — never leak raw SMTP errors to the client
+        res.status(500).json({ success: false, message: 'Email delivery failed. The invoice was saved and PDF downloaded successfully.' });
     }
 });
 
@@ -266,12 +267,15 @@ router.post('/gst/mi/generate', async (req, res) => {
             taxableAmount,
             gstRate          = 18,
             // E-Way Bill fields (optional)
-            generateEwb      = false,
-            ewbDistance      = 0,
-            ewbTransMode     = '1',
-            ewbTransporterId = '',
-            ewbVehNo         = '',
-            ewbVehType       = 'R',
+            generateEwb        = false,
+            ewbDistance        = 0,
+            ewbTransMode       = '1',
+            ewbTransporterId   = '',
+            ewbTransporterName = '',
+            ewbVehNo           = '',
+            ewbVehType         = 'R',
+            ewbTransDocNo      = '',
+            ewbTransDocDate    = '',
         } = req.body;
 
         if (!clientId)        return res.status(400).json({ success: false, message: 'clientId is required' });
@@ -280,29 +284,34 @@ router.post('/gst/mi/generate', async (req, res) => {
         if (!taxableAmount)   return res.status(400).json({ success: false, message: 'taxableAmount is required' });
         if (!buyerGstin)      return res.status(400).json({ success: false, message: 'buyerGstin is required' });
 
-        // Generate IRN via Masters India
+        // Generate IRN via Masters India (EWB embedded in same request when generateEwb=true)
+        const ewbPayload = generateEwb ? {
+            distance:        ewbDistance,
+            transMode:       ewbTransMode,
+            transporterId:   ewbTransporterId,
+            transporterName: ewbTransporterName,
+            vehNo:           ewbVehNo,
+            vehType:         ewbVehType,
+            transDocNo:      ewbTransDocNo,
+            transDocDate:    ewbTransDocDate,
+        } : null;
+
         const irnResult = await mastersIndiaService.generateIRN({
             invoiceNumber, invoiceDate, invoiceType, supplyType,
             sellerGstin, sellerName, sellerAddr1, sellerCity, sellerStateCode, sellerPin,
             buyerGstin, buyerName, buyerAddr1, buyerCity, buyerStateCode, buyerPin,
             description, hsnCode, taxableAmount, gstRate,
-        });
+        }, ewbPayload);
 
-        // Optionally generate E-Way Bill from the IRN
-        let ewbResult = null;
-        if (generateEwb && irnResult.irn) {
-            try {
-                ewbResult = await mastersIndiaService.generateEWBFromIRN(irnResult.irn, {
-                    distance:       ewbDistance,
-                    transMode:      ewbTransMode,
-                    transporterId:  ewbTransporterId,
-                    vehNo:          ewbVehNo,
-                    vehType:        ewbVehType,
-                });
-                logger.info(`EWB generated: ${ewbResult.ewb_no} for IRN ${irnResult.irn}`);
-            } catch (ewbErr) {
-                logger.warn(`EWB generation failed (non-fatal): ${ewbErr.message}`);
-            }
+        // EWB data comes back in irnResult when ewaybill_details were included in the IRN payload
+        const ewbResult = irnResult.ewb_no ? {
+            ewb_no:         irnResult.ewb_no,
+            ewb_date:       irnResult.ewb_date,
+            ewb_valid_upto: irnResult.ewb_valid_upto,
+        } : null;
+
+        if (generateEwb && !ewbResult) {
+            logger.warn(`EWB was requested but not returned for invoice ${invoiceNumber}`);
         }
 
         // Compute tax amounts for DB storage
@@ -324,7 +333,8 @@ router.post('/gst/mi/generate', async (req, res) => {
                 igst_rate, igst_amount, total_amount,
                 payment_status, source, created_by,
                 hsn_code, signed_qr, supply_type, buyer_state_code, buyer_pin,
-                ewb_no, ewb_date, ewb_valid_upto
+                ewb_no, ewb_date, ewb_valid_upto,
+                ewb_trans_mode, ewb_veh_no, ewb_veh_type, ewb_transporter_name, ewb_distance
             ) VALUES (
                 $1, $2, $3, $4,
                 $5, $6, $7,
@@ -333,18 +343,24 @@ router.post('/gst/mi/generate', async (req, res) => {
                 $17, $18, $19,
                 $20, $21, $22,
                 $23, $24, $25, $26, $27,
-                $28, $29, $30
+                $28, $29, $30,
+                $31, $32, $33, $34, $35
             )
             ON CONFLICT (invoice_number) DO UPDATE SET
-                irn              = EXCLUDED.irn,
-                ack_no           = EXCLUDED.ack_no,
-                ack_date         = EXCLUDED.ack_date,
-                signed_qr        = EXCLUDED.signed_qr,
-                ewb_no           = EXCLUDED.ewb_no,
-                ewb_date         = EXCLUDED.ewb_date,
-                ewb_valid_upto   = EXCLUDED.ewb_valid_upto,
-                source           = EXCLUDED.source,
-                updated_at       = NOW()
+                irn                  = EXCLUDED.irn,
+                ack_no               = EXCLUDED.ack_no,
+                ack_date             = EXCLUDED.ack_date,
+                signed_qr            = EXCLUDED.signed_qr,
+                ewb_no               = EXCLUDED.ewb_no,
+                ewb_date             = EXCLUDED.ewb_date,
+                ewb_valid_upto       = EXCLUDED.ewb_valid_upto,
+                ewb_trans_mode       = EXCLUDED.ewb_trans_mode,
+                ewb_veh_no           = EXCLUDED.ewb_veh_no,
+                ewb_veh_type         = EXCLUDED.ewb_veh_type,
+                ewb_transporter_name = EXCLUDED.ewb_transporter_name,
+                ewb_distance         = EXCLUDED.ewb_distance,
+                source               = EXCLUDED.source,
+                updated_at           = NOW()
             RETURNING *
         `, [
             clientId, invoiceNumber, invoiceDate, invoiceType === 'INV' ? 'TAX INVOICE' : invoiceType,
@@ -356,6 +372,11 @@ router.post('/gst/mi/generate', async (req, res) => {
             'Unpaid', 'Masters India', req.user.id,
             hsnCode, irnResult.signed_qr, supplyType, buyerStateCode, buyerPin,
             ewbResult?.ewb_no || null, ewbResult?.ewb_date || null, ewbResult?.ewb_valid_upto || null,
+            ewbResult ? ewbTransMode   : null,
+            ewbResult ? ewbVehNo       : null,
+            ewbResult ? ewbVehType     : null,
+            ewbResult ? ewbTransporterName : null,
+            ewbResult ? (parseInt(ewbDistance) || 0) : null,
         ]);
 
         logger.info(`IRN generated and saved: ${irnResult.irn} for invoice ${invoiceNumber}`);
@@ -397,6 +418,75 @@ router.post('/gst/mi/cancel', async (req, res) => {
         res.json({ success: true, message: 'IRN cancelled successfully', data: result });
     } catch (error) {
         logger.error(`Masters India cancel IRN failed: ${error.message}`);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+/**
+ * POST /api/invoices/gst/mi/generate-ewb
+ * Generate an E-Way Bill for an invoice that already has an IRN but no EWB.
+ * Body: { invoiceId, irn, ewbDistance, ewbTransMode, ewbTransporterId,
+ *         ewbTransporterName, ewbVehNo, ewbVehType, ewbTransDocNo, ewbTransDocDate }
+ */
+router.post('/gst/mi/generate-ewb', async (req, res) => {
+    try {
+        const {
+            invoiceId,
+            irn,
+            ewbDistance        = 0,
+            ewbTransMode       = '1',
+            ewbTransporterId   = '',
+            ewbTransporterName = '',
+            ewbVehNo           = '',
+            ewbVehType         = 'R',
+            ewbTransDocNo      = '',
+            ewbTransDocDate    = '',
+        } = req.body;
+
+        if (!invoiceId) return res.status(400).json({ success: false, message: 'invoiceId is required' });
+        if (!irn)       return res.status(400).json({ success: false, message: 'irn is required' });
+
+        const ewbResult = await mastersIndiaService.generateEWBFromIRN(irn, {
+            distance:        ewbDistance,
+            transMode:       ewbTransMode,
+            transporterId:   ewbTransporterId,
+            transporterName: ewbTransporterName,
+            vehNo:           ewbVehNo,
+            vehType:         ewbVehType,
+            transDocNo:      ewbTransDocNo,
+            transDocDate:    ewbTransDocDate,
+        });
+
+        const { rows } = await pool.query(`
+            UPDATE gst_invoices
+            SET ewb_no               = $1,
+                ewb_date             = $2,
+                ewb_valid_upto       = $3,
+                ewb_trans_mode       = $4,
+                ewb_veh_no           = $5,
+                ewb_veh_type         = $6,
+                ewb_transporter_name = $7,
+                ewb_distance         = $8,
+                updated_at           = NOW()
+            WHERE id = $9
+            RETURNING *
+        `, [
+            ewbResult.ewb_no, ewbResult.ewb_date, ewbResult.ewb_valid_upto,
+            ewbTransMode, ewbVehNo || null, ewbVehType,
+            ewbTransporterName || null, parseInt(ewbDistance) || null,
+            invoiceId,
+        ]);
+
+        if (!rows[0]) return res.status(404).json({ success: false, message: 'Invoice not found' });
+
+        logger.info(`EWB generated separately: ${ewbResult.ewb_no} for invoice id ${invoiceId}`);
+        res.json({
+            success: true,
+            message: 'E-Way Bill generated successfully',
+            data:    rows[0],
+        });
+    } catch (error) {
+        logger.error(`Generate EWB separately failed: ${error.message}`);
         res.status(500).json({ success: false, message: error.message });
     }
 });

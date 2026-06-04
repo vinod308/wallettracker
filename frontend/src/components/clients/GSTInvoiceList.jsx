@@ -5,9 +5,11 @@
  */
 import React, { useEffect, useState, useCallback } from 'react';
 import invoiceService from '../../services/invoiceService';
+import { downloadEWBPDF } from '../../utils/generateEWBPDF';
 import GSTSyncModal              from './GSTSyncModal';
 import ManualGSTInvoiceModal     from './ManualGSTInvoiceModal';
 import GenerateGSTInvoiceModal   from './GenerateGSTInvoiceModal';
+import GenerateEWBModal          from './GenerateEWBModal';
 
 const fmt = (n) =>
     `₹${Number(n || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
@@ -45,6 +47,7 @@ const GSTInvoiceList = ({ client }) => {
     const [showSync,      setShowSync]      = useState(false);
     const [showManual,    setShowManual]    = useState(false);
     const [showGenerate,  setShowGenerate]  = useState(false);
+    const [ewbInvoice,    setEwbInvoice]    = useState(null); // invoice to generate EWB for
     const [updatingId,   setUpdatingId]   = useState(null);
     const [deletingId,   setDeletingId]   = useState(null);
 
@@ -93,6 +96,13 @@ const GSTInvoiceList = ({ client }) => {
         setShowManual(false);
         setShowGenerate(false);
         load();
+    };
+
+    const onEwbGenerated = (updatedInvoice) => {
+        setInvoices(prev => prev.map(inv =>
+            inv.id === updatedInvoice.id ? updatedInvoice : inv
+        ));
+        setEwbInvoice(null);
     };
 
     // ── totals for the summary strip ──────────────────────────────────────────
@@ -173,7 +183,7 @@ const GSTInvoiceList = ({ client }) => {
                     <table className="w-full text-xs">
                         <thead>
                             <tr className="bg-gray-50 border-b border-gray-200">
-                                {['Invoice No', 'Date', 'Buyer', 'Taxable', 'CGST', 'SGST', 'Total', 'Status', 'Source', 'IRN', ''].map(h => (
+                                {['Invoice No', 'Date', 'Buyer', 'Taxable', 'CGST', 'SGST', 'Total', 'Status', 'Source', 'IRN', 'E-Way Bill', ''].map(h => (
                                     <th key={h} className="px-3 py-2 text-left text-gray-500 font-medium whitespace-nowrap">
                                         {h}
                                     </th>
@@ -233,6 +243,34 @@ const GSTInvoiceList = ({ client }) => {
                                             </span>
                                         )}
                                     </td>
+                                    <td className="px-3 py-2 whitespace-nowrap">
+                                        {inv.ewb_no ? (
+                                            <div className="flex items-center gap-1.5">
+                                                <span
+                                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                                                    title={`Valid: ${inv.ewb_valid_upto || ''}`}
+                                                >
+                                                    ✓ {inv.ewb_no}
+                                                </span>
+                                                <button
+                                                    onClick={() => downloadEWBPDF(inv)}
+                                                    className="px-2 py-0.5 rounded text-xs font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                                                    title="Download E-Way Bill PDF"
+                                                >
+                                                    ↓ EWB
+                                                </button>
+                                            </div>
+                                        ) : inv.irn ? (
+                                            <button
+                                                onClick={() => setEwbInvoice(inv)}
+                                                className="px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-700 hover:bg-orange-200 transition-colors"
+                                            >
+                                                + Generate EWB
+                                            </button>
+                                        ) : (
+                                            <span className="text-gray-300 text-xs">—</span>
+                                        )}
+                                    </td>
                                     <td className="px-3 py-2">
                                         <button
                                             onClick={() => handleDelete(inv.id)}
@@ -268,6 +306,12 @@ const GSTInvoiceList = ({ client }) => {
                 onClose={() => setShowManual(false)}
                 client={client}
                 onInvoiceSaved={onSaved}
+            />
+            <GenerateEWBModal
+                isOpen={!!ewbInvoice}
+                onClose={() => setEwbInvoice(null)}
+                invoice={ewbInvoice}
+                onSuccess={onEwbGenerated}
             />
         </div>
     );

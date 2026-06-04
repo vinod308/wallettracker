@@ -31,8 +31,11 @@ const VendorSignupPage      = lazy(() => import('../pages/VendorSignupPage'));
 const VendorPortalPage      = lazy(() => import('../pages/VendorPortalPage'));
 const EmployeeManagementPage = lazy(() => import('../pages/EmployeeManagementPage'));
 const EmployeeDetailPage     = lazy(() => import('../pages/EmployeeDetailPage'));
-const PricingPage            = lazy(() => import('../pages/PricingPage'));
-const PaymentPage            = lazy(() => import('../pages/PaymentPage'));
+const PricingPage              = lazy(() => import('../pages/PricingPage'));
+const PaymentPage              = lazy(() => import('../pages/PaymentPage'));
+const BankReconciliationPage   = lazy(() => import('../pages/BankReconciliationPage'));
+const ReimbursementsPage       = lazy(() => import('../pages/ReimbursementsPage'));
+const BalanceSheetPage         = lazy(() => import('../pages/BalanceSheetPage'));
 
 // Route Guards
 import ProtectedRoute from './ProtectedRoute';
@@ -211,6 +214,10 @@ const AppRouter = () => {
               </VendorRoute>
             }
           />
+
+          <Route path="/bank-reconciliation" element={<ProtectedRoute><BankReconciliationPage /></ProtectedRoute>} />
+          <Route path="/reimbursements"     element={<ProtectedRoute><ReimbursementsPage /></ProtectedRoute>} />
+          <Route path="/balance-sheet"      element={<ProtectedRoute><BalanceSheetPage /></ProtectedRoute>} />
 
           {/* Pricing page — public */}
           <Route path="/pricing" element={<PricingPage />} />

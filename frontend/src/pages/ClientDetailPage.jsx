@@ -5,7 +5,7 @@
  * Shows: header with badges, monthly tables, addon insight cards, comparison charts.
  */
 
-import React, { useMemo, lazy, Suspense, useState } from 'react';
+import React, { useMemo, lazy, Suspense, useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import useClientData from '../hooks/useClientData';
 import MainLayout from '../components/layout/MainLayout';
@@ -13,6 +13,7 @@ import MonthlyTable from '../components/clients/MonthlyTable';
 import EditClientModal from '../components/clients/EditClientModal';
 import AddonInsightCard from '../components/clients/AddonInsightCard';
 import { formatCurrency } from '../utils/helpers';
+import api from '../services/api';
 
 const ClientComparisonCharts = lazy(() => import('../components/clients/ClientComparisonCharts'));
 
@@ -43,14 +44,65 @@ const getServiceCategory = (svcName) => SERVICE_CATEGORY[svcName] || 'Standard';
 const ClientDetailPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { loading, getClientById, upsellOpportunities, addRecord } = useClientData();
+    const { loading: localLoading, getClientById, upsellOpportunities, addRecord } = useClientData();
     const [showEditModal, setShowEditModal] = useState(false);
+    const [apiData, setApiData]   = useState(null);
+    const [apiLoading, setApiLoading] = useState(false);
 
-    const client = useMemo(() => getClientById(decodeURIComponent(id)), [id, getClientById]);
+    const isDbClient = /^\d+$/.test(id);
+
+    useEffect(() => {
+        if (!isDbClient) return;
+        setApiLoading(true);
+        api.get(`/clients/${id}/monthly-analytics`)
+            .then(res => setApiData(res.data?.data || null))
+            .catch(() => setApiData(null))
+            .finally(() => setApiLoading(false));
+    }, [id, isDbClient]);
+
+    const loading = isDbClient ? apiLoading : localLoading;
+
+    const client = useMemo(() => {
+        if (isDbClient) {
+            if (!apiData?.client) return null;
+            const c = apiData.client;
+            return {
+                id:               c.id,
+                clientName:       c.clientName,
+                projectName:      c.projectName,
+                clientType:       c.clientType,
+                industry:         c.industry,
+                status:           c.status,
+                detectedServices: Array.isArray(c.services) ? c.services.map(s => s.service_name || s) : [],
+                invoiceNumber:    null,
+                totalRevenue:     apiData.lifetimeRevenue || 0,
+            };
+        }
+        return getClientById(decodeURIComponent(id));
+    }, [id, isDbClient, apiData, getClientById]);
 
     // Build month-by-month analytics from invoice data
     const { months, lifetimeRevenue, badge } = useMemo(() => {
         if (!client) return { months: [], lifetimeRevenue: 0, badge: 'Stable' };
+
+        if (isDbClient && apiData) {
+            const ms = (apiData.months || []).map((m, i) => ({
+                month:           m.month,
+                monthKey:        m.recordDate ? m.recordDate.substring(0, 7) : `month-${i}`,
+                monthOrder:      m.recordDate ? parseInt(m.recordDate.replace(/-/g, '').substring(0, 6)) : i,
+                services:        (m.services || []).map(s => ({
+                    serviceName: s.serviceName,
+                    category:    s.category || getServiceCategory(s.serviceName),
+                    amount:      Math.round(s.amount || 0),
+                    recordType:  s.recordType || 'Recurring',
+                    isAddon:     s.isAddon || false,
+                })),
+                totalServiceMRR: Math.round(m.totalServiceMRR || 0),
+                totalAddonsMRR:  Math.round(m.totalAddonsMRR  || 0),
+                totalMRR:        Math.round(m.totalMRR        || 0),
+            }));
+            return { months: ms, lifetimeRevenue: apiData.lifetimeRevenue || 0, badge: apiData.badge || 'Stable' };
+        }
 
         const sortedMonths = Object.values(client.months)
             .sort((a, b) => b.monthOrder - a.monthOrder)
@@ -105,7 +157,7 @@ const ClientDetailPage = () => {
             lifetimeRevenue: client.totalRevenue,
             badge:           badgeLabel,
         };
-    }, [client, upsellOpportunities]);
+    }, [client, upsellOpportunities, isDbClient, apiData]);
 
     const getStatusBadge = (status) => {
         const styles = {

@@ -38,11 +38,15 @@ const GenerateInvoiceModal = ({ isOpen, onClose, client, onInvoiceSaved }) => {
     const [emailStatus,  setEmailStatus]  = useState(null); // null | 'sending' | 'sent' | 'failed'
     const [emailError,   setEmailError]   = useState('');
     const [irnError,     setIrnError]     = useState(''); // non-empty = IRN attempt failed
-    const [ewbEnabled,   setEwbEnabled]   = useState(false);
-    const [ewbDistance,  setEwbDistance]  = useState('');
-    const [ewbTransMode, setEwbTransMode] = useState('1');
-    const [ewbVehNo,     setEwbVehNo]     = useState('');
-    const [ewbTransId,   setEwbTransId]   = useState('');
+    const [ewbEnabled,        setEwbEnabled]        = useState(false);
+    const [ewbDistance,       setEwbDistance]       = useState('');
+    const [ewbTransMode,      setEwbTransMode]      = useState('1');
+    const [ewbVehNo,          setEwbVehNo]          = useState('');
+    const [ewbVehType,        setEwbVehType]        = useState('R');
+    const [ewbTransId,        setEwbTransId]        = useState('');
+    const [ewbTransName,      setEwbTransName]      = useState('');
+    const [ewbTransDocNo,     setEwbTransDocNo]     = useState('');
+    const [ewbTransDocDate,   setEwbTransDocDate]   = useState('');
 
     const updateLine = (i, field, value) =>
         setLines(prev => prev.map((l, idx) => idx === i ? { ...l, [field]: value } : l));
@@ -123,11 +127,15 @@ const GenerateInvoiceModal = ({ isOpen, onClose, client, onInvoiceSaved }) => {
                         taxableAmount:   inv.subtotal,
                         gstRate,
                         // E-Way Bill
-                        generateEwb:     ewbEnabled,
-                        ewbDistance:     ewbDistance || 0,
+                        generateEwb:      ewbEnabled,
+                        ewbDistance:      ewbDistance || 0,
                         ewbTransMode,
                         ewbVehNo,
+                        ewbVehType,
                         ewbTransporterId: ewbTransId,
+                        ewbTransporterName: ewbTransName,
+                        ewbTransDocNo,
+                        ewbTransDocDate,
                     });
 
                     const irnData = irnRes.data?.data;
@@ -145,9 +153,14 @@ const GenerateInvoiceModal = ({ isOpen, onClose, client, onInvoiceSaved }) => {
 
                         // E-Way Bill
                         if (irnData.ewb_no) {
-                            inv.ewbNo        = irnData.ewb_no;
-                            inv.ewbDate      = irnData.ewb_date      || '';
-                            inv.ewbValidUpto = irnData.ewb_valid_upto || '';
+                            inv.ewbNo                = irnData.ewb_no;
+                            inv.ewbDate              = irnData.ewb_date      || '';
+                            inv.ewbValidUpto         = irnData.ewb_valid_upto || '';
+                            inv.ewb_trans_mode       = ewbTransMode;
+                            inv.ewb_veh_no           = ewbVehNo     || '';
+                            inv.ewb_veh_type         = ewbVehType;
+                            inv.ewb_transporter_name = ewbTransName || '';
+                            inv.ewb_distance         = parseInt(ewbDistance) || 0;
                         }
                     }
                 }
@@ -175,8 +188,8 @@ const GenerateInvoiceModal = ({ isOpen, onClose, client, onInvoiceSaved }) => {
                 api.post('/invoices/send-email', { invoice: inv, client, pdfBase64 })
                     .then(() => setEmailStatus('sent'))
                     .catch((err) => {
-                        const msg = err.response?.data?.message || err.message || 'Unknown error';
-                        console.error('Invoice email failed:', msg, err.response?.data);
+                        const msg = err.response?.data?.message || 'Email delivery failed.';
+                        console.error('Invoice email failed:', err.response?.data || err.message);
                         setEmailError(msg);
                         setEmailStatus('failed');
                     });
@@ -208,7 +221,11 @@ const GenerateInvoiceModal = ({ isOpen, onClose, client, onInvoiceSaved }) => {
         setEwbDistance('');
         setEwbTransMode('1');
         setEwbVehNo('');
+        setEwbVehType('R');
         setEwbTransId('');
+        setEwbTransName('');
+        setEwbTransDocNo('');
+        setEwbTransDocDate('');
         setInvoiceDate(today());
         onClose();
     };
@@ -265,7 +282,7 @@ const GenerateInvoiceModal = ({ isOpen, onClose, client, onInvoiceSaved }) => {
                                 <>✓ Email sent to {savedInvoice.contactEmail || client.contactEmail}</>
                             )}
                             {emailStatus === 'failed' && (
-                                <span title={emailError}>✗ Email failed{emailError ? ` — ${emailError}` : ''}</span>
+                                <span title={emailError}>✗ Email not delivered — invoice saved & PDF downloaded</span>
                             )}
                         </div>
                     )}
@@ -455,34 +472,82 @@ const GenerateInvoiceModal = ({ isOpen, onClose, client, onInvoiceSaved }) => {
                         </span>
                     </button>
                     {ewbEnabled && (
-                        <div className="px-4 py-4 grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Transport Mode</label>
-                                <select value={ewbTransMode} onChange={e => setEwbTransMode(e.target.value)}
-                                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-blue bg-white">
-                                    <option value="1">Road</option>
-                                    <option value="2">Rail</option>
-                                    <option value="3">Air</option>
-                                    <option value="4">Ship</option>
-                                </select>
+                        <div className="px-4 py-4 space-y-4">
+                            <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                                EWB applies only to <strong>goods invoices</strong> (HSN not starting with 99). Service invoices (SAC 99xxxx) are exempt.
+                            </p>
+
+                            {/* Row 1: Transport Mode + Distance */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Transport Mode <span className="text-red-400">*</span></label>
+                                    <select value={ewbTransMode} onChange={e => setEwbTransMode(e.target.value)}
+                                        className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-blue bg-white">
+                                        <option value="1">Road</option>
+                                        <option value="2">Rail</option>
+                                        <option value="3">Air</option>
+                                        <option value="4">Ship</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Distance (km) <span className="text-gray-400 font-normal normal-case">(0 = auto)</span></label>
+                                    <input type="number" min="0" max="4000" value={ewbDistance} onChange={e => setEwbDistance(e.target.value)}
+                                        placeholder="0"
+                                        className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-blue" />
+                                </div>
                             </div>
-                            <div>
-                                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Distance (km)</label>
-                                <input type="number" min="0" value={ewbDistance} onChange={e => setEwbDistance(e.target.value)}
-                                    placeholder="0"
-                                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-blue" />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Vehicle Number</label>
-                                <input value={ewbVehNo} onChange={e => setEwbVehNo(e.target.value.toUpperCase())}
-                                    placeholder="UP16XX1234"
-                                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-blue" />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Transporter GSTIN (optional)</label>
-                                <input value={ewbTransId} onChange={e => setEwbTransId(e.target.value.toUpperCase())}
-                                    placeholder="15-char GSTIN"
-                                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-blue" />
+
+                            {/* Row 2: Road fields — Vehicle No + Vehicle Type */}
+                            {ewbTransMode === '1' && (
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Vehicle Number <span className="text-red-400">*</span></label>
+                                        <input value={ewbVehNo} onChange={e => setEwbVehNo(e.target.value.toUpperCase())}
+                                            placeholder="UP16XX1234"
+                                            className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-blue" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Vehicle Type <span className="text-red-400">*</span></label>
+                                        <select value={ewbVehType} onChange={e => setEwbVehType(e.target.value)}
+                                            className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-blue bg-white">
+                                            <option value="R">Regular</option>
+                                            <option value="O">Over Dimensional Cargo (ODC)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Rail/Air/Ship fields — Transporter Doc No + Date */}
+                            {ewbTransMode !== '1' && (
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Transporter Doc No <span className="text-red-400">*</span></label>
+                                        <input value={ewbTransDocNo} onChange={e => setEwbTransDocNo(e.target.value)}
+                                            placeholder="e.g. AWB/RR/BL number"
+                                            className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-blue" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Transporter Doc Date <span className="text-red-400">*</span></label>
+                                        <input type="date" value={ewbTransDocDate} onChange={e => setEwbTransDocDate(e.target.value)}
+                                            className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-blue" />
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Row 3: Transporter Name + GSTIN (both optional) */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Transporter Name <span className="text-gray-400 font-normal normal-case">(optional)</span></label>
+                                    <input value={ewbTransName} onChange={e => setEwbTransName(e.target.value)}
+                                        placeholder="e.g. Blue Dart, DTDC"
+                                        className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-blue" />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Transporter GSTIN <span className="text-gray-400 font-normal normal-case">(optional)</span></label>
+                                    <input value={ewbTransId} onChange={e => setEwbTransId(e.target.value.toUpperCase())}
+                                        placeholder="15-char GSTIN"
+                                        className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-blue" />
+                                </div>
                             </div>
                         </div>
                     )}

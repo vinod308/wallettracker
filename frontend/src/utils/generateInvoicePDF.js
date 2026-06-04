@@ -172,18 +172,6 @@ export function generateInvoicePDF(invoice, client) {
     sf('normal', 7.5, 0);
     tx(invDate, ML + 13, y + 19);
 
-    if (invoice.ewbNo) {
-        sf('normal', 7.5, 60);
-        tx('E-Way Bill No.', ML, y + 25);  tx(':', ML + 25, y + 25);
-        sf('normal', 7.5, 0);
-        tx(invoice.ewbNo, ML + 28, y + 25);
-        if (invoice.ewbValidUpto) {
-            sf('normal', 6.5, 100);
-            tx(`Valid till: ${invoice.ewbValidUpto}`, ML + 28, y + 29.5);
-        }
-        y += 10;
-    }
-
     y += QR + 4;
 
     // ════════════════════════════════════════════════════════════════
@@ -269,6 +257,58 @@ export function generateInvoicePDF(invoice, client) {
     tx('State Name      : ' + (client.state || '') + ', Code : ' + (client.stateCode || ''), ML + 2, bY2);
 
     y = tableY + RIGHT_TOTAL + 2;
+
+    // ════════════════════════════════════════════════════════════════
+    // 4a. E-WAY BILL DETAILS (only if EWB was generated)
+    // ════════════════════════════════════════════════════════════════
+    if (invoice.ewbNo) {
+        const fmtDateTime = (str) => {
+            if (!str) return '-';
+            try {
+                const d = new Date(str);
+                if (isNaN(d.getTime())) return String(str);
+                const day = String(d.getDate()).padStart(2, '0');
+                const mon = d.toLocaleString('en-IN', { month: 'short' });
+                const yr  = String(d.getFullYear()).slice(2);
+                const hh  = String(d.getHours()).padStart(2, '0');
+                const mm  = String(d.getMinutes()).padStart(2, '0');
+                return `${day}-${mon}-${yr} ${hh}:${mm}`;
+            } catch { return String(str); }
+        };
+
+        const EWB_HDR_H  = 6;
+        const EWB_DATA_H = 9;
+        const EWB_TOTAL  = EWB_HDR_H + EWB_DATA_H;
+        const c1W = 70, c2W = 60, c3W = CW - c1W - c2W; // 70 + 60 + 60 = 190
+
+        // Header row — light gray fill
+        doc.setFillColor(240, 240, 240);
+        doc.rect(ML, y, CW, EWB_HDR_H, 'F');
+        drect(ML, y, CW, EWB_HDR_H);
+        sf('bold', 8, 0);
+        tx('e-Way Bill Details', ML + 2, y + 4.2);
+
+        // Data row border + column dividers
+        drect(ML, y + EWB_HDR_H, CW, EWB_DATA_H);
+        dline(ML + c1W,       y + EWB_HDR_H, ML + c1W,       y + EWB_TOTAL);
+        dline(ML + c1W + c2W, y + EWB_HDR_H, ML + c1W + c2W, y + EWB_TOTAL);
+
+        const dY = y + EWB_HDR_H + 6;
+
+        // Col 1 — E-Way Bill No.
+        sf('normal', 6.5, 80);  tx('E-Way Bill No.', ML + 2, dY);
+        sf('bold',   8,   0);   tx(':  ' + invoice.ewbNo, ML + 27, dY);
+
+        // Col 2 — Valid Upto
+        sf('normal', 6.5, 80);  tx('Valid Upto', ML + c1W + 2, dY);
+        sf('bold',   8,   0);   tx(':  ' + fmtDateTime(invoice.ewbValidUpto), ML + c1W + 20, dY);
+
+        // Col 3 — Generated Date
+        sf('normal', 6.5, 80);  tx('Generated Date', ML + c1W + c2W + 2, dY);
+        sf('bold',   8,   0);   tx(':  ' + fmtDateTime(invoice.ewbDate), ML + c1W + c2W + 27, dY);
+
+        y += EWB_TOTAL + 2;
+    }
 
     // ════════════════════════════════════════════════════════════════
     // 4. LINE ITEMS TABLE

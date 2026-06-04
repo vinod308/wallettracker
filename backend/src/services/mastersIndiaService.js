@@ -131,9 +131,9 @@ class MastersIndiaService {
      * @param {Object} invoiceData  Fields from the "Generate GST Invoice" form
      * @returns {{ irn, ack_no, ack_date, signed_qr, pdf_url, qr_url }}
      */
-    async generateIRN(invoiceData) {
-        const payload = this._buildPayload(invoiceData);
-        logger.info(`Generating IRN via Masters India for invoice: ${invoiceData.invoiceNumber}`);
+    async generateIRN(invoiceData, ewbData = null) {
+        const payload = this._buildPayload(invoiceData, ewbData);
+        logger.info(`Generating IRN via Masters India for invoice: ${invoiceData.invoiceNumber}${ewbData ? ' (with EWB)' : ''}`);
 
         const results = await this._request('POST', '/einvoice/', payload);
         const msg     = results.message;
@@ -142,7 +142,7 @@ class MastersIndiaService {
             throw new Error(`IRN generation failed: ${results.errorMessage || JSON.stringify(msg)}`);
         }
 
-        return {
+        const irnResult = {
             irn:        msg.Irn        || msg.irn,
             ack_no:     msg.AckNo      || msg.ack_no    || null,
             ack_date:   msg.AckDt      || msg.ack_date  || null,
@@ -150,6 +150,16 @@ class MastersIndiaService {
             pdf_url:    msg.EinvoicePdf || null,
             qr_url:     msg.QRCodeUrl   || null,
         };
+
+        // EWB returned in same response when ewaybill_details included in payload
+        if (msg.EwbNo || msg.ewb_no) {
+            irnResult.ewb_no         = String(msg.EwbNo      || msg.ewb_no);
+            irnResult.ewb_date       = msg.EwbDt             || msg.ewb_date       || null;
+            irnResult.ewb_valid_upto = msg.EwbValidTill      || msg.ewb_valid_upto || null;
+            logger.info(`EWB generated alongside IRN: ${irnResult.ewb_no}`);
+        }
+
+        return irnResult;
     }
 
     // ─── Generate E-Way Bill from IRN ─────────────────────────────────────────
@@ -167,16 +177,18 @@ class MastersIndiaService {
         const isSandbox = config.MI_ENV !== 'production';
         const userGstin = isSandbox ? '05AAAPG7885R002' : config.GST_GSTIN;
 
-        const results = await this._request('POST', '/generate-eway-bill-from-irn/', {
-            user_gstin:      userGstin,
+        const results = await this._request('POST', '/gen-ewb-by-irn/', {
+            user_gstin:                  userGstin,
             irn,
-            distance:        parseInt(ewbData.distance) || 0,
-            trans_mode:      ewbData.transMode      || '1',
-            transporter_id:  ewbData.transporterId  || '',
-            veh_no:          ewbData.vehNo           || '',
-            veh_type:        ewbData.vehType         || 'R',
-            trans_doc_no:    ewbData.transDocNo      || '',
-            trans_doc_date:  ewbData.transDocDate    || '',
+            data_source:                 'erp',
+            distance:                    parseInt(ewbData.distance) || 0,
+            transportation_mode:         ewbData.transMode          || '1',
+            transporter_id:              ewbData.transporterId      || '',
+            transporter_name:            ewbData.transporterName    || '',
+            vehicle_number:              ewbData.vehNo              || '',
+            vehicle_type:                ewbData.vehType            || 'R',
+            transporter_document_number: ewbData.transDocNo         || '',
+            transporter_document_date:   ewbData.transDocDate       || '',
         });
 
         const msg = results.message;
@@ -272,7 +284,7 @@ class MastersIndiaService {
 
     // ─── Build API payload (Masters India format) ──────────────────────────────
 
-    _buildPayload(d) {
+    _buildPayload(d, ewbData = null) {
         this._validateConfig();
 
         // Date format: YYYY-MM-DD → DD/MM/YYYY
@@ -300,8 +312,11 @@ class MastersIndiaService {
         const sellerPin = isSandbox ? 248001 : safePin(d.sellerPin);
         const buyerPin  = isSandbox ? 201301 : safePin(d.buyerPin);
 
-        // Service SAC codes must be 6 digits starting with 99 (e.g. 998361 = IT services).
-        const safeHsn = (raw) => /^99\d{4}$/.test(String(raw || '').trim()) ? String(raw).trim() : '998361';
+        // Accept any valid 4–8 digit HSN/SAC code; default to 998361 (IT services SAC).
+        const safeHsn = (raw) => /^\d{4,8}$/.test(String(raw || '').trim()) ? String(raw).trim() : '998361';
+        const resolvedHsn = safeHsn(d.hsnCode);
+        // 'Y' for service SAC codes (99xxxx), 'N' for goods HSN codes
+        const isService = /^99\d{4}$/.test(resolvedHsn) ? 'Y' : 'N';
 
         // Tax split: same state = CGST+SGST; different state = IGST
         const sameState = sellerStateCode === buyerStateCode;
@@ -382,8 +397,8 @@ class MastersIndiaService {
             item_list: [{
                 item_serial_number:    '1',
                 product_description:   d.description     || 'Digital Marketing Services',
-                is_service:            'Y',
-                hsn_code:              safeHsn(d.hsnCode),
+                is_service:            isService,
+                hsn_code:              resolvedHsn,
                 quantity:              1,
                 free_quantity:         0,
                 unit:                  'NOS',
@@ -405,6 +420,21 @@ class MastersIndiaService {
                 state_cess_nonadvol_amount: 0,
                 total_item_value:      totalAmt,
             }],
+
+            // Include EWB details in IRN payload so both are generated in one API call.
+            // This avoids error 4013 ("distance too high/low") from the separate /gen-ewb-by-irn/ endpoint.
+            ...(ewbData ? {
+                ewaybill_details: {
+                    distance:                    parseInt(ewbData.distance) || 0,
+                    transportation_mode:         ewbData.transMode          || '1',
+                    transporter_id:              ewbData.transporterId      || '',
+                    transporter_name:            ewbData.transporterName    || '',
+                    vehicle_number:              ewbData.vehNo              || '',
+                    vehicle_type:                ewbData.vehType            || 'R',
+                    transporter_document_number: ewbData.transDocNo         || '',
+                    transporter_document_date:   ewbData.transDocDate       || '',
+                },
+            } : {}),
         };
     }
 

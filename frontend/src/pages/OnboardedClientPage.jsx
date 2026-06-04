@@ -4,6 +4,7 @@ import MainLayout from '../components/layout/MainLayout';
 import ClientOnboardingModal from '../components/clients/ClientOnboardingModal';
 import GenerateInvoiceModal from '../components/clients/GenerateInvoiceModal';
 import { generateInvoicePDF, downloadInvoicePDF, openInvoicePDFInTab } from '../utils/generateInvoicePDF';
+import { downloadEWBPDF } from '../utils/generateEWBPDF';
 import api from '../services/api';
 
 // ── Small helpers ─────────────────────────────────────────────────────────
@@ -378,12 +379,21 @@ const OnboardedClientPage = () => {
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                                         </svg>
                                                     </button>
-                                                    <button onClick={() => downloadInvoicePDF(inv, client)} title="Download PDF"
+                                                    <button onClick={() => downloadInvoicePDF(inv, client)} title="Download Invoice PDF"
                                                         className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors">
                                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                                                         </svg>
                                                     </button>
+                                                    {(inv.ewbNo || inv.ewb_no) && (
+                                                        <button
+                                                            onClick={() => downloadEWBPDF(inv, client)}
+                                                            title="Download E-Way Bill PDF"
+                                                            className="px-2 py-1 text-xs font-semibold text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
+                                                        >
+                                                            EWB
+                                                        </button>
+                                                    )}
                                                     {isPaid ? (
                                                         <button onClick={() => markAsUnpaid(inv)} title="Mark as Unpaid"
                                                             className="p-1.5 text-green-600 hover:text-orange-500 hover:bg-orange-50 rounded-lg transition-colors">
