@@ -159,6 +159,17 @@ class ClientService {
             if (updates.estimatedTotalBudget !== undefined)
                 dbUpdates.estimated_total_budget = updates.estimatedTotalBudget;
             if (updates.status) dbUpdates.status = updates.status;
+            if (updates.gstNumber !== undefined) dbUpdates.gst_number = updates.gstNumber;
+            if (updates.address !== undefined) dbUpdates.address = updates.address;
+            if (updates.state !== undefined) dbUpdates.state = updates.state;
+            if (updates.stateCode !== undefined) dbUpdates.state_code = updates.stateCode;
+            if (updates.bankName !== undefined) dbUpdates.bank_name = updates.bankName;
+            if (updates.accountNumber !== undefined) dbUpdates.account_number = updates.accountNumber;
+            if (updates.ifscCode !== undefined) dbUpdates.ifsc_code = updates.ifscCode;
+            if (updates.contactPerson !== undefined) dbUpdates.contact_person = updates.contactPerson;
+            if (updates.contactEmail !== undefined) dbUpdates.contact_email = updates.contactEmail;
+            if (updates.mobileNumber !== undefined) dbUpdates.mobile_number = updates.mobileNumber;
+            if (updates.altContactEmail !== undefined) dbUpdates.alt_contact_email = updates.altContactEmail;
 
             const updatedClient = await clientRepository.update(id, dbUpdates);
 
@@ -376,16 +387,74 @@ class ClientService {
         try {
             const pool = require('../config/database');
             const { rows: existing } = await pool.query(
-                `SELECT id, client_name, client_type, status FROM clients
-                 WHERE LOWER(client_name) = LOWER($1) AND deleted_at IS NULL LIMIT 1`,
+                `SELECT id FROM clients WHERE LOWER(client_name) = LOWER($1) AND deleted_at IS NULL LIMIT 1`,
                 [clientData.clientName]
             );
-            if (existing.length > 0) return existing[0];
 
-            const { rows } = await pool.query(
-                `INSERT INTO clients (project_name, client_name, client_type, status, created_by)
-                 VALUES ($1, $2, $3, 'Active', $4) RETURNING id, client_name, client_type, status`,
-                [clientData.clientName, clientData.clientName, clientData.clientType, userId]
+            if (existing.length > 0) {
+                const id = existing[0].id;
+                await pool.query(`
+                    UPDATE clients SET
+                        gst_number        = COALESCE($1,  gst_number),
+                        address           = COALESCE($2,  address),
+                        state             = COALESCE($3,  state),
+                        state_code        = COALESCE($4,  state_code),
+                        bank_name         = COALESCE($5,  bank_name),
+                        account_number    = COALESCE($6,  account_number),
+                        ifsc_code         = COALESCE($7,  ifsc_code),
+                        contact_person    = COALESCE($8,  contact_person),
+                        contact_email     = COALESCE($9,  contact_email),
+                        mobile_number     = COALESCE($10, mobile_number),
+                        alt_contact_email = COALESCE($11, alt_contact_email),
+                        client_type       = COALESCE($12, client_type),
+                        updated_at        = NOW()
+                    WHERE id = $13`,
+                    [
+                        clientData.gstNumber    || null,
+                        clientData.address      || null,
+                        clientData.state        || null,
+                        clientData.stateCode    || null,
+                        clientData.bankName     || null,
+                        clientData.accountNumber || null,
+                        clientData.ifscCode     || null,
+                        clientData.contactPerson || null,
+                        clientData.contactEmail || null,
+                        clientData.mobileNumber || null,
+                        clientData.altContactEmail || null,
+                        clientData.clientType   || null,
+                        id,
+                    ]
+                );
+                const { rows } = await pool.query('SELECT * FROM clients WHERE id = $1', [id]);
+                logger.info(`Client updated via onboard: ${clientData.clientName}`);
+                return rows[0];
+            }
+
+            const { rows } = await pool.query(`
+                INSERT INTO clients (
+                    project_name, client_name, client_type, status, created_by,
+                    gst_number, address, state, state_code,
+                    bank_name, account_number, ifsc_code,
+                    contact_person, contact_email, mobile_number, alt_contact_email
+                ) VALUES ($1,$2,$3,'Active',$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
+                RETURNING *`,
+                [
+                    clientData.clientName,
+                    clientData.clientName,
+                    clientData.clientType || 'Retainer',
+                    userId,
+                    clientData.gstNumber    || null,
+                    clientData.address      || null,
+                    clientData.state        || null,
+                    clientData.stateCode    || null,
+                    clientData.bankName     || null,
+                    clientData.accountNumber || null,
+                    clientData.ifscCode     || null,
+                    clientData.contactPerson || null,
+                    clientData.contactEmail || null,
+                    clientData.mobileNumber || null,
+                    clientData.altContactEmail || null,
+                ]
             );
             logger.info(`Client onboarded: ${clientData.clientName} by user ${userId}`);
             return rows[0];

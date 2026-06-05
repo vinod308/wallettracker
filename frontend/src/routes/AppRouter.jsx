@@ -4,7 +4,12 @@
  */
 
 import React, { lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, Link, useParams } from 'react-router-dom';
+
+const ClientLegacyRedirect = () => {
+    const { id } = useParams();
+    return <Navigate to={`/clients/onboarded/${id}`} replace />;
+};
 import { useAuth } from '../hooks/useAuth';
 
 // Auth Pages (eagerly loaded — needed immediately)
@@ -110,7 +115,7 @@ const AppRouter = () => {
             path="/client/:id"
             element={
               <ProtectedRoute>
-                <ClientDetailPage />
+                <ClientLegacyRedirect />
               </ProtectedRoute>
             }
           />

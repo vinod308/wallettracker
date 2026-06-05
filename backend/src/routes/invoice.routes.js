@@ -10,6 +10,93 @@ const logger             = require('../utils/logger');
 // All routes require login
 router.use(authenticate);
 
+// ─── Custom Invoice CRUD ───────────────────────────────────────────────────────
+
+/** GET /api/invoices?clientId=:id  — list invoices for a client */
+router.get('/', async (req, res) => {
+    try {
+        const { clientId } = req.query;
+        if (!clientId) return res.status(400).json({ success: false, message: 'clientId is required' });
+        const { rows } = await pool.query(
+            `SELECT * FROM invoices WHERE client_id = $1 ORDER BY invoice_date DESC`,
+            [parseInt(clientId)]
+        );
+        res.json({ success: true, data: rows });
+    } catch (e) {
+        logger.error(`Get invoices: ${e.message}`);
+        res.status(500).json({ success: false, message: e.message });
+    }
+});
+
+/** POST /api/invoices  — create invoice, store full object in details */
+router.post('/', async (req, res) => {
+    try {
+        const inv = req.body;
+        const clientId = parseInt(inv.clientId);
+        if (!clientId || !inv.invoiceNumber) {
+            return res.status(400).json({ success: false, message: 'clientId and invoiceNumber are required' });
+        }
+        const invoiceDate = inv.invoiceDate || new Date().toISOString().split('T')[0];
+        const d = new Date(invoiceDate);
+        const invoiceMonth = d.toLocaleString('en-IN', { month: 'long', year: 'numeric' });
+        const { rows } = await pool.query(`
+            INSERT INTO invoices
+              (client_id, invoice_number, invoice_date, invoice_month,
+               services_description, service_mrr, addons_mrr, total_mrr,
+               payment_status, status, details)
+            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+            ON CONFLICT (invoice_number) DO UPDATE SET
+              details = EXCLUDED.details, status = EXCLUDED.status,
+              payment_status = EXCLUDED.payment_status, updated_at = NOW()
+            RETURNING *`,
+            [
+                clientId, inv.invoiceNumber, invoiceDate, invoiceMonth,
+                JSON.stringify(inv.lines || []),
+                inv.subtotal || 0,
+                (inv.cgst || 0) + (inv.sgst || 0) + (inv.igst || 0),
+                inv.total || 0,
+                inv.status === 'Paid' ? 'Paid' : 'Unpaid',
+                inv.status || 'Generated',
+                JSON.stringify(inv),
+            ]
+        );
+        res.json({ success: true, data: rows[0] });
+    } catch (e) {
+        logger.error(`Create invoice: ${e.message}`);
+        res.status(500).json({ success: false, message: e.message });
+    }
+});
+
+/** PATCH /api/invoices/:id  — update status / mark paid */
+router.patch('/:id', async (req, res) => {
+    try {
+        const { status, paidAt } = req.body;
+        const paymentStatus = status === 'Paid' ? 'Paid' : status === 'Overdue' ? 'Overdue' : 'Unpaid';
+        const { rows } = await pool.query(`
+            UPDATE invoices SET status=$1, payment_status=$2,
+              details = details || $3::jsonb, updated_at=NOW()
+            WHERE id=$4 RETURNING *`,
+            [status, paymentStatus, JSON.stringify({ status, paidAt: paidAt || null }), req.params.id]
+        );
+        if (!rows[0]) return res.status(404).json({ success: false, message: 'Invoice not found' });
+        res.json({ success: true, data: rows[0] });
+    } catch (e) {
+        logger.error(`Update invoice: ${e.message}`);
+        res.status(500).json({ success: false, message: e.message });
+    }
+});
+
+/** DELETE /api/invoices/:id  — delete invoice */
+router.delete('/:id', async (req, res) => {
+    try {
+        await pool.query('DELETE FROM invoices WHERE id=$1', [req.params.id]);
+        res.json({ success: true, message: 'Invoice deleted' });
+    } catch (e) {
+        logger.error(`Delete invoice: ${e.message}`);
+        res.status(500).json({ success: false, message: e.message });
+    }
+});
+
 // ─── Existing email routes ─────────────────────────────────────────────────────
 
 router.post('/send-reminder', async (req, res) => {

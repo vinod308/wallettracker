@@ -81,10 +81,15 @@ const GenerateInvoiceModal = ({ isOpen, onClose, client, onInvoiceSaved }) => {
         createdAt:    new Date().toISOString(),
     });
 
-    const saveToLocalStorage = (inv) => {
-        const existing = JSON.parse(localStorage.getItem('gw_invoices') || '[]');
-        existing.push(inv);
-        localStorage.setItem('gw_invoices', JSON.stringify(existing));
+    const saveInvoice = async (inv) => {
+        try {
+            await api.post('/invoices', inv);
+        } catch (e) {
+            // Fallback to localStorage if API fails
+            const existing = JSON.parse(localStorage.getItem('gw_invoices') || '[]');
+            existing.push(inv);
+            localStorage.setItem('gw_invoices', JSON.stringify(existing));
+        }
     };
 
     const handleGenerate = async () => {
@@ -170,7 +175,7 @@ const GenerateInvoiceModal = ({ isOpen, onClose, client, onInvoiceSaved }) => {
                 setIrnError(msg);
             }
 
-            saveToLocalStorage(inv);
+            await saveInvoice(inv);
 
             // Generate PDF with IRN/QR if available
             const doc = generateInvoicePDF(inv, client);

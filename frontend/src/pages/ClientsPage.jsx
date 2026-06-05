@@ -18,8 +18,9 @@ const STATUS_COLORS = {
 
 const fmt = (n) => `₹${Number((n || 0).toFixed(0)).toLocaleString('en-IN')}`;
 
-const mapApiClient = (c) => ({
-    id: c.id,
+const mapApiClient = (c, localMatch) => ({
+    id: String(c.id),
+    _dbId: c.id,
     clientName: c.client_name,
     projectName: c.project_name,
     clientType: c.client_type,
@@ -27,11 +28,22 @@ const mapApiClient = (c) => ({
     status: c.status,
     totalMrr: parseFloat(c.total_mrr || 0),
     serviceCount: parseInt(c.service_count || 0),
+    gstNumber:       c.gst_number       || localMatch?.gstNumber       || '',
+    address:         c.address          || localMatch?.address          || '',
+    state:           c.state            || localMatch?.state            || '',
+    stateCode:       c.state_code       || localMatch?.stateCode        || '',
+    bankName:        c.bank_name        || localMatch?.bankName         || '',
+    accountNumber:   c.account_number   || localMatch?.accountNumber    || '',
+    ifscCode:        c.ifsc_code        || localMatch?.ifscCode         || '',
+    contactPerson:   c.contact_person   || localMatch?.contactPerson    || '',
+    contactEmail:    c.contact_email    || localMatch?.contactEmail     || '',
+    mobileNumber:    c.mobile_number    || localMatch?.mobileNumber     || '',
+    altContactEmail: c.alt_contact_email || localMatch?.altContactEmail || '',
+    onboardedAt:     localMatch?.onboardedAt || c.created_at || '',
     _source: 'api',
 });
 
-const clientDetailPath = (c) =>
-    c._source === 'api' ? `/client/${c.id}` : `/clients/onboarded/${c.id}`;
+const clientDetailPath = (c) => `/clients/onboarded/${c._dbId || c.id}`;
 
 const ClientsPage = () => {
     const navigate = useNavigate();
@@ -47,33 +59,28 @@ const ClientsPage = () => {
             const res = await api.get('/clients');
             const local = JSON.parse(localStorage.getItem('gw_onboarded_clients') || '[]');
 
-            // Build name → local client lookup for merging
             const localByName = {};
             local.forEach(c => { localByName[(c.clientName || '').toLowerCase()] = c; });
 
-            // For each API client, prefer the local ID+data if a name match exists
-            // (so the OnboardedClientPage can find it and show invoices)
-            const apiClients = (res.data?.data?.clients || []).map(c => {
-                const localMatch = localByName[(c.client_name || '').toLowerCase()];
-                if (localMatch) {
-                    return { ...mapApiClient(c), id: localMatch.id, _source: 'local' };
-                }
-                return mapApiClient(c);
-            });
-            const apiNames = new Set((res.data?.data?.clients || []).map(c => c.client_name?.toLowerCase()));
+            let apiClientRaw = res.data?.data?.clients || [];
+            const apiNames = new Set(apiClientRaw.map(c => c.client_name?.toLowerCase()));
 
-            // Auto-migrate: push localStorage-only clients to DB
+            // Migrate localStorage-only clients to DB synchronously so we get numeric IDs
             const localOnly = local.filter(c => !apiNames.has((c.clientName || '').toLowerCase()));
             if (localOnly.length > 0) {
-                localOnly.forEach(c => {
-                    api.post('/clients/onboard', { clientName: c.clientName, clientType: c.clientType || 'Retainer' })
-                        .catch(() => {});
-                });
+                await Promise.all(localOnly.map(c => api.post('/clients/onboard', c).catch(() => {})));
+                // Re-fetch to get the newly created DB records with numeric IDs
+                const res2 = await api.get('/clients');
+                apiClientRaw = res2.data?.data?.clients || [];
             }
 
-            const all = [...apiClients, ...localOnly];
-            setClients(all);
-            localStorage.setItem('gw_all_clients', JSON.stringify(all));
+            const apiClients = apiClientRaw.map(c => {
+                const localMatch = localByName[(c.client_name || '').toLowerCase()];
+                return mapApiClient(c, localMatch);
+            });
+
+            setClients(apiClients);
+            localStorage.setItem('gw_all_clients', JSON.stringify(apiClients));
         } catch {
             const raw = JSON.parse(localStorage.getItem('gw_onboarded_clients') || '[]');
             const migrated = raw.map((c, i) => c.id ? c : { ...c, id: `oc_legacy_${i}_${Date.now()}` });

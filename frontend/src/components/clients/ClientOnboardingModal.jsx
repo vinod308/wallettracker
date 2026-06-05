@@ -104,26 +104,38 @@ const ClientOnboardingModal = ({ isOpen, onClose, onClientAdded, editClient }) =
     const handleSubmit = async () => {
         setLoading(true);
         try {
-            const client = {
+            const api = (await import('../../services/api')).default;
+            const payload = {
                 ...form,
-                gstNumber:   form.gstNumber.trim().toUpperCase(),
-                ifscCode:    form.ifscCode.trim().toUpperCase(),
-                id:          editClient?.id || `oc_${Date.now()}`,
+                gstNumber: form.gstNumber.trim().toUpperCase(),
+                ifscCode:  form.ifscCode.trim().toUpperCase(),
+            };
+
+            let savedId = editClient?.id || `oc_${Date.now()}`;
+
+            if (editClient && /^\d+$/.test(String(editClient.id))) {
+                // Editing a DB-backed client — use PUT
+                await api.put(`/clients/${editClient.id}`, payload);
+            } else {
+                // New client or legacy local client — use onboard (upsert)
+                const res = await api.post('/clients/onboard', payload);
+                const dbId = res.data?.data?.client?.id;
+                if (dbId) savedId = String(dbId);
+            }
+
+            const client = {
+                ...payload,
+                id:          savedId,
                 onboardedAt: editClient?.onboardedAt || new Date().toISOString(),
                 updatedAt:   new Date().toISOString(),
             };
 
+            // Keep localStorage as a local cache
             const existing = JSON.parse(localStorage.getItem('gw_onboarded_clients') || '[]');
             const updated = editClient
-                ? existing.map(c => c.id === editClient.id ? client : c)
+                ? existing.map(c => String(c.id) === String(editClient.id) ? client : c)
                 : [...existing, client];
             localStorage.setItem('gw_onboarded_clients', JSON.stringify(updated));
-
-            // Attempt backend save (non-blocking)
-            try {
-                const api = (await import('../../services/api')).default;
-                await api.post('/clients/onboard', client);
-            } catch { /* backend not ready yet */ }
 
             onClientAdded?.();
             setDone(true);

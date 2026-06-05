@@ -256,14 +256,21 @@ class ClientController {
      */
     async onboardClient(req, res, next) {
         try {
-            const { clientName, clientType = 'Retainer' } = req.body;
+            const {
+                clientName, clientType = 'Retainer',
+                gstNumber, address, state, stateCode,
+                bankName, accountNumber, ifscCode,
+                contactPerson, contactEmail, mobileNumber, altContactEmail,
+            } = req.body;
             if (!clientName || clientName.trim().length < 2) {
                 return res.status(400).json(errorResponse('clientName is required'));
             }
-            const client = await clientService.onboardClient(
-                { clientName: clientName.trim(), clientType },
-                req.user.id
-            );
+            const client = await clientService.onboardClient({
+                clientName: clientName.trim(), clientType,
+                gstNumber, address, state, stateCode,
+                bankName, accountNumber, ifscCode,
+                contactPerson, contactEmail, mobileNumber, altContactEmail,
+            }, req.user.id);
             return res.status(201).json(successResponse('Client onboarded', { client }));
         } catch (error) {
             logger.error('Error in onboardClient:', error);

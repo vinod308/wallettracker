@@ -58,26 +58,117 @@ const OnboardedClientPage = () => {
     const [reminderStatus,     setReminderStatus]     = useState({}); // { `${invNum}-${days}`: 'sent'|'failed' }
     const [paymentConfirm,     setPaymentConfirm]     = useState(null); // invoice to mark as paid
 
-    const loadClient = useCallback(() => {
-        const clients = JSON.parse(localStorage.getItem('gw_onboarded_clients') || '[]');
-        setClient(clients.find(c => c.id === clientId) || null);
+    const loadClient = useCallback(async () => {
+        const isDbId = /^\d+$/.test(String(clientId));
+        if (isDbId) {
+            try {
+                const res = await api.get(`/clients/${clientId}`);
+                const c = res.data?.data?.client || res.data?.data;
+                if (c && c.client_name) {
+                    setClient({
+                        id:              String(c.id),
+                        clientName:      c.client_name,
+                        projectName:     c.project_name,
+                        clientType:      c.client_type,
+                        status:          c.status,
+                        gstNumber:       c.gst_number       || '',
+                        address:         c.address          || '',
+                        state:           c.state            || '',
+                        stateCode:       c.state_code       || '',
+                        bankName:        c.bank_name        || '',
+                        accountNumber:   c.account_number   || '',
+                        ifscCode:        c.ifsc_code        || '',
+                        contactPerson:   c.contact_person   || '',
+                        contactEmail:    c.contact_email    || '',
+                        mobileNumber:    c.mobile_number    || '',
+                        altContactEmail: c.alt_contact_email || '',
+                        onboardedAt:     c.created_at       || '',
+                    });
+                    return;
+                }
+            } catch { /* fall through to localStorage */ }
+        }
+        // Fallback: localStorage (legacy oc_ IDs or API unreachable)
+        const all = JSON.parse(localStorage.getItem('gw_all_clients') || '[]');
+        let found = all.find(c => String(c.id) === String(clientId)) || null;
+        if (!found) {
+            const local = JSON.parse(localStorage.getItem('gw_onboarded_clients') || '[]');
+            found = local.find(c => String(c.id) === String(clientId)) || null;
+        }
+        setClient(found);
     }, [clientId]);
 
-    const loadInvoices = useCallback(() => {
-        const all = JSON.parse(localStorage.getItem('gw_invoices') || '[]');
-        // Migrate legacy "Draft" invoices to "Generated"
-        const migrated = all.map(inv => inv.status === 'Draft' ? { ...inv, status: 'Generated' } : inv);
-        if (migrated.some((inv, i) => inv.status !== all[i].status)) {
-            localStorage.setItem('gw_invoices', JSON.stringify(migrated));
+    const loadInvoices = useCallback(async () => {
+        try {
+            const res = await api.get(`/invoices?clientId=${clientId}`);
+            let apiInvoices = (res.data?.data || []).map(row => ({
+                ...(row.details || {}),
+                id:            row.id,
+                invoiceNumber: row.invoice_number,
+                invoiceDate:   row.invoice_date,
+                total:         parseFloat(row.total_mrr) || 0,
+                status:        row.status || row.payment_status || 'Generated',
+                clientId:      String(row.client_id),
+                _dbId:         row.id,
+            }));
+
+            // One-time migration: if API has no invoices but localStorage does, push them up
+            if (apiInvoices.length === 0) {
+                const local = JSON.parse(localStorage.getItem('gw_invoices') || '[]');
+                let mine = local.filter(inv => String(inv.clientId) === String(clientId));
+
+                // For numeric DB IDs, also look for invoices stored under an old oc_ ID
+                if (mine.length === 0 && /^\d+$/.test(String(clientId))) {
+                    const localClients = JSON.parse(localStorage.getItem('gw_onboarded_clients') || '[]');
+                    const allCached    = JSON.parse(localStorage.getItem('gw_all_clients') || '[]');
+                    const dbEntry = allCached.find(c => String(c._dbId || c.id) === String(clientId));
+                    if (dbEntry?.clientName) {
+                        const oldEntry = localClients.find(lc =>
+                            (lc.clientName || '').toLowerCase() === (dbEntry.clientName || '').toLowerCase()
+                            && String(lc.id).startsWith('oc_')
+                        );
+                        if (oldEntry) {
+                            mine = local.filter(inv => String(inv.clientId) === String(oldEntry.id));
+                        }
+                    }
+                }
+
+                if (mine.length > 0) {
+                    await Promise.all(mine.map(inv =>
+                        api.post('/invoices', { ...inv, clientId: String(clientId) }).catch(() => {})
+                    ));
+                    // Re-fetch after migration
+                    const res2 = await api.get(`/invoices?clientId=${clientId}`);
+                    apiInvoices = (res2.data?.data || []).map(row => ({
+                        ...(row.details || {}),
+                        id:            row.id,
+                        invoiceNumber: row.invoice_number,
+                        invoiceDate:   row.invoice_date,
+                        total:         parseFloat(row.total_mrr) || 0,
+                        status:        row.status || row.payment_status || 'Generated',
+                        clientId:      String(row.client_id),
+                        _dbId:         row.id,
+                    }));
+                }
+            }
+
+            setInvoices(apiInvoices);
+        } catch {
+            // Fallback: localStorage if API unreachable
+            const all = JSON.parse(localStorage.getItem('gw_invoices') || '[]');
+            const migrated = all.map(inv => inv.status === 'Draft' ? { ...inv, status: 'Generated' } : inv);
+            setInvoices(migrated.filter(inv => String(inv.clientId) === String(clientId)).reverse());
         }
-        setInvoices(migrated.filter(inv => inv.clientId === clientId).reverse());
     }, [clientId]);
 
     useEffect(() => { loadClient(); loadInvoices(); }, [loadClient, loadInvoices]);
 
-    const handleDelete = () => {
+    const handleDelete = async () => {
+        if (/^\d+$/.test(String(clientId))) {
+            try { await api.delete(`/clients/${clientId}`); } catch { /* continue */ }
+        }
         const clients = JSON.parse(localStorage.getItem('gw_onboarded_clients') || '[]');
-        localStorage.setItem('gw_onboarded_clients', JSON.stringify(clients.filter(c => c.id !== clientId)));
+        localStorage.setItem('gw_onboarded_clients', JSON.stringify(clients.filter(c => String(c.id) !== String(clientId))));
         navigate('/clients');
     };
 
@@ -107,26 +198,26 @@ const OnboardedClientPage = () => {
         }
     };
 
-    const markAsPaid = (inv) => {
-        const all = JSON.parse(localStorage.getItem('gw_invoices') || '[]');
-        localStorage.setItem('gw_invoices', JSON.stringify(
-            all.map(i => i.invoiceNumber === inv.invoiceNumber
-                ? { ...i, status: 'Paid', paidAt: new Date().toISOString() }
-                : i
-            )
-        ));
+    const markAsPaid = async (inv) => {
+        try {
+            if (inv._dbId) {
+                await api.patch(`/invoices/${inv._dbId}`, { status: 'Paid', paidAt: new Date().toISOString() });
+            }
+        } catch (e) {
+            console.error('Mark paid failed:', e.message);
+        }
         setPaymentConfirm(null);
         loadInvoices();
     };
 
-    const markAsUnpaid = (inv) => {
-        const all = JSON.parse(localStorage.getItem('gw_invoices') || '[]');
-        localStorage.setItem('gw_invoices', JSON.stringify(
-            all.map(i => i.invoiceNumber === inv.invoiceNumber
-                ? { ...i, status: 'Generated', paidAt: null }
-                : i
-            )
-        ));
+    const markAsUnpaid = async (inv) => {
+        try {
+            if (inv._dbId) {
+                await api.patch(`/invoices/${inv._dbId}`, { status: 'Generated', paidAt: null });
+            }
+        } catch (e) {
+            console.error('Mark unpaid failed:', e.message);
+        }
         loadInvoices();
     };
 

@@ -7,6 +7,7 @@
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
     "migrate": "node database/runMigrations.js",
+    "migrate:add-fields": "node database/addClientFields.js",
     "seed": "node database/runSeeds.js",
     "test": "jest --coverage"
   },
